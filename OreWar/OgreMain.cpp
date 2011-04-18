@@ -1,5 +1,6 @@
 #include <Ogre.h>
 #include <OIS.h>
+#include <math.h>
 #include "GameObjects.h"
  
 using namespace Ogre;
@@ -9,18 +10,50 @@ class KeyboardTestListener : public FrameListener
 public:
 	KeyboardTestListener(OIS::Keyboard *keyboard, SceneManager *mgr, Camera *cam)
         : m_Keyboard(keyboard), m_testObject(20), m_testNode(mgr->getRootSceneNode()->createChildSceneNode()),
-		m_cam(cam)
+		m_rotateNode(mgr->getRootSceneNode()->createChildSceneNode()), m_cam(cam), m_camHeight(0), m_camTilt(0), m_rotationFactor(0)
 	{
 		// Generate the keyboard testing entity and attach it to the listener's scene node
-		Ogre::Entity* testEntity = mgr->createEntity("KeyboardListenerTest", "ogrehead.mesh");
+		Ogre::Entity* testEntity = mgr->createEntity("KeyboardListenerTest", "RZR-002.mesh");
 		testEntity->setCastShadows(true);
 		m_testNode->attachObject(testEntity);
+		m_testNode->setScale(4, 4, 4);
+
+		// Add another ship and point light which will circle the keyboard entity
+		testEntity = mgr->createEntity("CirclingShip", "RZR-002.mesh");
+		testEntity->setCastShadows(true);
+		m_rotateNode->attachObject(testEntity);
+
+		Ogre::Light* pointLight = mgr->createLight("pointLightWhite");
+		pointLight->setType(Ogre::Light::LT_POINT);
+		pointLight->setPosition(Ogre::Vector3(0, 60, 0));
+		pointLight->setDiffuseColour(1.0, 1.0, 1.0);
+		pointLight->setSpecularColour(1.0, 1.0, 1.0);
+		m_rotateNode->attachObject(pointLight);
+		m_rotateNode->setScale(3, 3, 3);
     }
  
     bool frameStarted(const FrameEvent& evt)
     {
 		// Capture the keyboard input
         m_Keyboard->capture();
+
+		// Adjust or reset the camera modifiers
+		if(m_Keyboard->isKeyDown(OIS::KC_Z)) {
+			m_camHeight = 0;
+			m_camTilt = 0;
+		}
+		if(m_Keyboard->isKeyDown(OIS::KC_UP)) {
+			m_camHeight += 2;
+		}
+		if(m_Keyboard->isKeyDown(OIS::KC_DOWN)) {
+			m_camHeight -= 2;
+		}
+		if(m_Keyboard->isKeyDown(OIS::KC_RIGHT)) {
+			m_camTilt += 2;
+		}
+		if(m_Keyboard->isKeyDown(OIS::KC_LEFT)) {
+			m_camTilt -= 2;
+		}
 		
 		// Clear all existing forces, and add keyboard forces
 		m_testObject.clearForces();
@@ -40,11 +73,18 @@ public:
 		// Update the position of the physics object and move the scene node
 		m_testObject.updatePosition(evt.timeSinceLastFrame);
 		m_testNode->setPosition(m_testObject.getXPos(), 100, -m_testObject.getYPos());
-		m_testNode->lookAt( Vector3(0, 100, 0) , Node::TS_WORLD, Vector3::UNIT_Z );
+		m_testNode->setDirection(Vector3(m_testObject.getXVel(), 0, -m_testObject.getYVel()), 
+			Node::TS_WORLD, Vector3::UNIT_Z );
+
+		// Update the position of the circling ball
+		m_rotationFactor = (m_rotationFactor + 1) % 360;
+		m_rotateNode->setPosition(Vector3(m_testObject.getXPos() + (sin(m_rotationFactor * 3.14159265/180.0) * 300), 100,
+			-m_testObject.getYPos() + (cos(m_rotationFactor * 3.14159265/180.0) * 300)));
+		m_rotateNode->lookAt(Vector3(m_testObject.getXPos(), 100, -m_testObject.getYPos()), Node::TS_WORLD, Vector3::UNIT_Z );
 
 		// Move the camera
-		m_cam->setPosition(m_testObject.getXPos(), 250,  -m_testObject.getYPos() + 500);
-		m_cam->lookAt(m_testObject.getXPos(), 100, -m_testObject.getYPos());
+		m_cam->setPosition(m_testObject.getXPos(), 800 + m_camHeight, -m_testObject.getYPos() + 1000);
+		m_cam->lookAt(m_testObject.getXPos(), 100 + m_camTilt, -m_testObject.getYPos());
 
         return !m_Keyboard->isKeyDown(OIS::KC_ESCAPE);
     }
@@ -53,7 +93,11 @@ private:
     OIS::Keyboard *m_Keyboard;
 	PhysicsObject m_testObject;
 	SceneNode *m_testNode;
+	SceneNode *m_rotateNode;
 	Camera *m_cam;
+	int m_camHeight;
+	int m_camTilt;
+	int m_rotationFactor;
 };
  
 class Application
@@ -188,8 +232,6 @@ private:
 		// Add a spot light
 		Ogre::Light* spotLight = mgr->createLight("spotLight");
 		spotLight->setType(Ogre::Light::LT_SPOTLIGHT);
-		spotLight->setDiffuseColour(1.0, 1.0, 1.0);
-		spotLight->setSpecularColour(1.0, 1.0, 1.0);
 		spotLight->setDirection(0, -1, 0);
 		spotLight->setPosition(Vector3(0, 500, 0));
 		spotLight->setSpotlightRange(Ogre::Degree(15), Ogre::Degree(35));
@@ -200,18 +242,11 @@ private:
         plane, 6000, 6000, 20, 20, true, 1, 5, 5, Ogre::Vector3::UNIT_Z);
 		Ogre::Entity* entGround = mgr->createEntity("GroundEntity", "ground");
 		mgr->getRootSceneNode()->createChildSceneNode()->attachObject(entGround);
-		entGround->setMaterialName("Examples/Rockwall");
+		entGround->setMaterialName("Orewar/Starfield");
 		entGround->setCastShadows(false);
 
 		// Add a skybox
-		// mgr->setSkyBox(true, "Examples/SpaceSkyBox", 5000, false);
-
-		// Create a ninja
-		Ogre::Entity* entNinja = mgr->createEntity("Ninja", "ninja.mesh");
-		entNinja->setCastShadows(true);
-		SceneNode* ninjaNode = mgr->getRootSceneNode()->createChildSceneNode();
-		ninjaNode->yaw( Ogre::Degree(180) );
-		ninjaNode->attachObject(entNinja);
+		mgr->setSkyBox(true, "Orewar/SpaceSkyBox", 5000, false);
     }
  
     void setupInputSystem()
@@ -243,9 +278,6 @@ private:
     {
 		// Create and add a listener for the keyboard
 		// Note: Input devices can have only one listener
-
-		
-
 		mListener = new KeyboardTestListener(mKeyboard, mRoot->getSceneManager("Default SceneManager"), 
 			mRoot->getSceneManager("Default SceneManager")->getCamera("Camera"));
         mRoot->addFrameListener(mListener);
