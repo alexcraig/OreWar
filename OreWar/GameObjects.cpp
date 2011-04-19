@@ -1,97 +1,112 @@
 #include "GameObjects.h"
+#include <OgreMatrix4.h>
+#include <OgreMath.h>
+
+using namespace Ogre;
 
 // ========================================================================
 // BaseObject Implementation
 // ========================================================================
 
-BaseObject::BaseObject(float x, float y) : m_xPos(x), m_yPos(y) {
+BaseObject::BaseObject(Vector3 position, Vector3 heading) :
+	m_position(position), m_heading(heading)
+{
 }
 
-BaseObject::BaseObject() : m_xPos(0), m_yPos(0) {
+BaseObject::BaseObject(Vector3 position) : m_position(position),
+	m_heading(Vector3(1, 0, 0))
+{
 }
 
-void BaseObject::setXPos(float newX) {
-	m_xPos = newX;
+BaseObject::BaseObject() : m_position(Vector3(0, 0, 0)), m_heading(Vector3(1, 0, 0))
+{
 }
 
-void BaseObject::setYPos(float newY) {
-	m_yPos = newY;
+void BaseObject::rotateHeadingAboutY(Real radians)
+{
+	Matrix4 rotMatrix = Matrix4(
+		Math::Cos(radians), 0, -Math::Sin(radians), 0,
+		0, 1, 0, 0,
+		Math::Sin(radians), 0, Math::Cos(radians), 0,
+		0, 0, 0, 1);
+	setHeading(rotMatrix * m_heading);
 }
 
-float BaseObject::getXPos() {
-	return m_xPos;
+void BaseObject::setPosition(Vector3 position)
+{
+	m_position = position;
 }
 
-float BaseObject::getYPos() {
-	return m_yPos;
+void BaseObject::setHeading(Vector3 heading)
+{
+	m_heading = heading;
+	m_heading.normalise();
 }
 
-BaseObject::~BaseObject() {
+Vector3 BaseObject::getPosition()
+{
+	return m_position;
+}
+
+Vector3 BaseObject::getHeading()
+{
+	return m_heading;
 }
 
 // ========================================================================
 // BaseObject Implementation
 // ========================================================================
-
-PhysicsObject::PhysicsObject(float mass) : BaseObject(0, 0), m_xVel(0), m_yVel(0),
-	m_xAccel(0), m_yAccel(0), m_xForce(0), m_yForce(0), m_mass(mass) {
+PhysicsObject::PhysicsObject(Real mass, Vector3 position, Vector3 heading) :
+	BaseObject(position, heading), m_mass(mass), m_velocity(Vector3(0, 0, 0)),
+	m_acceleration(Vector3(0, 0, 0)), m_force(Vector3(0, 0, 0))
+{
 }
 
-PhysicsObject::PhysicsObject(float mass, float xPos, float yPos)  : BaseObject(xPos, yPos), m_xVel(0),
-	m_yVel(0), m_xAccel(0), m_yAccel(0), m_xForce(0), m_yForce(0), m_mass(mass) {
+PhysicsObject::PhysicsObject(Real mass, Vector3 position) :
+	BaseObject(position), m_mass(mass), m_velocity(Vector3(0, 0, 0)),
+	m_acceleration(Vector3(0, 0, 0)), m_force(Vector3(0, 0, 0))
+{
 }
 
-void PhysicsObject::setXVel(float newX) {
-	m_xVel = newX;
+PhysicsObject::PhysicsObject(Real mass) : BaseObject(), m_mass(mass), m_velocity(Vector3(0, 0, 0)),
+	m_acceleration(Vector3(0, 0, 0)), m_force(Vector3(0, 0 ,0))
+{
 }
 
-void PhysicsObject::setYVel(float newY) {
-	m_yVel = newY;
+void PhysicsObject::setVelocity(Vector3 velocity) {
+	m_velocity = velocity;
 }
 
-float PhysicsObject::getXVel() {
-	return m_xVel;
+void PhysicsObject::setAcceleration(Vector3 acceleration) {
+	m_acceleration = acceleration;
 }
 
-float PhysicsObject::getYVel() {
-	return m_yVel;
+Vector3 PhysicsObject::getVelocity() {
+	return m_velocity;
 }
 
-void PhysicsObject::setXAccel(float newX) {
-	m_xAccel = newX;
+Vector3 PhysicsObject::getAcceleration() {
+	return m_acceleration;
 }
 
-void PhysicsObject::setYAccel(float newY) {
-	m_yAccel = newY;
+Vector3 PhysicsObject::getSumForce() {
+	return m_force;
 }
 
-float PhysicsObject::getXAccel() {
-	return m_xAccel;
-}
-
-float PhysicsObject::getYAccel() {
-	return m_yAccel;
-}
-
-void PhysicsObject::applyForce(float xForce, float yForce) {
-	m_xForce += xForce;
-	m_yForce += yForce;
+void PhysicsObject::applyForce(Vector3 force) {
+	m_force = m_force + force;
 }
 
 void PhysicsObject::clearForces() {
-	m_xForce = 0;
-	m_yForce = 0;
+	m_force = Vector3(0, 0, 0);
 }
 
-void PhysicsObject::updatePosition(float timeElapsed) {
+void PhysicsObject::updatePosition(Real timeElapsed) {
 	// if(m_mass == 0) {
 	// TODO: Throw exception
 	// }
-
-	m_xAccel = (m_xForce / m_mass);
-	m_yAccel = (m_yForce / m_mass);
-	m_xVel += m_xAccel;
-	m_yVel += m_yAccel;
-	setXPos(getXPos() + (m_xVel * timeElapsed));
-	setYPos(getYPos() + (m_yVel * timeElapsed));
+	
+	m_acceleration = m_force / m_mass;
+	m_velocity = m_velocity + (m_acceleration * timeElapsed);
+	setPosition(getPosition() + (m_velocity * timeElapsed));
 }

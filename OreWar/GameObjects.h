@@ -1,106 +1,114 @@
 #ifndef __GameObjects_h_
 #define __GameObjects_h_
 
+#include <vector>
+#include <OgreVector3.h>
+
+using namespace Ogre;
+
 /**
  * The BaseObject class represents an entity in the OreWar game world.
- * A BaseObject has an X and Y position coordinate, where X represents the
- * horizontal axis (0 at origin, positive to the right) and Y represents 
- * the vertical axis (0 at origin, positive in the "up" direction). The
- * coordinate system is centered with 0,0 in the exact center of the game
+ * BaseObjects use an X, Y, Z coordinate system following Ogre's axis conventions.
+ * (see http://www.ogre3d.org/tikiwiki/Basic+Tutorial+1&structure=Tutorials)
+ * The coordinate system is centered with 0,0,0 in the exact center of the game
  * world.
  */
 class BaseObject
 {
 private:
-	/** The horizontal position coordinate of the object (0 at origin, positive to the right) */
-	float m_xPos;
-	/** The vertical position coordinate of the object (0 at origin, positive in the "up" direction) */
-	float m_yPos;
+	/** The current position of the object */
+	Vector3 m_position;
+
+	/** The current heading of the object (not normalized) */
+	Vector3 m_heading;
 
 public:
-	/** Construct a new BaseObject at a specified position */
-	BaseObject(float xPos, float yPos);
+	/** Construct a new BaseObject at a specified position with a specified heading */
+	BaseObject(Vector3 position, Vector3 heading);
 
-	/** Construct a new BaseObject at the origin */
+	/** Construct a new BaseObject at a specified position with default heading (<1,0,0>) */
+	BaseObject(Vector3 position);
+
+	/** Construct a new BaseObject at the origin with default heading (<1,0,0>) */
 	BaseObject();
 
-	/** Set the X (horizontal) position coordinate of the object */
-	void setXPos(float newPos);
+	/** Rotates the objects heading clockwise about the Y axis by the specified number of radians */
+	void rotateHeadingAboutY(Real radians);
 
-	/** Set the Y (vertical) position coordinate of the object */
-	void setYPos(float newPos);
+	/** Sets the position of the object */
+	void setPosition(Vector3 position);
 
-	/** @return The X (horizontal) position coordinate of the object */
-	float getXPos();
+	/** Sets the heading of the object (not normalized)*/
+	void setHeading(Vector3 heading);
 
-	/** @return The Y (vertical) position coordinate of the object */
-	float getYPos();
+	/** @return The position of the object */
+	Vector3 getPosition();
 
-	/** Deconstructor */
-	virtual ~BaseObject();
+	/** @return The heading of the object (not normalized) */
+	Vector3 getHeading();
 };
 
 /**
  * The PhysicsObject class represents an object in the OreWar gameworld which is subject
  * to physics simulation. Physics objects have a set mass, and forces can be applied
  * to produce motion when the updatePosition() method is called. The velocity and acceleration
- * can also be directly manipulated if cases where forces are unnecessary. All properties
+ * can also be directly manipulated in cases where forces are unnecessary. All properties
  * use the same coordinate orientation as those in the BaseObject class.
  */
 class PhysicsObject : public BaseObject
 {
 private:
 	/** The mass of the object */
-	float m_mass;
-	/** The horizontal velocity of the object */
-	float m_xVel;
-	/** The vertical velocity of the object */
-	float m_yVel;
-	/** The horizontal acceleration of the object */
-	float m_xAccel;
-	/** The vertical acceleration of the object */
-	float m_yAccel;
-	/** The horizontal force applied on the object */
-	float m_xForce;
-	/** The vertical force applied on the object */
-	float m_yForce;
+	Real m_mass;
+
+	/** The velocity of the object */
+	Vector3 m_velocity;
+
+	/** The acceleration of the object */
+	Vector3 m_acceleration;
+
+	/** The sum vector of all forces current applied on the object */
+	Vector3 m_force;
 
 public:
-	/**Construct a PhysicsObject at the origin with the specified mass */
-	PhysicsObject(float mass);
+	/** 
+	 * Construct a PhysicsObject at the given position coordinates with the
+	 * specified mass and heading.
+	 */
+	PhysicsObject(Real mass, Vector3 position, Vector3 heading);
 
 	/** 
 	 * Construct a PhysicsObject at the given position coordinates with the
-	 * specified mass.
+	 * specified mass and default heading (<1,0,0>).
 	 */
-	PhysicsObject(float mass, float xPos, float yPos);
+	PhysicsObject(Real mass, Vector3 position);
 
-	/** Set the X (horizontal) velocity of the object */
-	void setXVel(float newX);
+	/**
+	Construct a PhysicsObject at the origin with the specified mass 
+	 * with default heading (<1,0,0>)
+	 */
+	PhysicsObject(Real mass);
+
+	/** Sets the velocity of the object */
+	void setVelocity(Vector3 velocity);
 
 	/** Set the Y (vertical) velocity of the object */
-	void setYVel(float newY);
+	void setAcceleration(Vector3 acceleration);
 
-	/** @return The X (horizontal) velocity of the object */
-	float getXVel();
+	/** @return The velocity of the object */
+	Vector3 getVelocity();
 
-	/** @return The Y (vertical) velocity of the object */
-	float getYVel();
+	/** @return The acceleration of the object */
+	Vector3 getAcceleration();
 
-	/** Set the X (horizontal) acceleration of the object */
-	void setXAccel(float newX);
+	/** @return The vector sum of all forces on the object */
+	Vector3 getSumForce();
 
-	/** Set the Y (vertical)acceleration of the object */
-	void setYAccel(float newY);
-
-	/** @return The X (horizontal) acceleration of the object */
-	float getXAccel();
-
-	/** @return The Y (vertical) accceleration of the object */
-	float getYAccel();
-
-	/** Applies a force on the object with the specified X and Y components */
-	void applyForce(float xForce, float yForce);
+	/** 
+	 * Applies an addititve force on the object which will be taken into account
+	 * on the next physics update.
+	 */
+	void applyForce(Vector3 force);
 
 	/** Cancel all force currently applied to the object */
 	void clearForces();
@@ -110,7 +118,7 @@ public:
 	 * account as well as the time elapsed since the last position update
 	 * (in seconds).
 	 */
-	void updatePosition(float timeElapsed);
+	void updatePosition(Real timeElapsed);
 };
 
 #endif

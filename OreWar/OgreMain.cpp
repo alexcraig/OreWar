@@ -1,6 +1,6 @@
 #include <Ogre.h>
 #include <OIS.h>
-#include <math.h>
+#include <OgreMath.h>
 #include "GameObjects.h"
  
 using namespace Ogre;
@@ -9,8 +9,8 @@ class KeyboardTestListener : public FrameListener
 {
 public:
 	KeyboardTestListener(OIS::Keyboard *keyboard, SceneManager *mgr, Camera *cam)
-        : m_Keyboard(keyboard), m_testObject(20), m_testNode(mgr->getRootSceneNode()->createChildSceneNode()),
-		m_rotateNode(mgr->getRootSceneNode()->createChildSceneNode()), m_cam(cam), m_camHeight(0), m_camTilt(0), m_rotationFactor(0)
+        : m_Keyboard(keyboard), m_testObject(1, Vector3(0, 200, 0)), m_testNode(mgr->getRootSceneNode()->createChildSceneNode()),
+		m_rotateNode(mgr->getRootSceneNode()->createChildSceneNode()), m_cam(cam), m_camHeight(0), m_camOffset(0), m_rotationFactor(0)
 	{
 		// Generate the keyboard testing entity and attach it to the listener's scene node
 		Ogre::Entity* testEntity = mgr->createEntity("KeyboardListenerTest", "RZR-002.mesh");
@@ -40,7 +40,7 @@ public:
 		// Adjust or reset the camera modifiers
 		if(m_Keyboard->isKeyDown(OIS::KC_Z)) {
 			m_camHeight = 0;
-			m_camTilt = 0;
+			m_camOffset = 0;
 		}
 		if(m_Keyboard->isKeyDown(OIS::KC_UP)) {
 			m_camHeight += 2;
@@ -49,42 +49,50 @@ public:
 			m_camHeight -= 2;
 		}
 		if(m_Keyboard->isKeyDown(OIS::KC_RIGHT)) {
-			m_camTilt += 2;
+			m_camOffset += 2;
 		}
 		if(m_Keyboard->isKeyDown(OIS::KC_LEFT)) {
-			m_camTilt -= 2;
+			m_camOffset -= 2;
 		}
 		
 		// Clear all existing forces, and add keyboard forces
 		m_testObject.clearForces();
 		if(m_Keyboard->isKeyDown(OIS::KC_W)) {
-			m_testObject.applyForce(0, 40);
+			m_testObject.applyForce(m_testObject.getHeading() * Vector3(1000, 1000, 1000));
 		}
 		if(m_Keyboard->isKeyDown(OIS::KC_S)) {
-			m_testObject.applyForce(0, -40);
+			m_testObject.applyForce(m_testObject.getHeading() * Vector3(-1000, -1000, -1000));
 		}
 		if(m_Keyboard->isKeyDown(OIS::KC_A)) {
-			m_testObject.applyForce(-40, 0);
+			m_testObject.rotateHeadingAboutY(Math::DegreesToRadians(-2));
 		}
 		if(m_Keyboard->isKeyDown(OIS::KC_D)) {
-			m_testObject.applyForce(40, 0);
+			m_testObject.rotateHeadingAboutY(Math::DegreesToRadians(2));
+		}
+
+		if(m_Keyboard->isKeyDown(OIS::KC_Q)) {
+			m_testObject.applyForce(Vector3(0, 1000, 0));
+		}
+		if(m_Keyboard->isKeyDown(OIS::KC_E)) {
+			m_testObject.applyForce(Vector3(0, -1000, 0));
 		}
 
 		// Update the position of the physics object and move the scene node
 		m_testObject.updatePosition(evt.timeSinceLastFrame);
-		m_testNode->setPosition(m_testObject.getXPos(), 100, -m_testObject.getYPos());
-		m_testNode->setDirection(Vector3(m_testObject.getXVel(), 0, -m_testObject.getYVel()), 
-			Node::TS_WORLD, Vector3::UNIT_Z );
+		m_testNode->setPosition(m_testObject.getPosition());
+		m_testNode->lookAt(m_testObject.getPosition() + (m_testObject.getHeading() * 1000), Node::TS_WORLD, Vector3::UNIT_Z );
 
 		// Update the position of the circling ball
 		m_rotationFactor = (m_rotationFactor + 1) % 360;
-		m_rotateNode->setPosition(Vector3(m_testObject.getXPos() + (sin(m_rotationFactor * 3.14159265/180.0) * 300), 100,
-			-m_testObject.getYPos() + (cos(m_rotationFactor * 3.14159265/180.0) * 300)));
-		m_rotateNode->lookAt(Vector3(m_testObject.getXPos(), 100, -m_testObject.getYPos()), Node::TS_WORLD, Vector3::UNIT_Z );
+		m_rotateNode->setPosition( m_testObject.getPosition() + 
+			Vector3( Math::Sin( Math::DegreesToRadians( m_rotationFactor ) ) * 300,
+				Math::Sin( Math::DegreesToRadians( m_rotationFactor) ) * 100,
+				Math::Cos( Math::DegreesToRadians( m_rotationFactor) ) * 300 ));
+		m_rotateNode->lookAt(m_testObject.getPosition(), Node::TS_WORLD, Vector3::UNIT_Z );
 
 		// Move the camera
-		m_cam->setPosition(m_testObject.getXPos(), 800 + m_camHeight, -m_testObject.getYPos() + 1000);
-		m_cam->lookAt(m_testObject.getXPos(), 100 + m_camTilt, -m_testObject.getYPos());
+		m_cam->setPosition(m_testObject.getPosition() + Vector3(0, 700 + m_camHeight, 1000 + m_camOffset));
+		m_cam->lookAt(m_testObject.getPosition());
 
         return !m_Keyboard->isKeyDown(OIS::KC_ESCAPE);
     }
@@ -96,7 +104,7 @@ private:
 	SceneNode *m_rotateNode;
 	Camera *m_cam;
 	int m_camHeight;
-	int m_camTilt;
+	int m_camOffset;
 	int m_rotationFactor;
 };
  
