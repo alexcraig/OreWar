@@ -14,5 +14,6 @@ RenderObject::RenderObject(PhysicsObject * object, SceneNode * node)
 void RenderObject::updateNode()
 {
 	m_node->setPosition(m_object->getPosition());
-	m_node->lookAt(m_object->getPosition() + m_object->getHeading(), Node::TS_WORLD, Vector3::UNIT_Z);
+	m_node->setOrientation(m_object->getOrientation());
+	// m_node->lookAt(m_object->getPosition() + m_object->getHeading(), Node::TS_WORLD, Vector3::UNIT_Z);
 }

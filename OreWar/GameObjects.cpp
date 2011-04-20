@@ -1,6 +1,5 @@
 #include "GameObjects.h"
 #include <OgreMatrix4.h>
-#include <OgreMath.h>
 
 using namespace Ogre;
 
@@ -8,39 +7,37 @@ using namespace Ogre;
 // BaseObject Implementation
 // ========================================================================
 
-BaseObject::BaseObject(Vector3 position, Vector3 heading) :
-	m_position(position), m_heading(heading)
+BaseObject::BaseObject(Vector3 position) :
+	m_position(position), m_orientation(Radian(1), Vector3(0, 0, 0))
 {
 }
 
-BaseObject::BaseObject(Vector3 position) : m_position(position),
-	m_heading(1, 0, 0)
+BaseObject::BaseObject() : 
+	m_position(0, 0, 0), m_orientation(Radian(1), Vector3(0, 0, 0))
 {
 }
 
-BaseObject::BaseObject() : m_position(0, 0, 0), m_heading(1, 0, 0)
+void BaseObject::yaw(Radian radians)
 {
+	Quaternion q(Radian(radians), Vector3::UNIT_Y);
+	setOrientation(m_orientation * q);
 }
 
-void BaseObject::rotateHeadingAboutY(Real radians)
+void BaseObject::roll(Radian radians)
 {
-	Matrix4 rotMatrix = Matrix4(
-		Math::Cos(radians), 0, -Math::Sin(radians), 0,
-		0, 1, 0, 0,
-		Math::Sin(radians), 0, Math::Cos(radians), 0,
-		0, 0, 0, 1);
-	setHeading(rotMatrix * m_heading);
+	Quaternion q(Radian(radians), Vector3::UNIT_Z);
+	setOrientation(m_orientation * q);
+}
+
+void BaseObject::pitch(Radian radians)
+{
+	Quaternion q(Radian(radians), Vector3::UNIT_X);
+	setOrientation(m_orientation * q);
 }
 
 void BaseObject::setPosition(Vector3 position)
 {
 	m_position = position;
-}
-
-void BaseObject::setHeading(Vector3 heading)
-{
-	m_heading = heading;
-	m_heading.normalise();
 }
 
 Vector3 BaseObject::getPosition()
@@ -50,18 +47,22 @@ Vector3 BaseObject::getPosition()
 
 Vector3 BaseObject::getHeading()
 {
-	return m_heading;
+	return m_orientation * Vector3(0, 0, -1);
+}
+
+Quaternion BaseObject::getOrientation() 
+{
+	return m_orientation;
+}
+
+void BaseObject::setOrientation(Quaternion orientation) {
+	m_orientation = orientation;
+	m_orientation.normalise();
 }
 
 // ========================================================================
 // BaseObject Implementation
 // ========================================================================
-PhysicsObject::PhysicsObject(Real mass, Vector3 position, Vector3 heading) :
-	BaseObject(position, heading), m_mass(mass), m_velocity(0, 0, 0),
-	m_acceleration(0, 0, 0), m_force(0, 0, 0)
-{
-}
-
 PhysicsObject::PhysicsObject(Real mass, Vector3 position) :
 	BaseObject(position), m_mass(mass), m_velocity(0, 0, 0),
 	m_acceleration(0, 0, 0), m_force(0, 0, 0)
@@ -118,6 +119,7 @@ void PhysicsObject::updatePhysics(Real timeElapsed) {
 
 GameArena::GameArena(Real size) : m_arenaSize(size), m_ships(), m_projectiles()
 {
+	m_projectiles.reserve(1000); // TESTING
 }
 
 void GameArena::addShip(PhysicsObject ship)
@@ -132,8 +134,9 @@ void GameArena::addProjectile(PhysicsObject projectile)
 
 void GameArena::fireProjectileFromShip(PhysicsObject ship)
 {
-	PhysicsObject projectile = PhysicsObject(1, ship.getPosition(), ship.getHeading());
+	PhysicsObject projectile = PhysicsObject(1, ship.getPosition());
 	projectile.setVelocity(ship.getVelocity() + ship.getHeading() * 1000);
+	projectile.setOrientation(ship.getOrientation());
 	addProjectile(projectile);
 }
 

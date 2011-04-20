@@ -3,6 +3,8 @@
 
 #include <vector>
 #include <OgreVector3.h>
+#include <OgreQuaternion.h>
+#include <OgreMath.h>
 
 using namespace Ogre;
 
@@ -19,37 +21,38 @@ private:
 	/** The current position of the object */
 	Vector3 m_position;
 
-	/** The current heading of the object (not normalized) */
-	Vector3 m_heading;
+	Quaternion m_orientation;
 
 public:
-	/** Construct a new BaseObject at a specified position with a specified heading */
-	BaseObject(Vector3 position, Vector3 heading);
 
-	/** Construct a new BaseObject at a specified position with default heading (<1,0,0>) */
+	/** Construct a new BaseObject at a specified position with default heading (<0,0,-1>) */
 	BaseObject(Vector3 position);
 
-	/** Construct a new BaseObject at the origin with default heading (<1,0,0>) */
+	/** Construct a new BaseObject at the origin with default heading (<0,0,-1>) */
 	BaseObject();
 
-	/** Rotates the objects heading clockwise about the Y axis by the specified number of radians */
-	void rotateHeadingAboutY(Real radians);
+	void yaw(Radian radians);
+
+	void roll(Radian radians);
+
+	void pitch(Radian radians);
 
 	/** Sets the position of the object */
 	void setPosition(Vector3 position);
-
-	/** Sets the heading of the object (not normalized)*/
-	void setHeading(Vector3 heading);
 
 	/** @return The position of the object */
 	Vector3 getPosition();
 
 	/** @return The heading of the object (not normalized) */
 	Vector3 getHeading();
+
+	Quaternion getOrientation();
+
+	void setOrientation(Quaternion orientation);
 };
 
 /**
- * The PhysicsObject class represents an object in the OreWar gameworld which is subject
+ * The PhysicsObject class represents an object in the OreWar game world which is subject
  * to physics simulation. Physics objects have a set mass, and forces can be applied
  * to produce motion when the updatePosition() method is called. The velocity and acceleration
  * can also be directly manipulated in cases where forces are unnecessary. All properties
@@ -71,12 +74,6 @@ private:
 	Vector3 m_force;
 
 public:
-	/** 
-	 * Construct a PhysicsObject at the given position coordinates with the
-	 * specified mass and heading.
-	 */
-	PhysicsObject(Real mass, Vector3 position, Vector3 heading);
-
 	/** 
 	 * Construct a PhysicsObject at the given position coordinates with the
 	 * specified mass and default heading (<1,0,0>).
