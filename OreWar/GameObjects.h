@@ -118,7 +118,24 @@ public:
 	 * account as well as the time elapsed since the last position update
 	 * (in seconds).
 	 */
-	void updatePosition(Real timeElapsed);
+	void updatePhysics(Real timeElapsed);
+};
+
+
+class GameArena
+{
+private:
+	Real m_arenaSize;
+	std::vector<PhysicsObject> m_ships;
+	std::vector<PhysicsObject> m_projectiles;
+public:
+	GameArena(Real size);
+	void addShip(PhysicsObject ship);
+	void addProjectile(PhysicsObject projectile);
+	std::vector<PhysicsObject> * getProjectiles();
+	std::vector<PhysicsObject> * getShips();
+	void fireProjectileFromShip(PhysicsObject ship);
+	void updatePhysics(Real timeElapsed);
 };
 
 #endif

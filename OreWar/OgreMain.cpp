@@ -1,7 +1,10 @@
 #include <Ogre.h>
 #include <OIS.h>
 #include <OgreMath.h>
+#include <sstream>
+#include <vector>
 #include "GameObjects.h"
+#include "RenderModel.h"
  
 using namespace Ogre;
  
@@ -9,19 +12,24 @@ class KeyboardTestListener : public FrameListener
 {
 public:
 	KeyboardTestListener(OIS::Keyboard *keyboard, SceneManager *mgr, Camera *cam)
-        : m_Keyboard(keyboard), m_testObject(1, Vector3(0, 200, 0)), m_testNode(mgr->getRootSceneNode()->createChildSceneNode()),
-		m_rotateNode(mgr->getRootSceneNode()->createChildSceneNode()), m_cam(cam), m_camHeight(0), m_camOffset(0), m_rotationFactor(0)
+        : m_Keyboard(keyboard), m_rotateNode(mgr->getRootSceneNode()->createChildSceneNode()), m_cam(cam), 
+		m_camHeight(0), m_camOffset(0), m_rotationFactor(0), m_arena(3000), m_entityIndex(0), m_renderList(), m_mgr(mgr)
 	{
 		// Generate the keyboard testing entity and attach it to the listener's scene node
-		Ogre::Entity* testEntity = mgr->createEntity("KeyboardListenerTest", "RZR-002.mesh");
-		testEntity->setCastShadows(true);
-		m_testNode->attachObject(testEntity);
-		m_testNode->setScale(4, 4, 4);
+		PhysicsObject playerShip = PhysicsObject(1, Vector3(0, 200, 0));
+		SceneNode * shipNode = mgr->getRootSceneNode()->createChildSceneNode();
+		Ogre::Entity * shipEntity = mgr->createEntity("TestShip", "RZR-002.mesh");
+		shipEntity->setCastShadows(true);
+		shipNode->attachObject(shipEntity);
+		shipNode->setScale(4, 4, 4);
+		m_arena.addShip(playerShip);
+		RenderObject renderShip = RenderObject(&(*m_arena.getShips()).front(), shipNode);
+		m_renderList.push_back(renderShip);
 
 		// Add another ship and point light which will circle the keyboard entity
-		testEntity = mgr->createEntity("CirclingShip", "RZR-002.mesh");
-		testEntity->setCastShadows(true);
-		m_rotateNode->attachObject(testEntity);
+		Ogre::Entity * circleShipEntity = mgr->createEntity("CirclingShip", "RZR-002.mesh");
+		circleShipEntity->setCastShadows(true);
+		m_rotateNode->attachObject(circleShipEntity);
 
 		Ogre::Light* pointLight = mgr->createLight("pointLightWhite");
 		pointLight->setType(Ogre::Light::LT_POINT);
@@ -36,6 +44,7 @@ public:
     {
 		// Capture the keyboard input
         m_Keyboard->capture();
+		PhysicsObject * playerShip = &(*m_arena.getShips()).front();
 
 		// Adjust or reset the camera modifiers
 		if(m_Keyboard->isKeyDown(OIS::KC_Z)) {
@@ -56,56 +65,93 @@ public:
 		}
 		
 		// Clear all existing forces, and add keyboard forces
-		m_testObject.clearForces();
+		playerShip->clearForces();
 		if(m_Keyboard->isKeyDown(OIS::KC_W)) {
-			m_testObject.applyForce(m_testObject.getHeading() * Vector3(1000, 1000, 1000));
+			playerShip->applyForce(playerShip->getHeading() * Vector3(1000, 1000, 1000));
 		}
 		if(m_Keyboard->isKeyDown(OIS::KC_S)) {
-			m_testObject.applyForce(m_testObject.getHeading() * Vector3(-1000, -1000, -1000));
+			playerShip->applyForce(playerShip->getHeading() * Vector3(-1000, -1000, -1000));
 		}
 		if(m_Keyboard->isKeyDown(OIS::KC_A)) {
-			m_testObject.rotateHeadingAboutY(Math::DegreesToRadians(-2));
+			playerShip->rotateHeadingAboutY(Math::DegreesToRadians(-150 * evt.timeSinceLastFrame));
 		}
 		if(m_Keyboard->isKeyDown(OIS::KC_D)) {
-			m_testObject.rotateHeadingAboutY(Math::DegreesToRadians(2));
+			playerShip->rotateHeadingAboutY(Math::DegreesToRadians(150 * evt.timeSinceLastFrame));
 		}
 
 		if(m_Keyboard->isKeyDown(OIS::KC_Q)) {
-			m_testObject.applyForce(Vector3(0, 1000, 0));
+			playerShip->applyForce(Vector3(0, 1000, 0));
 		}
 		if(m_Keyboard->isKeyDown(OIS::KC_E)) {
-			m_testObject.applyForce(Vector3(0, -1000, 0));
+			playerShip->applyForce(Vector3(0, -1000, 0));
+		}
+
+		// Generate projectile if required
+		if(m_Keyboard->isKeyDown(OIS::KC_SPACE)) {
+			m_arena.fireProjectileFromShip(*playerShip);
+			std::vector<PhysicsObject> * projectiles = m_arena.getProjectiles();
+
+			SceneNode * projNode = m_mgr->getRootSceneNode()->createChildSceneNode();
+			std::stringstream oss;
+			oss << "Projectile" << m_entityIndex;
+			std::cout << oss.str();
+
+			Ogre::Entity * projEntity = m_mgr->createEntity(oss.str(), "RZR-002.mesh");
+			projEntity->setCastShadows(false);
+			projNode->attachObject(projEntity);
+
+			oss << "Light";
+			Ogre::Light* spotLight = m_mgr->createLight(oss.str());
+			spotLight->setType(Ogre::Light::LT_SPOTLIGHT);
+			spotLight->setDiffuseColour(1.0, 0.0, 0.0);
+			spotLight->setSpecularColour(1.0, 5.0, 5.0);
+			spotLight->setDirection(0, -1, 0);
+			spotLight->setPosition(Vector3(0, 0, 0));
+			spotLight->setSpotlightRange(Ogre::Degree(15), Ogre::Degree(35));
+			projNode->attachObject(spotLight);
+
+			RenderObject newProj = RenderObject(& projectiles->back(), projNode);
+			m_renderList.push_back(newProj);
+
+			m_entityIndex++;
 		}
 
 		// Update the position of the physics object and move the scene node
-		m_testObject.updatePosition(evt.timeSinceLastFrame);
-		m_testNode->setPosition(m_testObject.getPosition());
-		m_testNode->lookAt(m_testObject.getPosition() + (m_testObject.getHeading() * 1000), Node::TS_WORLD, Vector3::UNIT_Z );
+		m_arena.updatePhysics(evt.timeSinceLastFrame);
+		for(int i = 0; i < m_renderList.size(); i++) {
+			m_renderList[i].updateNode();
+		}
 
 		// Update the position of the circling ball
 		m_rotationFactor = (m_rotationFactor + 1) % 360;
-		m_rotateNode->setPosition( m_testObject.getPosition() + 
+		m_rotateNode->setPosition( playerShip->getPosition() + 
 			Vector3( Math::Sin( Math::DegreesToRadians( m_rotationFactor ) ) * 300,
 				Math::Sin( Math::DegreesToRadians( m_rotationFactor) ) * 100,
 				Math::Cos( Math::DegreesToRadians( m_rotationFactor) ) * 300 ));
-		m_rotateNode->lookAt(m_testObject.getPosition(), Node::TS_WORLD, Vector3::UNIT_Z );
+		m_rotateNode->lookAt(playerShip->getPosition(), Node::TS_WORLD, Vector3::UNIT_Z );
 
 		// Move the camera
-		m_cam->setPosition(m_testObject.getPosition() + Vector3(0, 700 + m_camHeight, 1000 + m_camOffset));
-		m_cam->lookAt(m_testObject.getPosition());
+		m_cam->setPosition(playerShip->getPosition() + Vector3(0, 1500 + m_camHeight, 1000 + m_camOffset));
+		m_cam->lookAt(playerShip->getPosition());
 
         return !m_Keyboard->isKeyDown(OIS::KC_ESCAPE);
     }
  
 private:
     OIS::Keyboard *m_Keyboard;
-	PhysicsObject m_testObject;
-	SceneNode *m_testNode;
 	SceneNode *m_rotateNode;
 	Camera *m_cam;
 	int m_camHeight;
 	int m_camOffset;
 	int m_rotationFactor;
+	GameArena m_arena;
+	int m_entityIndex;
+
+	// Note: All references stored by the RenderObjects will becomes
+	// invalid when the arenas vectors resize. Need to implement a 
+	// much, much better way to do this.
+	std::vector<RenderObject> m_renderList;
+	SceneManager * m_mgr;
 };
  
 class Application
@@ -220,36 +266,14 @@ private:
 		mgr->setAmbientLight(Ogre::ColourValue(0, 0, 0));
 		mgr->setShadowTechnique(Ogre::SHADOWTYPE_STENCIL_ADDITIVE);
 
-		// Add  point lights
-		Ogre::Light* pointLight = mgr->createLight("pointLightRed");
-		pointLight->setType(Ogre::Light::LT_POINT);
-		pointLight->setPosition(Ogre::Vector3(350, 250, 350));
-		pointLight->setDiffuseColour(1.0, 0.0, 0.0);
-		pointLight->setSpecularColour(1.0, 0.0, 0.0);
-		pointLight = mgr->createLight("pointLightBlue");
-		pointLight->setType(Ogre::Light::LT_POINT);
-		pointLight->setPosition(Ogre::Vector3(-350, 250, 350));
-		pointLight->setDiffuseColour(0.0, 0.0, 1.0);
-		pointLight->setSpecularColour(0.0, 0.0, 1.0);
-		pointLight = mgr->createLight("pointLightGreen");
-		pointLight->setType(Ogre::Light::LT_POINT);
-		pointLight->setPosition(Ogre::Vector3(0, 250, -495));
-		pointLight->setDiffuseColour(0.0, 1.0, 0.0);
-		pointLight->setSpecularColour(0.0, 1.0, 0.0);
-
-		// Add a spot light
-		Ogre::Light* spotLight = mgr->createLight("spotLight");
-		spotLight->setType(Ogre::Light::LT_SPOTLIGHT);
-		spotLight->setDirection(0, -1, 0);
-		spotLight->setPosition(Vector3(0, 500, 0));
-		spotLight->setSpotlightRange(Ogre::Degree(15), Ogre::Degree(35));
-
 		// Add a plane for the ground
 		Ogre::Plane plane(Ogre::Vector3::UNIT_Y, 0);
 		Ogre::MeshManager::getSingleton().createPlane("ground", Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME,
-        plane, 6000, 6000, 20, 20, true, 1, 5, 5, Ogre::Vector3::UNIT_Z);
+        plane, 6000, 6000, 100, 100, true, 1, 5, 5, Ogre::Vector3::UNIT_Z);
 		Ogre::Entity* entGround = mgr->createEntity("GroundEntity", "ground");
-		mgr->getRootSceneNode()->createChildSceneNode()->attachObject(entGround);
+		SceneNode * groundNode = mgr->getRootSceneNode()->createChildSceneNode();
+		groundNode->attachObject(entGround);
+		groundNode->setPosition(Vector3(0, -200, 0));
 		entGround->setMaterialName("Orewar/Starfield");
 		entGround->setCastShadows(false);
 

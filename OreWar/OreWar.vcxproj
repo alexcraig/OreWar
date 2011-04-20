@@ -13,9 +13,11 @@
   <ItemGroup>
     <ClCompile Include="GameObjects.cpp" />
     <ClCompile Include="OgreMain.cpp" />
+    <ClCompile Include="RenderModel.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="GameObjects.h" />
+    <ClInclude Include="RenderModel.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{967E7D5E-4D71-4D15-9F1D-B96BD4CDF8A0}</ProjectGuid>
