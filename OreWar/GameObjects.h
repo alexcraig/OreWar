@@ -28,6 +28,8 @@ public:
 	/** Construct a new BaseObject at a specified position with default heading (<0,0,-1>) */
 	BaseObject(Vector3 position);
 
+	BaseObject(const BaseObject& copy);
+
 	/** Construct a new BaseObject at the origin with default heading (<0,0,-1>) */
 	BaseObject();
 
@@ -51,6 +53,8 @@ public:
 	void setOrientation(Quaternion orientation);
 };
 
+enum ObjectType { SHIP, PROJECTILE };
+
 /**
  * The PhysicsObject class represents an object in the OreWar game world which is subject
  * to physics simulation. Physics objects have a set mass, and forces can be applied
@@ -61,6 +65,8 @@ public:
 class PhysicsObject : public BaseObject
 {
 private:
+	ObjectType m_type;
+
 	/** The mass of the object */
 	Real m_mass;
 
@@ -78,13 +84,17 @@ public:
 	 * Construct a PhysicsObject at the given position coordinates with the
 	 * specified mass and default heading (<1,0,0>).
 	 */
-	PhysicsObject(Real mass, Vector3 position);
+	PhysicsObject(ObjectType type, Real mass, Vector3 position);
 
 	/**
 	Construct a PhysicsObject at the origin with the specified mass 
 	 * with default heading (<1,0,0>)
 	 */
-	PhysicsObject(Real mass);
+	PhysicsObject(ObjectType type, Real mass);
+
+	PhysicsObject(const PhysicsObject& copy);
+
+	ObjectType getType();
 
 	/** Sets the velocity of the object */
 	void setVelocity(Vector3 velocity);
@@ -118,20 +128,31 @@ public:
 	void updatePhysics(Real timeElapsed);
 };
 
+class GameArenaListener
+{
+public:
+	virtual void newPhysicsObject(PhysicsObject * object) = 0;
+
+	virtual void destroyedPhysicsObject(PhysicsObject * object) = 0;
+};
 
 class GameArena
 {
 private:
 	Real m_arenaSize;
-	std::vector<PhysicsObject> m_ships;
-	std::vector<PhysicsObject> m_projectiles;
+	std::vector<PhysicsObject *> m_ships;
+	std::vector<PhysicsObject *> m_projectiles;
+	std::vector<GameArenaListener *> m_listeners;
 public:
 	GameArena(Real size);
-	void addShip(PhysicsObject ship);
-	void addProjectile(PhysicsObject projectile);
-	std::vector<PhysicsObject> * getProjectiles();
-	std::vector<PhysicsObject> * getShips();
-	void fireProjectileFromShip(PhysicsObject ship);
+	void addGameArenaListener(GameArenaListener * listener);
+	void removeGameArenaListener(GameArenaListener * listener);
+	PhysicsObject * addShip(PhysicsObject ship);
+	PhysicsObject * addProjectile(PhysicsObject projectile);
+	bool destroyProjectile(PhysicsObject * projectile);
+	std::vector<PhysicsObject *> * getProjectiles();
+	std::vector<PhysicsObject *> * getShips();
+	PhysicsObject * fireProjectileFromShip(PhysicsObject ship);
 	void updatePhysics(Real timeElapsed);
 };
 

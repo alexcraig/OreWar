@@ -12,6 +12,11 @@ BaseObject::BaseObject(Vector3 position) :
 {
 }
 
+BaseObject::BaseObject(const BaseObject& copy) : m_position(copy.m_position), 
+	m_orientation(copy.m_orientation)
+{
+}
+
 BaseObject::BaseObject() : 
 	m_position(0, 0, 0), m_orientation(Radian(1), Vector3(0, 0, 0))
 {
@@ -63,15 +68,26 @@ void BaseObject::setOrientation(Quaternion orientation) {
 // ========================================================================
 // BaseObject Implementation
 // ========================================================================
-PhysicsObject::PhysicsObject(Real mass, Vector3 position) :
-	BaseObject(position), m_mass(mass), m_velocity(0, 0, 0),
+PhysicsObject::PhysicsObject(ObjectType type, Real mass, Vector3 position) :
+	BaseObject(position), m_type(type), m_mass(mass), m_velocity(0, 0, 0),
 	m_acceleration(0, 0, 0), m_force(0, 0, 0)
 {
 }
 
-PhysicsObject::PhysicsObject(Real mass) : BaseObject(), m_mass(mass), m_velocity(0, 0, 0),
-	m_acceleration(0, 0, 0), m_force(Vector3(0, 0 ,0))
+PhysicsObject::PhysicsObject(ObjectType type, Real mass) : BaseObject(), m_type(type), m_mass(mass), 
+	m_velocity(0, 0, 0), m_acceleration(0, 0, 0), m_force(Vector3(0, 0 ,0))
 {
+}
+
+PhysicsObject::PhysicsObject(const PhysicsObject& copy) : BaseObject(copy), m_type(copy.m_type), 
+	m_mass(copy.m_mass), m_velocity(copy.m_velocity), m_acceleration(copy.m_acceleration),
+	m_force(copy.m_force)
+{
+}
+
+ObjectType PhysicsObject::getType()
+{
+	return m_type;
 }
 
 void PhysicsObject::setVelocity(Vector3 velocity) {
@@ -117,34 +133,70 @@ void PhysicsObject::updatePhysics(Real timeElapsed) {
 // GameArena Implementation
 // ========================================================================
 
-GameArena::GameArena(Real size) : m_arenaSize(size), m_ships(), m_projectiles()
+GameArena::GameArena(Real size) : m_arenaSize(size), m_ships(), m_projectiles(),
+	m_listeners()
 {
-	m_projectiles.reserve(1000); // TESTING
 }
 
-void GameArena::addShip(PhysicsObject ship)
+void GameArena::addGameArenaListener(GameArenaListener * listener) 
 {
-	m_ships.push_back(ship);
+	m_listeners.push_back(listener);
 }
 
-void GameArena::addProjectile(PhysicsObject projectile)
+void GameArena::removeGameArenaListener(GameArenaListener * listener)
 {
-	m_projectiles.push_back(projectile);
+	for(int i = 0; i < m_listeners.size(); i++) {
+		if(m_listeners[i] == listener) {
+			m_listeners.erase(m_listeners.begin() + i);
+		}
+	}
 }
 
-void GameArena::fireProjectileFromShip(PhysicsObject ship)
+PhysicsObject * GameArena::addShip(PhysicsObject ship)
 {
-	PhysicsObject projectile = PhysicsObject(1, ship.getPosition());
+	PhysicsObject * p_ship = new PhysicsObject(ship);
+	m_ships.push_back(p_ship);
+	for(int i = 0; i < m_listeners.size(); i++) {
+		m_listeners[i]->newPhysicsObject(p_ship);
+	}
+	return p_ship;
+}
+
+PhysicsObject * GameArena::addProjectile(PhysicsObject projectile)
+{
+	PhysicsObject * p_projectile = new PhysicsObject(projectile);
+	m_projectiles.push_back(p_projectile);
+	for(int i = 0; i < m_listeners.size(); i++) {
+		m_listeners[i]->newPhysicsObject(p_projectile);
+	}
+	return p_projectile;
+}
+
+bool GameArena::destroyProjectile(PhysicsObject * projectile) 
+{
+	for(int i = 0; i < m_projectiles.size(); i++) {
+		if(m_projectiles[i] == projectile) {
+			delete projectile;
+			m_projectiles.erase(m_projectiles.begin() + i);
+			return true;
+		}
+	}
+	return false;
+}
+
+PhysicsObject * GameArena::fireProjectileFromShip(PhysicsObject ship)
+{
+	PhysicsObject projectile = PhysicsObject(ObjectType::PROJECTILE, 1, ship.getPosition());
 	projectile.setVelocity(ship.getVelocity() + ship.getHeading() * 1000);
 	projectile.setOrientation(ship.getOrientation());
-	addProjectile(projectile);
+	return addProjectile(projectile);
 }
 
-std::vector<PhysicsObject> * GameArena::getProjectiles() {
+std::vector<PhysicsObject *> * GameArena::getProjectiles() {
 	return & m_projectiles;
 }
 
-std::vector<PhysicsObject> * GameArena::getShips() {
+std::vector<PhysicsObject *> * GameArena::getShips() {
 	return & m_ships;
 }
 
@@ -152,27 +204,35 @@ void GameArena::updatePhysics(Real timeElapsed)
 {
 	int i;
 	for(i = 0; i < m_ships.size(); i++) {
-		m_ships[i].updatePhysics(timeElapsed);
-		if(m_ships[i].getPosition().x > m_arenaSize) {
-			m_ships[i].setPosition(m_ships[i].getPosition() + Vector3(-(2 * m_arenaSize), 0, 0));
-		} else if (m_ships[i].getPosition().x < - m_arenaSize) {
-			m_ships[i].setPosition(m_ships[i].getPosition() + Vector3((2 * m_arenaSize), 0, 0));
+		m_ships[i]->updatePhysics(timeElapsed);
+		if(m_ships[i]->getPosition().x > m_arenaSize) {
+			m_ships[i]->setPosition(m_ships[i]->getPosition() + Vector3(-(2 * m_arenaSize), 0, 0));
+		} else if (m_ships[i]->getPosition().x < - m_arenaSize) {
+			m_ships[i]->setPosition(m_ships[i]->getPosition() + Vector3((2 * m_arenaSize), 0, 0));
 		}
 
-		if(m_ships[i].getPosition().y > m_arenaSize) {
-			m_ships[i].setPosition(m_ships[i].getPosition() + Vector3(0, -(2 * m_arenaSize), 0));
-		} else if (m_ships[i].getPosition().y < - m_arenaSize) {
-			m_ships[i].setPosition(m_ships[i].getPosition() + Vector3(0, (2 * m_arenaSize), 0));
+		if(m_ships[i]->getPosition().y > m_arenaSize) {
+			m_ships[i]->setPosition(m_ships[i]->getPosition() + Vector3(0, -(2 * m_arenaSize), 0));
+		} else if (m_ships[i]->getPosition().y < - m_arenaSize) {
+			m_ships[i]->setPosition(m_ships[i]->getPosition() + Vector3(0, (2 * m_arenaSize), 0));
 		}
 
-		if(m_ships[i].getPosition().z > m_arenaSize) {
-			m_ships[i].setPosition(m_ships[i].getPosition() + Vector3(0, 0, -(2 * m_arenaSize)));
-		} else if (m_ships[i].getPosition().z < - m_arenaSize) {
-			m_ships[i].setPosition(m_ships[i].getPosition() + Vector3(0, 0, (2 * m_arenaSize)));
+		if(m_ships[i]->getPosition().z > m_arenaSize) {
+			m_ships[i]->setPosition(m_ships[i]->getPosition() + Vector3(0, 0, -(2 * m_arenaSize)));
+		} else if (m_ships[i]->getPosition().z < - m_arenaSize) {
+			m_ships[i]->setPosition(m_ships[i]->getPosition() + Vector3(0, 0, (2 * m_arenaSize)));
 		}
 	}
 
 	for(i = 0; i < m_projectiles.size(); i++) {
-		m_projectiles[i].updatePhysics(timeElapsed);
+		m_projectiles[i]->updatePhysics(timeElapsed);
+
+		if(m_projectiles[i]->getPosition().x > m_arenaSize || m_projectiles[i]->getPosition().x < - m_arenaSize
+			|| m_projectiles[i]->getPosition().y > m_arenaSize || m_projectiles[i]->getPosition().y < - m_arenaSize
+			|| m_projectiles[i]->getPosition().z > m_arenaSize || m_projectiles[i]->getPosition().z < - m_arenaSize) 
+		{
+			destroyProjectile(m_projectiles[i]);
+			i--; // Kludgey, should fix this
+		}
 	}
 }
