@@ -6,22 +6,40 @@
 #include "PhysicsEngine.h"
 #include "GameObjects.h"
 #include "RenderModel.h"
+#include "OgreTextAreaOverlayElement.h"
+#include "OgreFontManager.h"
+#include "Gorilla.h"
  
 using namespace Ogre;
  
 class KeyboardTestListener : public FrameListener
 {
 public:
-	KeyboardTestListener(OIS::Keyboard *keyboard, SceneManager *mgr, Camera *cam)
+	KeyboardTestListener(OIS::Keyboard *keyboard, SceneManager *mgr, Camera *cam, RenderWindow * renderWindow)
         : m_Keyboard(keyboard), m_rotateNode(mgr->getRootSceneNode()->createChildSceneNode()), m_cam(cam), 
 		m_camHeight(0), m_camOffset(0), m_arena(5000), m_mgr(mgr),
-		m_thirdPersonCam(true), m_renderModel(m_arena, m_mgr)
+		m_thirdPersonCam(true), m_renderModel(m_arena, m_mgr), mp_vp(cam->getViewport()), mp_fps(NULL), m_timer(0),
+		mp_renderWindow(renderWindow)
 	{
 		m_cam->setFarClipDistance(0);
 
 		// Generate the keyboard testing entity and attach it to the listener's scene node
 		PlayerShip playerShip = PlayerShip(1, Vector3(0, -2000, 0));
 		PlayerShip * p_playerShip = m_arena.addShip(playerShip);
+
+
+		// Generate GUI elements
+		Gorilla::Silverback * mGorilla = new Gorilla::Silverback();
+		mGorilla->loadAtlas("dejavu");
+		Gorilla::Screen * mScreen = mGorilla->createScreen(mp_vp, "dejavu");
+		Gorilla::Layer * layer = mScreen->createLayer(10);
+
+		layer->createCaption(14, 5, 5, "OreWar Beta v0.01");
+		Gorilla::Rectangle * crosshair = layer->createRectangle(Vector2(mp_vp->getActualWidth() / 2.0f - 6, mp_vp->getActualHeight() / 2.0f - 6),
+			Vector2(12, 12));
+		crosshair->background_image("crosshair");
+
+		mp_fps = layer->createCaption(14, 5, mp_vp->getActualHeight() - 24, "FPS Counter");
     }
  
     bool frameStarted(const FrameEvent& evt)
@@ -84,6 +102,15 @@ public:
 			m_thirdPersonCam = !m_thirdPersonCam; 
 		}
 
+		// Update FPS counter
+		m_timer += evt.timeSinceLastFrame;
+		if (m_timer > 1.0f / 60.0f)
+		{
+			m_timer = 0;
+			mp_fps->text("FPS: " + Ogre::StringConverter::toString(mp_renderWindow->getLastFPS()));
+		}
+		
+
 		// Generate projectile if required
 		if(m_Keyboard->isKeyDown(OIS::KC_SPACE)) {
 			if(playerShip->canShoot()) {
@@ -118,6 +145,10 @@ private:
 
 	SceneManager * m_mgr;
 	RenderModel m_renderModel;
+	Viewport * mp_vp;
+	Gorilla::Caption * mp_fps;
+	Real m_timer;
+	RenderWindow * mp_renderWindow;
 };
  
 class Application
@@ -219,7 +250,7 @@ private:
     {
 		// Create the SceneManager
 		SceneManager *mgr = mRoot->createSceneManager(ST_GENERIC, "Default SceneManager");
-        
+
 		// Create a camera
 		Camera *cam = mgr->createCamera("Camera");
 		cam->setPosition(Ogre::Vector3(0,0,1000));
@@ -327,7 +358,8 @@ private:
 		// Create and add a listener for the keyboard
 		// Note: Input devices can have only one listener
 		mListener = new KeyboardTestListener(mKeyboard, mRoot->getSceneManager("Default SceneManager"), 
-			mRoot->getSceneManager("Default SceneManager")->getCamera("Camera"));
+			mRoot->getSceneManager("Default SceneManager")->getCamera("Camera"),
+			mRoot->getAutoCreatedWindow());
         mRoot->addFrameListener(mListener);
     }
  
