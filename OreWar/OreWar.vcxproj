@@ -13,10 +13,12 @@
   <ItemGroup>
     <ClCompile Include="GameObjects.cpp" />
     <ClCompile Include="OgreMain.cpp" />
+    <ClCompile Include="PhysicsEngine.cpp" />
     <ClCompile Include="RenderModel.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="GameObjects.h" />
+    <ClInclude Include="PhysicsEngine.h" />
     <ClInclude Include="RenderModel.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

@@ -3,6 +3,7 @@
 #include <OgreMath.h>
 #include <sstream>
 #include <vector>
+#include "PhysicsEngine.h"
 #include "GameObjects.h"
 #include "RenderModel.h"
  
@@ -19,15 +20,15 @@ public:
 		m_cam->setFarClipDistance(0);
 
 		// Generate the keyboard testing entity and attach it to the listener's scene node
-		PhysicsObject playerShip = PhysicsObject(ObjectType::SHIP, 1, Vector3(0, -2000, 0));
-		PhysicsObject * p_playerShip = m_arena.addShip(playerShip);
+		PlayerShip playerShip = PlayerShip(1, Vector3(0, -2000, 0));
+		PlayerShip * p_playerShip = m_arena.addShip(playerShip);
     }
  
     bool frameStarted(const FrameEvent& evt)
     {
 		// Capture the keyboard input
         m_Keyboard->capture();
-		PhysicsObject * playerShip = m_arena.getShips()->front();
+		PlayerShip * playerShip = m_arena.getShips()->front();
 
 		// Adjust or reset the camera modifiers
 		if(m_Keyboard->isKeyDown(OIS::KC_Z)) {
@@ -85,19 +86,21 @@ public:
 
 		// Generate projectile if required
 		if(m_Keyboard->isKeyDown(OIS::KC_SPACE)) {
-			PhysicsObject * p_projectile = m_arena.fireProjectileFromShip(*playerShip);
+			if(playerShip->canShoot()) {
+				m_arena.fireProjectileFromShip(playerShip);
+			}
 		}
 
 		// Update the position of the physics object and move the scene node
 		m_arena.updatePhysics(evt.timeSinceLastFrame);
-		m_renderModel.updateRenderList(evt.timeSinceLastFrame);
+		m_renderModel.updateRenderList(evt.timeSinceLastFrame, m_cam->getOrientation());
 
 		// Move the camera
 		if(m_thirdPersonCam) {
 			m_cam->setPosition(playerShip->getPosition() + Vector3(0, 1000, 1000));
 			m_cam->lookAt(playerShip->getPosition());
 		} else {
-			m_cam->setPosition(playerShip->getPosition());
+			m_cam->setPosition(playerShip->getPosition() + playerShip->getNormal() * 60 - playerShip->getHeading() * 160);
 			m_cam->setOrientation(playerShip->getOrientation());
 		}
 
@@ -113,9 +116,6 @@ private:
 	GameArena m_arena;
 	bool m_thirdPersonCam;
 
-	// Note: All references stored by the RenderObjects will becomes
-	// invalid when the arenas vectors resize. Need to implement a 
-	// much, much better way to do this.
 	SceneManager * m_mgr;
 	RenderModel m_renderModel;
 };
@@ -230,19 +230,61 @@ private:
 		cam->setAspectRatio(Real(vp->getActualWidth()) / Real(vp->getActualHeight()));
 
 		// Setup ambient light and shadows
-		mgr->setAmbientLight(Ogre::ColourValue(0.05, 0.05, 0.1));
+		mgr->setAmbientLight(Ogre::ColourValue(0.15, 0.15, 0.3));
 		mgr->setShadowTechnique(Ogre::SHADOWTYPE_STENCIL_MODULATIVE);
 
-		// Add a plane for the ground
+		// Add planes for the arena boundaries
 		Plane plane(Ogre::Vector3::UNIT_Y, 0);
-		MeshManager::getSingleton().createPlane("ground", Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME,
-        plane, 10000, 10000, 100, 100, true, 1, 5, 5, Ogre::Vector3::UNIT_Z);
-		Ogre::Entity* entGround = mgr->createEntity("GroundEntity", "ground");
-		SceneNode * groundNode = mgr->getRootSceneNode()->createChildSceneNode();
-		groundNode->attachObject(entGround);
-		groundNode->setPosition(Vector3(0, -5000, 0));
-		entGround->setMaterialName("Orewar/Starfield");
-		entGround->setCastShadows(false);
+		MeshManager::getSingleton().createPlane("starwall", Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME,
+        plane, 10000, 10000, 100, 100, true, 1, 1, 1, Ogre::Vector3::UNIT_Z);
+
+		Ogre::Entity* wallEnt = mgr->createEntity("BottomWall", "starwall");
+		SceneNode * wallNode = mgr->getRootSceneNode()->createChildSceneNode();
+		wallNode->attachObject(wallEnt);
+		wallNode->setPosition(Vector3(0, -5000, 0));
+		wallEnt->setMaterialName("Orewar/Starfield");
+		wallEnt->setCastShadows(false);
+
+		wallEnt = mgr->createEntity("TopWall", "starwall");
+		wallNode = mgr->getRootSceneNode()->createChildSceneNode();
+		wallNode->attachObject(wallEnt);
+		wallNode->setPosition(Vector3(0, 5000, 0));
+		wallNode->setOrientation(Quaternion(Degree(180), Vector3::UNIT_X));
+		wallEnt->setMaterialName("Orewar/Starfield");
+		wallEnt->setCastShadows(false);
+
+		wallEnt = mgr->createEntity("LeftWall", "starwall");
+		wallNode = mgr->getRootSceneNode()->createChildSceneNode();
+		wallNode->attachObject(wallEnt);
+		wallNode->setPosition(Vector3(-5000, 0, 0));
+		wallNode->setOrientation(Quaternion(Degree(-90), Vector3::UNIT_Z));
+		wallEnt->setMaterialName("Orewar/Starfield");
+		wallEnt->setCastShadows(false);
+
+		wallEnt = mgr->createEntity("RightWall", "starwall");
+		wallNode = mgr->getRootSceneNode()->createChildSceneNode();
+		wallNode->attachObject(wallEnt);
+		wallNode->setOrientation(Quaternion(Degree(90), Vector3::UNIT_Z));
+		wallNode->setPosition(Vector3(5000, 0, 0));
+		wallEnt->setMaterialName("Orewar/Starfield");
+		wallEnt->setCastShadows(false);
+
+		wallEnt = mgr->createEntity("FrontWall", "starwall");
+		wallNode = mgr->getRootSceneNode()->createChildSceneNode();
+		wallNode->attachObject(wallEnt);
+		wallNode->setPosition(Vector3(0, 0, 5000));
+		wallNode->setOrientation(Quaternion(Degree(-90), Vector3::UNIT_X));
+		wallEnt->setMaterialName("Orewar/Starfield");
+		wallEnt->setCastShadows(false);
+
+		wallEnt = mgr->createEntity("BackWall", "starwall");
+		wallNode = mgr->getRootSceneNode()->createChildSceneNode();
+		wallNode->attachObject(wallEnt);
+		wallNode->setOrientation(Quaternion(Degree(90), Vector3::UNIT_X));
+		wallNode->setPosition(Vector3(0, 0, -5000));
+		wallEnt->setMaterialName("Orewar/Starfield");
+		wallEnt->setCastShadows(false);
+
 
 		// Put a giant ship in the middle of the arena
 		SceneNode * shipNode = mgr->getRootSceneNode()->createChildSceneNode();
@@ -252,7 +294,7 @@ private:
 		shipNode->setScale(100, 100, 100);
 
 		// Add a skybox
-		mgr->setSkyBox(true, "Orewar/SpaceSkyBox", 20000, false);
+		// mgr->setSkyBox(true, "Orewar/SpaceSkyBox", 20000, false);
     }
  
     void setupInputSystem()

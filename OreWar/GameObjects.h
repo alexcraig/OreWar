@@ -5,154 +5,131 @@
 #include <OgreVector3.h>
 #include <OgreQuaternion.h>
 #include <OgreMath.h>
+#include "PhysicsEngine.h"
 
 using namespace Ogre;
 
 /**
- * The BaseObject class represents an entity in the OreWar game world.
- * BaseObjects use an X, Y, Z coordinate system following Ogre's axis conventions.
- * (see http://www.ogre3d.org/tikiwiki/Basic+Tutorial+1&structure=Tutorials)
- * The coordinate system is centered with 0,0,0 in the exact center of the game
- * world.
+ * PlayerShip represents a ship controllable by a human player which
+ * can generate projectiles.
  */
-class BaseObject
+class PlayerShip : public PhysicsObject
 {
 private:
-	/** The current position of the object */
-	Vector3 m_position;
+	/** The time which should elapsed between projectile generations */
+	Real m_reloadTime;
 
-	Quaternion m_orientation;
+	/** The time which has elapsed since the last projectile generation */
+	Real m_lastShotCounter;
 
-public:
+	/** Flag determining if the ship's weapons are currently loaded */
+	bool m_canShoot;
 
-	/** Construct a new BaseObject at a specified position with default heading (<0,0,-1>) */
-	BaseObject(Vector3 position);
-
-	BaseObject(const BaseObject& copy);
-
-	/** Construct a new BaseObject at the origin with default heading (<0,0,-1>) */
-	BaseObject();
-
-	void yaw(Radian radians);
-
-	void roll(Radian radians);
-
-	void pitch(Radian radians);
-
-	/** Sets the position of the object */
-	void setPosition(Vector3 position);
-
-	/** @return The position of the object */
-	Vector3 getPosition();
-
-	/** @return The heading of the object (not normalized) */
-	Vector3 getHeading();
-
-	Quaternion getOrientation();
-
-	void setOrientation(Quaternion orientation);
-};
-
-enum ObjectType { SHIP, PROJECTILE };
-
-/**
- * The PhysicsObject class represents an object in the OreWar game world which is subject
- * to physics simulation. Physics objects have a set mass, and forces can be applied
- * to produce motion when the updatePosition() method is called. The velocity and acceleration
- * can also be directly manipulated in cases where forces are unnecessary. All properties
- * use the same coordinate orientation as those in the BaseObject class.
- */
-class PhysicsObject : public BaseObject
-{
-private:
-	ObjectType m_type;
-
-	/** The mass of the object */
-	Real m_mass;
-
-	/** The velocity of the object */
-	Vector3 m_velocity;
-
-	/** The acceleration of the object */
-	Vector3 m_acceleration;
-
-	/** The sum vector of all forces current applied on the object */
-	Vector3 m_force;
+	/** True if the left weapon should be used next, false if the right should be used */
+	bool m_shootLeft;
 
 public:
-	/** 
-	 * Construct a PhysicsObject at the given position coordinates with the
-	 * specified mass and default heading (<1,0,0>).
-	 */
-	PhysicsObject(ObjectType type, Real mass, Vector3 position);
+	/** Construct a PlayerShip with the specified mass at the specified position */
+	PlayerShip(Real mass, Vector3 position);
 
-	/**
-	Construct a PhysicsObject at the origin with the specified mass 
-	 * with default heading (<1,0,0>)
-	 */
-	PhysicsObject(ObjectType type, Real mass);
+	/** Construct a PlayerShip with the specified mass at the origin */
+	PlayerShip(Real mass);
 
-	PhysicsObject(const PhysicsObject& copy);
+	/** Copy constructor */
+	PlayerShip(const PlayerShip& copy);
 
-	ObjectType getType();
+	/** @return True if the ship has a loaded weapon */
+	bool canShoot() const;
 
-	/** Sets the velocity of the object */
-	void setVelocity(Vector3 velocity);
+	/** Generates a projectile PhysicsObject, and resets the ship's reload counter*/
+	PhysicsObject generateProjectile();
 
-	/** Set the Y (vertical) velocity of the object */
-	void setAcceleration(Vector3 acceleration);
-
-	/** @return The velocity of the object */
-	Vector3 getVelocity();
-
-	/** @return The acceleration of the object */
-	Vector3 getAcceleration();
-
-	/** @return The vector sum of all forces on the object */
-	Vector3 getSumForce();
-
-	/** 
-	 * Applies an addititve force on the object which will be taken into account
-	 * on the next physics update.
-	 */
-	void applyForce(Vector3 force);
-
-	/** Cancel all force currently applied to the object */
-	void clearForces();
-
-	/**
-	 * Updates the object's position, taking all physics parameters into
-	 * account as well as the time elapsed since the last position update
-	 * (in seconds).
-	 */
+	/** Updates the ship's position and reload status */
 	void updatePhysics(Real timeElapsed);
 };
 
+/**
+ * Interface for listening on a GameArena instance.
+ * This interface should be extended by classes which are interested in being notified
+ * whenever an object is added to or removed from the game arena
+ */
 class GameArenaListener
 {
 public:
+	/** Called whenever a new PhysicsObject is generated in the GameArena */
 	virtual void newPhysicsObject(PhysicsObject * object) = 0;
 
+	/** Called just before a PhysicsObject is destroyed in the GameArena */
 	virtual void destroyedPhysicsObject(PhysicsObject * object) = 0;
 };
 
+/**
+ * GameArena represents a cube of space in which ships, projectiles, and other
+ * objects should undergo physics simulation. The GameArena is responsible for
+ * storing references to all involved PhysicsObjects, and notifying listeners
+ * when new objects are created and destroyed.
+ */
 class GameArena
 {
 private:
+	/**
+	 * The size of the game arena.
+	 * Arenas are a cube centered on the origin, and each wall
+	 * is m_arenaSize units from the center (i.e. each wall of the cube
+	 * is 2 * m_arenaSize long).
+	 */
 	Real m_arenaSize;
-	std::vector<PhysicsObject *> m_ships;
+
+	/** A vector of pointers to dynamically allocated memory for all ships in the GameArena */
+	std::vector<PlayerShip *> m_ships;
+
+	/** A vector of pointers to dynamically allocated memory for all projectiles in the GameArena */
 	std::vector<PhysicsObject *> m_projectiles;
+
+	/** A vector of pointers to GameArenaListener instances registered with the GameArena*/
 	std::vector<GameArenaListener *> m_listeners;
 public:
+	/** Constructs a new, empty GameArena with the specified size. */
 	GameArena(Real size);
+
+	/** Registers a GameArenaListener with the GameArena */
 	void addGameArenaListener(GameArenaListener * listener);
+
+	/** Unregisters a GameArenaListener from the GameArena */
 	void removeGameArenaListener(GameArenaListener * listener);
-	PhysicsObject * addShip(PhysicsObject ship);
+
+	/**
+	 * Adds a PlayerShip to the GameArena.
+	 * Note: A copy of the passed PlayerShip is created and stored in dynamic memory.
+	 * @return	A pointer to the new copy of the PlayerShip. This pointer will remain valuid
+	 *			for the lifetime of the GameArena.
+	 */
+	PlayerShip * addShip(PlayerShip ship);
+
+	/**
+	 * Adds a projectile to the GameArena.
+	 * Note: A copy of the passed PhysicsObject is created and stored in dynamic memory.
+	 * @return	A pointer to the new copy of the PhysicsObject. This pointer will remain valuid
+	 *			for the lifetime of the GameArena.
+	 */
 	PhysicsObject * addProjectile(PhysicsObject projectile);
+
+	/** Destroys a projectile, erasing it from the vector of stored PhysicsObjects */
 	bool destroyProjectile(PhysicsObject * projectile);
+
+	/** @return The list of pointers to all active projectiles */
 	std::vector<PhysicsObject *> * getProjectiles();
-	std::vector<PhysicsObject *> * getShips();
-	PhysicsObject * fireProjectileFromShip(PhysicsObject ship);
+
+	/** @return The list of pointers to all active ships */
+	std::vector<PlayerShip *> * getShips();
+
+	/** 
+	 * @return A pointer to the PhysicsObject produced by generating a projectile from the passed ship 
+	 * and stored in dynamic memory.
+	 */
+	PhysicsObject * fireProjectileFromShip(PlayerShip * ship);
+
+	/** Updates the physics of all ships and projectiles in the arena */
 	void updatePhysics(Real timeElapsed);
 };
 

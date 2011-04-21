@@ -1,133 +1,65 @@
 #include "GameObjects.h"
-#include <OgreMatrix4.h>
 
 using namespace Ogre;
 
 // ========================================================================
-// BaseObject Implementation
+// PlayerShip Implementation
 // ========================================================================
 
-BaseObject::BaseObject(Vector3 position) :
-	m_position(position), m_orientation(Radian(1), Vector3(0, 0, 0))
+PlayerShip::PlayerShip(Real mass, Vector3 position) : 
+	PhysicsObject(ObjectType::SHIP, mass, position), m_reloadTime(0.2), m_lastShotCounter(0),
+	m_canShoot(true), m_shootLeft(true)
 {
 }
 
-BaseObject::BaseObject(const BaseObject& copy) : m_position(copy.m_position), 
-	m_orientation(copy.m_orientation)
+PlayerShip::PlayerShip(Real mass) :
+	PhysicsObject(ObjectType::SHIP, mass), m_reloadTime(0.2), m_lastShotCounter(0),
+	m_canShoot(true), m_shootLeft(true)
 {
 }
 
-BaseObject::BaseObject() : 
-	m_position(0, 0, 0), m_orientation(Radian(1), Vector3(0, 0, 0))
+PlayerShip::PlayerShip(const PlayerShip& copy) :
+	PhysicsObject(ObjectType::SHIP, copy.getMass(), copy.getPosition()), m_reloadTime(copy.m_reloadTime), 
+	m_lastShotCounter(copy.m_lastShotCounter), m_canShoot(copy.canShoot()), m_shootLeft(copy.m_shootLeft)
 {
 }
 
-void BaseObject::yaw(Radian radians)
+bool PlayerShip::canShoot() const
 {
-	Quaternion q(Radian(radians), Vector3::UNIT_Y);
-	setOrientation(m_orientation * q);
+	return m_canShoot;
 }
 
-void BaseObject::roll(Radian radians)
+PhysicsObject PlayerShip::generateProjectile()
 {
-	Quaternion q(Radian(radians), Vector3::UNIT_Z);
-	setOrientation(m_orientation * q);
+	PhysicsObject projectile = PhysicsObject(ObjectType::PROJECTILE, 1, getPosition());
+	projectile.setVelocity(getVelocity() + getHeading() * 1000);
+	projectile.applyForce(getHeading() * 2000);
+	projectile.setOrientation(getOrientation());
+
+	if(m_shootLeft) {
+		projectile.setPosition(getPosition() + 
+			(getOrientation() * Vector3(80, -30, -30)));
+	} else {
+		projectile.setPosition(getPosition() + 
+			(getOrientation() * Vector3(-80, -30, -30)));
+	}
+
+	m_shootLeft = !m_shootLeft;
+	m_canShoot = false;
+	m_lastShotCounter = 0;
+	return projectile;
 }
 
-void BaseObject::pitch(Radian radians)
+void PlayerShip::updatePhysics(Real timeElapsed) 
 {
-	Quaternion q(Radian(radians), Vector3::UNIT_X);
-	setOrientation(m_orientation * q);
+	PhysicsObject::updatePhysics(timeElapsed);
+	if(!m_canShoot) {
+		m_lastShotCounter += timeElapsed;
+		if(m_lastShotCounter >= m_reloadTime) {
+			m_canShoot = true;
+		}
+	}
 }
-
-void BaseObject::setPosition(Vector3 position)
-{
-	m_position = position;
-}
-
-Vector3 BaseObject::getPosition()
-{
-	return m_position;
-}
-
-Vector3 BaseObject::getHeading()
-{
-	return m_orientation * Vector3(0, 0, -1);
-}
-
-Quaternion BaseObject::getOrientation() 
-{
-	return m_orientation;
-}
-
-void BaseObject::setOrientation(Quaternion orientation) {
-	m_orientation = orientation;
-	m_orientation.normalise();
-}
-
-// ========================================================================
-// BaseObject Implementation
-// ========================================================================
-PhysicsObject::PhysicsObject(ObjectType type, Real mass, Vector3 position) :
-	BaseObject(position), m_type(type), m_mass(mass), m_velocity(0, 0, 0),
-	m_acceleration(0, 0, 0), m_force(0, 0, 0)
-{
-}
-
-PhysicsObject::PhysicsObject(ObjectType type, Real mass) : BaseObject(), m_type(type), m_mass(mass), 
-	m_velocity(0, 0, 0), m_acceleration(0, 0, 0), m_force(Vector3(0, 0 ,0))
-{
-}
-
-PhysicsObject::PhysicsObject(const PhysicsObject& copy) : BaseObject(copy), m_type(copy.m_type), 
-	m_mass(copy.m_mass), m_velocity(copy.m_velocity), m_acceleration(copy.m_acceleration),
-	m_force(copy.m_force)
-{
-}
-
-ObjectType PhysicsObject::getType()
-{
-	return m_type;
-}
-
-void PhysicsObject::setVelocity(Vector3 velocity) {
-	m_velocity = velocity;
-}
-
-void PhysicsObject::setAcceleration(Vector3 acceleration) {
-	m_acceleration = acceleration;
-}
-
-Vector3 PhysicsObject::getVelocity() {
-	return m_velocity;
-}
-
-Vector3 PhysicsObject::getAcceleration() {
-	return m_acceleration;
-}
-
-Vector3 PhysicsObject::getSumForce() {
-	return m_force;
-}
-
-void PhysicsObject::applyForce(Vector3 force) {
-	m_force = m_force + force;
-}
-
-void PhysicsObject::clearForces() {
-	m_force = Vector3(0, 0, 0);
-}
-
-void PhysicsObject::updatePhysics(Real timeElapsed) {
-	// if(m_mass == 0) {
-	// TODO: Throw exception
-	// }
-	
-	m_acceleration = m_force / m_mass;
-	m_velocity = m_velocity + (m_acceleration * timeElapsed);
-	setPosition(getPosition() + (m_velocity * timeElapsed));
-}
-
 
 // ========================================================================
 // GameArena Implementation
@@ -152,9 +84,9 @@ void GameArena::removeGameArenaListener(GameArenaListener * listener)
 	}
 }
 
-PhysicsObject * GameArena::addShip(PhysicsObject ship)
+PlayerShip * GameArena::addShip(PlayerShip ship)
 {
-	PhysicsObject * p_ship = new PhysicsObject(ship);
+	PlayerShip * p_ship = new PlayerShip(ship);
 	m_ships.push_back(p_ship);
 	for(int i = 0; i < m_listeners.size(); i++) {
 		m_listeners[i]->newPhysicsObject(p_ship);
@@ -184,11 +116,9 @@ bool GameArena::destroyProjectile(PhysicsObject * projectile)
 	return false;
 }
 
-PhysicsObject * GameArena::fireProjectileFromShip(PhysicsObject ship)
+PhysicsObject * GameArena::fireProjectileFromShip(PlayerShip * ship)
 {
-	PhysicsObject projectile = PhysicsObject(ObjectType::PROJECTILE, 1, ship.getPosition());
-	projectile.setVelocity(ship.getVelocity() + ship.getHeading() * 1000);
-	projectile.setOrientation(ship.getOrientation());
+	PhysicsObject projectile = ship->generateProjectile();
 	return addProjectile(projectile);
 }
 
@@ -196,7 +126,7 @@ std::vector<PhysicsObject *> * GameArena::getProjectiles() {
 	return & m_projectiles;
 }
 
-std::vector<PhysicsObject *> * GameArena::getShips() {
+std::vector<PlayerShip *> * GameArena::getShips() {
 	return & m_ships;
 }
 
