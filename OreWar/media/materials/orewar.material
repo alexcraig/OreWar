@@ -1,38 +1,68 @@
 material Orewar/Starfield
 {
-	technique
-	{
-		pass
-		{
-			texture_unit
-			{
-				texture stars.png
-                scale 1 1
-			}
-		}
-	}
-}
+     technique
+     {
+         pass
+         {
+             scene_blend alpha_blend
+             depth_write off
+ 
+             texture_unit
+             {
+                 texture stars.png
+                 tex_coord_set 0
+                 colour_op modulate
+             }
+         }
+     }
+ }
+ 
+material Orewar/TargetFrame
+{
+     technique
+     {
+         pass
+         {
+             lighting off
+ 
+             ambient 1 1 1 1
+             diffuse 1 1 1 1
+             specular 0 0 0 0
+             emissive 0 0 0
+ 
+             scene_blend alpha_blend
+             depth_write off
+ 
+             texture_unit
+             {
+                 texture targetFrame.png
+                 tex_coord_set 0
+                 colour_op modulate
+             }
+         }
+     }
+ }
 
 material Orewar/SpaceSkyBox
 {
-	technique
-	{
-		pass
-		{
-			lighting off
-			depth_write off
+    technique
+    {
+        pass
+        {
+            lighting off
+            depth_write off
 
-			texture_unit
-			{
-				cubic_texture stevecube.jpg separateUV
-				tex_address_mode clamp
-			}
-		}
-	}
+            texture_unit
+            {
+                cubic_texture stevecube.jpg separateUV
+                tex_address_mode clamp
+            }
+        }
+    }
 }
 
 material Orewar/PlasmaSprite
- {
+{
      technique
      {
          pass

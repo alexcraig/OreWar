@@ -1,4 +1,5 @@
 #include "PhysicsEngine.h"
+#include <OgreMath.h>
 
 using namespace Ogre;
 
@@ -68,6 +69,7 @@ void BaseObject::setOrientation(Quaternion orientation) {
 	m_orientation = orientation;
 	m_orientation.normalise();
 }
+
 
 // ========================================================================
 // PhysicsObject Implementation
@@ -144,4 +146,34 @@ void PhysicsObject::updatePhysics(Real timeElapsed)
 	m_acceleration = m_force / m_mass;
 	m_velocity = m_velocity + (m_acceleration * timeElapsed);
 	setPosition(getPosition() + (m_velocity * timeElapsed));
+}
+
+
+// ========================================================================
+// SphereCollisionObject Implementation
+// ========================================================================
+
+SphereCollisionObject::SphereCollisionObject(ObjectType type, Real radius, Real mass, Vector3 position)
+	: PhysicsObject(type, mass, position), m_radius(radius)
+{
+}
+
+SphereCollisionObject::SphereCollisionObject(ObjectType type, Real radius, Real mass)
+	: PhysicsObject(type, mass), m_radius(radius)
+{
+}
+
+SphereCollisionObject::SphereCollisionObject(const SphereCollisionObject& copy)
+	: PhysicsObject(copy), m_radius(copy.m_radius)
+{
+}
+
+Real SphereCollisionObject::getRadius() const
+{
+	return m_radius;
+}
+
+bool SphereCollisionObject::checkCollision(const SphereCollisionObject& object) const
+{ 
+	return getPosition().squaredDistance(object.getPosition()) <= Math::Pow(getRadius() + object.getRadius(), 2);
 }

@@ -11,7 +11,7 @@ using namespace Ogre;
  * Enumeration used for differentiating between different types of PhysicsObjects
  * TODO: This should probably be handled through subclassing
  */
-enum ObjectType { SHIP, PROJECTILE };
+enum ObjectType { SHIP, NPC_SHIP, PROJECTILE };
 
 
 /**
@@ -147,6 +147,31 @@ public:
 	 * (in seconds).
 	 */
 	virtual void updatePhysics(Real timeElapsed);
+};
+
+class SphereCollisionObject : public PhysicsObject
+{
+private:
+	Real m_radius;
+public:
+	/** 
+	 * Construct a SphereCollisionObject at the given position coordinates with the
+	 * specified mass and default heading (<0, 0, -1>).
+	 */
+	SphereCollisionObject(ObjectType type, Real radius, Real mass, Vector3 position);
+
+	/**
+	 * Construct a SphereCollisionObject at the origin with the specified mass 
+	 * with default heading (<0, 0, -1>)
+	 */
+	SphereCollisionObject(ObjectType type, Real radius, Real mass);
+
+	/** Copy constructor */
+	SphereCollisionObject(const SphereCollisionObject& copy);
+
+	Real getRadius() const;
+
+	bool checkCollision(const SphereCollisionObject& object) const;
 };
 
 #endif

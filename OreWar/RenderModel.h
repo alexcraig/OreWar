@@ -22,6 +22,9 @@ private:
 
 	/** A pointer to the root scene node used to render the object */
 	SceneNode * mp_node;
+
+	/** Temp - for testing */
+	SceneNode * mp_node2;
 public:
 	/** Constructs a new RenderObject */
 	RenderObject(PhysicsObject * object, SceneNode * node);
@@ -34,6 +37,9 @@ public:
 
 	/** @return A pointer to the root scene node used to render the object */
 	SceneNode * getRootNode();
+
+	/** Temp - for testing */
+	void setNode2(SceneNode * node);
 };
 
 /**

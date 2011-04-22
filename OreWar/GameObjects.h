@@ -13,7 +13,7 @@ using namespace Ogre;
  * PlayerShip represents a ship controllable by a human player which
  * can generate projectiles.
  */
-class PlayerShip : public PhysicsObject
+class PlayerShip : public SphereCollisionObject
 {
 private:
 	/** The time which should elapsed between projectile generations */
@@ -42,7 +42,7 @@ public:
 	bool canShoot() const;
 
 	/** Generates a projectile PhysicsObject, and resets the ship's reload counter*/
-	PhysicsObject generateProjectile();
+	SphereCollisionObject generateProjectile();
 
 	/** Updates the ship's position and reload status */
 	void updatePhysics(Real timeElapsed);
@@ -80,11 +80,13 @@ private:
 	 */
 	Real m_arenaSize;
 
-	/** A vector of pointers to dynamically allocated memory for all ships in the GameArena */
-	std::vector<PlayerShip *> m_ships;
+	PlayerShip * m_playerShip;
+
+	/** A vector of pointers to dynamically allocated memory for all npc ships in the GameArena */
+	std::vector<SphereCollisionObject *> m_npcShips;
 
 	/** A vector of pointers to dynamically allocated memory for all projectiles in the GameArena */
-	std::vector<PhysicsObject *> m_projectiles;
+	std::vector<SphereCollisionObject *> m_projectiles;
 
 	/** A vector of pointers to GameArenaListener instances registered with the GameArena*/
 	std::vector<GameArenaListener *> m_listeners;
@@ -98,13 +100,17 @@ public:
 	/** Unregisters a GameArenaListener from the GameArena */
 	void removeGameArenaListener(GameArenaListener * listener);
 
+	Real getSize() const;
+
 	/**
 	 * Adds a PlayerShip to the GameArena.
 	 * Note: A copy of the passed PlayerShip is created and stored in dynamic memory.
 	 * @return	A pointer to the new copy of the PlayerShip. This pointer will remain valuid
 	 *			for the lifetime of the GameArena.
 	 */
-	PlayerShip * addShip(PlayerShip ship);
+	PlayerShip * setPlayerShip(const PlayerShip& ship);
+
+	SphereCollisionObject * addNpcShip(const SphereCollisionObject& ship);
 
 	/**
 	 * Adds a projectile to the GameArena.
@@ -112,22 +118,26 @@ public:
 	 * @return	A pointer to the new copy of the PhysicsObject. This pointer will remain valuid
 	 *			for the lifetime of the GameArena.
 	 */
-	PhysicsObject * addProjectile(PhysicsObject projectile);
+	SphereCollisionObject * addProjectile(const SphereCollisionObject& projectile);
 
 	/** Destroys a projectile, erasing it from the vector of stored PhysicsObjects */
-	bool destroyProjectile(PhysicsObject * projectile);
+	bool destroyProjectile(SphereCollisionObject * projectile);
+
+	bool destroyNpcShip(SphereCollisionObject * npcShip);
+
+	PlayerShip * getPlayerShip();
 
 	/** @return The list of pointers to all active projectiles */
-	std::vector<PhysicsObject *> * getProjectiles();
+	std::vector<SphereCollisionObject *> * getProjectiles();
 
 	/** @return The list of pointers to all active ships */
-	std::vector<PlayerShip *> * getShips();
+	std::vector<SphereCollisionObject *> * getNpcShips();
 
 	/** 
 	 * @return A pointer to the PhysicsObject produced by generating a projectile from the passed ship 
 	 * and stored in dynamic memory.
 	 */
-	PhysicsObject * fireProjectileFromShip(PlayerShip * ship);
+	SphereCollisionObject * fireProjectileFromShip(PlayerShip * ship);
 
 	/** Updates the physics of all ships and projectiles in the arena */
 	void updatePhysics(Real timeElapsed);
