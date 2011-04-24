@@ -20,28 +20,90 @@ private:
 	/** A pointer to the model object */
 	PhysicsObject * mp_object;
 
-	/** A pointer to the root scene node used to render the object */
-	SceneNode * mp_node;
-
-	/** Temp - for testing */
-	SceneNode * mp_node2;
+	SceneManager * mp_mgr;
 public:
 	/** Constructs a new RenderObject */
-	RenderObject(PhysicsObject * object, SceneNode * node);
-
-	/** Updates the node based on passed time and camera orientation (useful for sprites) */
-	void updateNode(Real elapsedTime, Quaternion camOrientation);
+	RenderObject(PhysicsObject * object, SceneManager * mgr);
 
 	/** @return A pointer to the model object */
 	PhysicsObject * getObject();
 
-	/** @return A pointer to the root scene node used to render the object */
-	SceneNode * getRootNode();
+	SceneManager * getSceneManager();
 
-	/** Temp - for testing */
-	void setNode2(SceneNode * node);
+	/** Updates the node based on passed time and camera orientation (useful for sprites) */
+	virtual void updateNode(Real elapsedTime, Quaternion camOrientation) = 0;
+
+	virtual void loadSceneResources() = 0;
+
+	virtual void buildNode(int entityIndex) = 0;
+
+	virtual void destroyNode() = 0;
 
 	bool operator==(const RenderObject &other) const;
+};
+
+class ShipRO : public RenderObject
+{
+private:
+	SceneNode * mp_shipNode;
+	SceneNode * mp_shipRotateNode;
+	Entity * mp_shipEntity;
+	Light * mp_spotLight;
+	Light * mp_pointLight;
+
+public:
+	ShipRO(PhysicsObject * object, SceneManager * mgr);
+
+	/** Updates the node based on passed time and camera orientation (useful for sprites) */
+	virtual void updateNode(Real elapsedTime, Quaternion camOrientation);
+
+	virtual void loadSceneResources();
+
+	virtual void buildNode(int entityIndex);
+
+	virtual void destroyNode();
+};
+
+class NpcShipRO : public ShipRO
+{
+private:
+	SceneNode * mp_frameNode;
+	Entity * mp_frameSprite;
+
+	static bool m_resourcesLoaded;
+public:
+	NpcShipRO(PhysicsObject * object, SceneManager * mgr);
+
+	/** Updates the node based on passed time and camera orientation (useful for sprites) */
+	virtual void updateNode(Real elapsedTime, Quaternion camOrientation);
+
+	virtual void loadSceneResources();
+
+	virtual void buildNode(int entityIndex);
+
+	virtual void destroyNode();
+};
+
+class ProjectileRO : public RenderObject
+{
+private:
+	SceneNode * mp_projNode;
+
+	Entity * mp_projSprite;
+	Light * mp_pointLight;
+
+	static bool m_resourcesLoaded;
+public:
+	ProjectileRO(PhysicsObject * object, SceneManager * mgr);
+
+	/** Updates the node based on passed time and camera orientation (useful for sprites) */
+	virtual void updateNode(Real elapsedTime, Quaternion camOrientation);
+
+	virtual void loadSceneResources();
+
+	virtual void buildNode(int entityIndex);
+
+	virtual void destroyNode();
 };
 
 /**
@@ -55,7 +117,7 @@ private:
 	GameArena & m_model;
 
 	/** List of all RenderObjects that should be updated and rendered each frame */
-	std::vector<RenderObject> m_renderList;
+	std::vector<RenderObject * > m_renderList;
 
 	/** The SceneManager for the scene represented by the RenderModel */
 	SceneManager * mp_mgr;

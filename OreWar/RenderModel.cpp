@@ -6,41 +6,203 @@ using namespace Ogre;
 // ========================================================================
 // RenderObject Implementation
 // ========================================================================
-RenderObject::RenderObject(PhysicsObject * object, SceneNode * node)
-	: mp_object(object), mp_node(node), mp_node2(NULL)
+RenderObject::RenderObject(PhysicsObject * object, SceneManager * mgr)
+	: mp_object(object), mp_mgr(mgr)
 {
 }
 
-void RenderObject::updateNode(Real elapsedTime, Quaternion camOrientation)
+SceneManager * RenderObject::getSceneManager()
 {
-	mp_node->setPosition(mp_object->getPosition());
-	if(mp_object->getType() == ObjectType::PROJECTILE) {
-		mp_node->setOrientation(camOrientation);
-	} else {
-		mp_node->setOrientation(mp_object->getOrientation());
-	}
-
-	if(mp_node2 != NULL) {
-		mp_node2->setPosition(mp_object->getPosition());
-		mp_node2->setOrientation(camOrientation);
-	}
+	return mp_mgr;
 }
 
 PhysicsObject * RenderObject::getObject() {
 	return mp_object;
 }
 
-SceneNode * RenderObject::getRootNode() {
-	return mp_node;
-}
-
-void RenderObject::setNode2(SceneNode * node) {
-	mp_node2 = node;
-}
-
 bool RenderObject::operator==(const RenderObject &other) const
 {
-	return (mp_node == other.mp_node && mp_object == other.mp_object);
+	return (mp_object == other.mp_object);
+}
+
+
+// ========================================================================
+// ShipRO Implementation
+// ========================================================================
+ShipRO::ShipRO(PhysicsObject * object, SceneManager * mgr)
+	: RenderObject(object, mgr), mp_shipNode(NULL), mp_shipRotateNode(NULL), mp_shipEntity(NULL),
+	mp_spotLight(NULL), mp_pointLight(NULL)
+{
+}
+
+/** Updates the node based on passed time and camera orientation (useful for sprites) */
+void ShipRO::updateNode(Real elapsedTime, Quaternion camOrientation)
+{
+	mp_shipNode->setPosition(getObject()->getPosition());
+	mp_shipNode->setOrientation(getObject()->getOrientation());
+}
+
+void ShipRO::loadSceneResources() 
+{
+}
+
+void ShipRO::buildNode(int entityIndex)
+{
+	mp_shipNode = getSceneManager()->getRootSceneNode()->createChildSceneNode();
+	std::stringstream oss;
+	oss << "Ship" << entityIndex;
+	mp_shipEntity = getSceneManager()->createEntity(oss.str(), "RZR-002.mesh");
+	mp_shipEntity->setCastShadows(true);
+	mp_shipNode->setScale(10, 10, 10);
+	mp_shipRotateNode = mp_shipNode->createChildSceneNode();
+	mp_shipRotateNode->setDirection(Vector3(0, 0, 1));
+	mp_shipRotateNode->attachObject(mp_shipEntity);
+
+	// Add a spot light to the ship of it's the player ship
+	oss << "L";
+	mp_spotLight = getSceneManager()->createLight(oss.str());
+	mp_spotLight->setType(Light::LT_SPOTLIGHT);
+	mp_spotLight->setDiffuseColour(0.8, 0.8, 1.0);
+	mp_spotLight->setSpecularColour(0.2, 0.2, 1.0);
+	mp_spotLight->setDirection(0, 0, -1);
+	mp_spotLight->setPosition(Vector3(0, 30, 0));
+	mp_spotLight->setSpotlightRange(Degree(20), Degree(45));
+	mp_shipNode->attachObject(mp_spotLight);
+
+	// Add a point light above the ship
+	oss << "L";
+	mp_pointLight = getSceneManager()->createLight(oss.str());
+	mp_pointLight->setType(Ogre::Light::LT_POINT);
+	mp_pointLight->setPosition(Ogre::Vector3(0, 30, 0));
+	if (getObject()->getType() == ObjectType::SHIP) {
+		mp_pointLight->setDiffuseColour(0.4, 0.1, 0.1);
+		mp_pointLight->setSpecularColour(0.4, 0.4, 0.4);
+	} else {
+		mp_pointLight->setDiffuseColour(0.1, 0.1, 0.5);
+		mp_pointLight->setSpecularColour(0.4, 0.4, 0.4);
+	}
+	mp_shipNode->attachObject(mp_pointLight);
+}
+
+void ShipRO::destroyNode()
+{
+	mp_shipNode->removeAllChildren();
+	mp_shipNode->detachAllObjects();
+	mp_shipRotateNode->removeAllChildren();
+	mp_shipRotateNode->detachAllObjects();
+	getSceneManager()->destroyMovableObject(mp_shipEntity);
+
+	getSceneManager()->destroyLight(mp_spotLight);
+	getSceneManager()->destroyLight(mp_pointLight);
+}
+
+
+// ========================================================================
+// NpcShipRO Implementation
+// ========================================================================
+bool NpcShipRO::m_resourcesLoaded = false;
+
+NpcShipRO::NpcShipRO(PhysicsObject * object, SceneManager * mgr)
+	: ShipRO(object, mgr), mp_frameNode(NULL), mp_frameSprite(NULL)
+{
+}
+
+void NpcShipRO::updateNode(Real elapsedTime, Quaternion camOrientation)
+{
+	ShipRO::updateNode(elapsedTime, camOrientation);
+	mp_frameNode->setPosition(getObject()->getPosition());
+	mp_frameNode->setOrientation(camOrientation);
+}
+
+
+void NpcShipRO::loadSceneResources()
+{
+	if(!m_resourcesLoaded) {
+		Plane planeTarget = Plane(Ogre::Vector3::UNIT_Z, 0);
+		MeshManager::getSingleton().createPlane("targetFrameSprite", Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME,
+			planeTarget, 250, 250, 1, 1, true, 1, 1, 1, Ogre::Vector3::UNIT_Y);
+	}
+}
+
+void NpcShipRO::buildNode(int entityIndex)
+{
+	ShipRO::buildNode(entityIndex);
+	mp_frameNode = getSceneManager()->getRootSceneNode()->createChildSceneNode();
+
+	std::stringstream oss;
+	oss << "TargetFrame" << entityIndex;
+	mp_frameSprite = getSceneManager()->createEntity(oss.str(), "targetFrameSprite");
+	mp_frameSprite->setMaterialName("Orewar/TargetFrame");
+	mp_frameSprite->setCastShadows(false);
+	mp_frameNode->attachObject(mp_frameSprite);
+}
+
+void NpcShipRO::destroyNode()
+{
+	ShipRO::destroyNode();
+	mp_frameNode->detachAllObjects();
+	mp_frameNode->removeAllChildren();
+	getSceneManager()->destroyMovableObject(mp_frameSprite);
+	getSceneManager()->destroySceneNode(mp_frameNode);
+}
+
+// ========================================================================
+// ProjectileRO Implementation
+// ========================================================================
+bool ProjectileRO::m_resourcesLoaded = false;
+
+ProjectileRO::ProjectileRO(PhysicsObject * object, SceneManager * mgr)
+	: RenderObject(object, mgr), mp_projNode(NULL), mp_projSprite(NULL), mp_pointLight(NULL)
+{
+}
+
+void ProjectileRO::updateNode(Real elapsedTime, Quaternion camOrientation)
+{
+	mp_projNode->setPosition(getObject()->getPosition());
+	mp_projNode->setOrientation(camOrientation);
+}
+
+
+void ProjectileRO::loadSceneResources()
+{
+	if(!m_resourcesLoaded) {
+		Plane planePlasma = Plane(Ogre::Vector3::UNIT_Z, 0);
+		MeshManager::getSingleton().createPlane("projSprite", Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME,
+			planePlasma, 100, 100, 1, 1, true, 1, 1, 1, Ogre::Vector3::UNIT_Y);
+		m_resourcesLoaded = true;
+	}
+}
+
+void ProjectileRO::buildNode(int entityIndex)
+{
+	mp_projNode = getSceneManager()->getRootSceneNode()->createChildSceneNode();
+
+	std::stringstream oss;
+	oss << "Projectile" << entityIndex;
+	mp_projSprite = getSceneManager()->createEntity(oss.str(), "projSprite");
+	mp_projSprite->setMaterialName("Orewar/PlasmaSprite");
+	mp_projSprite->setCastShadows(false);
+	mp_projNode->attachObject(mp_projSprite);
+
+	// Dynamic point lights on projectiles
+	oss << "Light";
+	mp_pointLight = getSceneManager()->createLight(oss.str());
+	mp_pointLight->setType(Ogre::Light::LT_POINT);
+	mp_pointLight->setPosition(Ogre::Vector3(0, 60, 0));
+	mp_pointLight->setDiffuseColour(0.0, 1, 0.0);
+	mp_pointLight->setSpecularColour(0.2, 0.7, 0.2);
+	mp_pointLight->setAttenuation(3250, 1.0, 0.0014, 0.000007);
+	mp_pointLight->setCastShadows(false);
+	mp_projNode->attachObject(mp_pointLight);
+}
+
+void ProjectileRO::destroyNode()
+{
+	mp_projNode->detachAllObjects();
+	mp_projNode->removeAllChildren();
+	getSceneManager()->destroyMovableObject(mp_projSprite);
+	getSceneManager()->destroyLight(mp_pointLight);
+	getSceneManager()->destroySceneNode(mp_projNode);
 }
 
 // ========================================================================
@@ -50,127 +212,36 @@ RenderModel::RenderModel(GameArena& model, SceneManager * mgr) : m_model(model),
 	mp_mgr(mgr), m_entityIndex(0)
 {
 	m_model.addGameArenaListener(this);
-
-	// Set up required textures
-	Plane planePlasma = Plane(Ogre::Vector3::UNIT_Z, 0);
-	MeshManager::getSingleton().createPlane("projSprite", Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME,
-		planePlasma, 100, 100, 1, 1, true, 1, 1, 1, Ogre::Vector3::UNIT_Y);
-	Plane planeTarget = Plane(Ogre::Vector3::UNIT_Z, 0);
-	MeshManager::getSingleton().createPlane("targetFrameSprite", Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME,
-		planeTarget, 250, 250, 1, 1, true, 1, 1, 1, Ogre::Vector3::UNIT_Y);
 }
 
 void RenderModel::generateRenderObject(PhysicsObject * object)
 {
 	// TODO: Resource construction / release should all be in virtual methods
 	// of RenderObject subclasses
-
-	if(object->getType() == ObjectType::SHIP || object->getType() == ObjectType::NPC_SHIP) {
-		SceneNode * shipNode = mp_mgr->getRootSceneNode()->createChildSceneNode();
-		std::stringstream oss;
-		oss << "Ship" << m_entityIndex;
-		Entity * shipEntity = mp_mgr->createEntity(oss.str(), "RZR-002.mesh");
-		shipEntity->setCastShadows(true);
-		shipNode->setScale(10, 10, 10);
-		SceneNode * shipRotateNode = shipNode->createChildSceneNode();
-		shipRotateNode->setDirection(Vector3(0, 0, 1));
-		shipRotateNode->attachObject(shipEntity);
-
-		// Add a spot light to the ship
-		if (object->getType() == ObjectType::SHIP) {
-			oss << "L1";
-			Ogre::Light* spotLight = mp_mgr->createLight(oss.str());
-			spotLight->setType(Ogre::Light::LT_SPOTLIGHT);
-			spotLight->setDiffuseColour(0.8, 0.8, 1.0);
-			spotLight->setSpecularColour(0.2, 0.2, 1.0);
-			spotLight->setDirection(0, 0, -1);
-			spotLight->setPosition(Vector3(0, 30, 0));
-			spotLight->setSpotlightRange(Ogre::Degree(20), Ogre::Degree(45));
-			shipNode->attachObject(spotLight);
-		}
-
-		// Add a point light aboive the ship
-		
-		oss << "L2";
-		Ogre::Light* pointLight = mp_mgr->createLight(oss.str());
-		pointLight->setType(Ogre::Light::LT_POINT);
-		pointLight->setPosition(Ogre::Vector3(0, 30, 0));
-		if (object->getType() == ObjectType::SHIP) {
-			pointLight->setDiffuseColour(0.4, 0.1, 0.1);
-			pointLight->setSpecularColour(0.4, 0.4, 0.4);
-		} else {
-			pointLight->setDiffuseColour(0.1, 0.1, 0.5);
-			pointLight->setSpecularColour(0.4, 0.4, 0.4);
-		}
-		shipNode->attachObject(pointLight);
-		
-		RenderObject renderShip = RenderObject(object, shipNode);
-
-		
-		// Add a target frame if the ship is an NPC ship
-		if(object->getType() == ObjectType::NPC_SHIP) {
-			SceneNode * frameNode = mp_mgr->getRootSceneNode()->createChildSceneNode();
-
-			std::stringstream oss;
-			oss << "TargetFrame" << m_entityIndex;
-			Ogre::Entity* frameSprite = mp_mgr->createEntity(oss.str(), "targetFrameSprite");
-			frameSprite->setMaterialName("Orewar/TargetFrame");
-			frameSprite->setCastShadows(false);
-			frameNode->attachObject(frameSprite);
-			renderShip.setNode2(frameNode);
-		}
-		
-
-		m_renderList.push_back(renderShip);
-		m_entityIndex++;
+	RenderObject * p_renderObj = NULL;
+	if(object->getType() == ObjectType::SHIP) {
+		p_renderObj = new ShipRO(object, mp_mgr);
+	} else if (object->getType() == ObjectType::NPC_SHIP) {
+		p_renderObj = new NpcShipRO(object, mp_mgr);
 	} else if (object->getType() == ObjectType::PROJECTILE) {
-		SceneNode * projNode = mp_mgr->getRootSceneNode()->createChildSceneNode();
-
-		std::stringstream oss;
-		oss << "Projectile" << m_entityIndex;
-		Ogre::Entity* plasmaSprite = mp_mgr->createEntity(oss.str(), "projSprite");
-		plasmaSprite->setMaterialName("Orewar/PlasmaSprite");
-		plasmaSprite->setCastShadows(false);
-		projNode->attachObject(plasmaSprite);
-
-		// Dynamic point lights on projectiles
-		
-		oss << "Light";
-		Ogre::Light* pointLight = mp_mgr->createLight(oss.str());
-		pointLight->setType(Ogre::Light::LT_POINT);
-		pointLight->setPosition(Ogre::Vector3(0, 60, 0));
-		pointLight->setDiffuseColour(0.0, 1, 0.0);
-		pointLight->setSpecularColour(0.2, 0.7, 0.2);
-		pointLight->setAttenuation(3250, 1.0, 0.0014, 0.000007);
-		pointLight->setCastShadows(false);
-		projNode->attachObject(pointLight);
-		
-
-		RenderObject newProj = RenderObject(object, projNode);
-		m_renderList.push_back(newProj);
-		m_entityIndex++;
+		p_renderObj = new ProjectileRO(object, mp_mgr);
 	}
+
+	p_renderObj->loadSceneResources();
+	p_renderObj->buildNode(m_entityIndex);
+	m_renderList.push_back(p_renderObj);
+	m_entityIndex++;
 }
 
 void RenderModel::destroyRenderObject(PhysicsObject * object)
 {
-	for(std::vector<RenderObject>::iterator renderIter =  m_renderList.begin(); 
+	for(std::vector<RenderObject *>::iterator renderIter =  m_renderList.begin(); 
 		renderIter != m_renderList.end();
 		renderIter++) {
 
-		if((*renderIter).getObject() == object) {
-			// TODO: Resource construction / release should all be in virtual methods
-			// of RenderObject subclasses
-			SceneNode::ObjectIterator iter = (*renderIter).getRootNode()->getAttachedObjectIterator();
-			while(iter.hasMoreElements()) {
-				mp_mgr->destroyMovableObject(iter.getNext());
-				iter = (*renderIter).getRootNode()->getAttachedObjectIterator();
-			}
-			(*renderIter).getRootNode()->detachAllObjects();
-			(*renderIter).getRootNode()->removeAndDestroyAllChildren();
-			mp_mgr->destroySceneNode((*renderIter).getRootNode());
-
-			// TODO: Remove - Testing
+		if((*(*renderIter)).getObject() == object) {
+			(*(*renderIter)).destroyNode();
+			delete (*renderIter);
 			m_renderList.erase(std::remove(m_renderList.begin(), m_renderList.end(), (*renderIter)), m_renderList.end());
 			return;
 		}
@@ -179,8 +250,10 @@ void RenderModel::destroyRenderObject(PhysicsObject * object)
 
 void RenderModel::updateRenderList(Real elapsedTime, Quaternion camOrientation)
 {
-	for(int i = 0; i < m_renderList.size(); i++) {
-		m_renderList[i].updateNode(elapsedTime, camOrientation);
+	for(std::vector<RenderObject *>::iterator renderIter =  m_renderList.begin(); 
+		renderIter != m_renderList.end();
+		renderIter++) {
+		(*(*renderIter)).updateNode(elapsedTime, camOrientation);
 	}
 }
 
@@ -193,7 +266,6 @@ void RenderModel::destroyedPhysicsObject(PhysicsObject * object)
 {
 	destroyRenderObject(object);
 }
-
 
 int RenderModel::getNumObjects() const
 {
