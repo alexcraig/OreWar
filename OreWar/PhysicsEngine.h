@@ -54,6 +54,8 @@ public:
 	/** Sets the position of the object */
 	void setPosition(Vector3 position);
 
+	Vector3 getOffset(const BaseObject& other);
+
 	/** @return The position of the object */
 	Vector3 getPosition() const;
 
@@ -95,6 +97,8 @@ private:
 
 	/** The sum vector of all forces current applied on the object */
 	Vector3 m_force;
+
+	Vector3 m_tempForce;
 public:
 	/** 
 	 * Construct a PhysicsObject at the given position coordinates with the
@@ -138,6 +142,12 @@ public:
 	 */
 	void applyForce(Vector3 force);
 
+	/** 
+	 * Applies an addititve force on the object which will be taken into account
+	 * and cleared on the next physics update.
+	 */
+	void applyTempForce(Vector3 force);
+
 	/** Cancel all force currently applied to the object */
 	void clearForces();
 
@@ -148,6 +158,26 @@ public:
 	 */
 	virtual void updatePhysics(Real timeElapsed);
 };
+
+
+class Constraint
+{
+private:
+	PhysicsObject * m_startObject;
+
+	PhysicsObject * m_endObject;
+
+	Real m_distance;
+public:
+	Constraint(PhysicsObject * startObject, PhysicsObject * endObject, Real distance);
+
+	PhysicsObject * getStartObject();
+
+	PhysicsObject * getEndObject();
+
+	void applyForces();
+};
+
 
 class SphereCollisionObject : public PhysicsObject
 {

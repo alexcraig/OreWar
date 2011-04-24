@@ -19,7 +19,7 @@ public:
         : m_Keyboard(keyboard), m_rotateNode(mgr->getRootSceneNode()->createChildSceneNode()), m_cam(cam), 
 		m_camHeight(0), m_camOffset(0), m_arena(5000), m_mgr(mgr),
 		m_thirdPersonCam(true), m_renderModel(m_arena, m_mgr), mp_vp(cam->getViewport()), mp_fps(NULL), m_timer(0),
-		mp_renderWindow(renderWindow)
+		mp_renderWindow(renderWindow), m_con(NULL)
 	{
 		m_cam->setFarClipDistance(0);
 
@@ -48,15 +48,18 @@ public:
 		PlayerShip * playerShip = m_arena.getPlayerShip();
 
 		// Add random NPC ships to shoot
-		for(int i = 0; i < m_arena.getNpcShips()->size() - 4; i++) {
+		for(int i = 0; i < m_arena.getNpcShips()->size() - 1; i++) {
 			// Add some NPC ships
 			SphereCollisionObject npcShip = SphereCollisionObject(ObjectType::NPC_SHIP, 150, 1);
 			npcShip.setPosition(Vector3(Math::RangeRandom(0, m_arena.getSize()),
 				Math::RangeRandom(0, m_arena.getSize()),
 				Math::RangeRandom(0, m_arena.getSize())));
+			/*
 			npcShip.setVelocity(Vector3(Math::RangeRandom(0, 2000),
 				Math::RangeRandom(0, 2000),
 				Math::RangeRandom(0, 2000)));
+			*/
+			npcShip.setVelocity(Vector3(0, 0, 0));
 			npcShip.setOrientation(Vector3(0, 0, -1).getRotationTo(npcShip.getVelocity()));
 			m_arena.addNpcShip(npcShip);
 		}
@@ -80,7 +83,6 @@ public:
 		}
 		
 		// Clear all existing forces, and add keyboard forces
-		playerShip->clearForces();
 		if(m_Keyboard->isKeyDown(OIS::KC_W)) {
 			playerShip->pitch(Radian(2 * evt.timeSinceLastFrame));
 		}
@@ -101,14 +103,14 @@ public:
 		}
 
 		if(m_Keyboard->isKeyDown(OIS::KC_LCONTROL)) {
-			playerShip->applyForce(playerShip->getVelocity().normalisedCopy() * (-1) * Vector3(2000, 2000, 2000));
+			playerShip->applyTempForce(playerShip->getVelocity().normalisedCopy() * (-1) * Vector3(2000, 2000, 2000));
 		}
 
 		if(m_Keyboard->isKeyDown(OIS::KC_UP)) {
-			playerShip->applyForce(playerShip->getHeading() * Vector3(1000, 1000, 1000));
+			playerShip->applyTempForce(playerShip->getHeading() * Vector3(1000, 1000, 1000));
 		}
 		if(m_Keyboard->isKeyDown(OIS::KC_DOWN)) {
-			playerShip->applyForce(playerShip->getHeading() * Vector3(-1000, -1000, -1000));
+			playerShip->applyTempForce(playerShip->getHeading() * Vector3(-1000, -1000, -1000));
 		}
 
 		if(m_Keyboard->isKeyDown(OIS::KC_C)) {
@@ -122,12 +124,29 @@ public:
 			}
 		}
 
+		// Generate constraint - TESTING
+		if(m_Keyboard->isKeyDown(OIS::KC_RCONTROL)) {
+			if(m_con == NULL) {
+				PhysicsObject * closestShip = m_arena.getNpcShips()->front();
+				m_con = new Constraint(playerShip, closestShip, 
+					playerShip->getOffset(*closestShip).length());
+			}
+			m_con->applyForces();
+		} else {
+			if(m_con != NULL) {
+				delete m_con;
+				m_con = NULL;
+			}
+		}
+
+
 		// Update FPS counter
 		m_timer += evt.timeSinceLastFrame;
 		if (m_timer > 1.0f / 60.0f) {
 			m_timer = 0;
 			mp_fps->text("FPS: " + Ogre::StringConverter::toString(mp_renderWindow->getLastFPS())
-				+ " - RenderObjects: " + Ogre::StringConverter::toString(m_renderModel.getNumObjects()));
+				+ " - RenderObjects: " + Ogre::StringConverter::toString(m_renderModel.getNumObjects())
+				+ " - Spring Enabled: " +  Ogre::StringConverter::toString(m_Keyboard->isKeyDown(OIS::KC_RCONTROL)));
 		}
 
 		// Update the position of the physics object and move the scene node
@@ -161,6 +180,7 @@ private:
 	Gorilla::Caption * mp_fps;
 	Real m_timer;
 	RenderWindow * mp_renderWindow;
+	Constraint * m_con;
 };
  
 class Application

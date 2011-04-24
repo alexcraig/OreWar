@@ -8,7 +8,7 @@ using namespace Ogre;
 // ========================================================================
 
 BaseObject::BaseObject(Vector3 position) :
-	m_position(position), m_orientation(Radian(1), Vector3(0, 0, 0))
+	m_position(position), m_orientation(Quaternion::IDENTITY)
 {
 }
 
@@ -45,6 +45,10 @@ void BaseObject::setPosition(Vector3 position)
 	m_position = position;
 }
 
+Vector3 BaseObject::getOffset(const BaseObject& other) {
+	return other.getPosition() - getPosition();
+}
+
 Vector3 BaseObject::getPosition() const
 {
 	return m_position;
@@ -77,18 +81,18 @@ void BaseObject::setOrientation(Quaternion orientation) {
 
 PhysicsObject::PhysicsObject(ObjectType type, Real mass, Vector3 position) :
 	BaseObject(position), m_type(type), m_mass(mass), m_velocity(0, 0, 0),
-	m_acceleration(0, 0, 0), m_force(0, 0, 0)
+	m_acceleration(0, 0, 0), m_force(0, 0, 0), m_tempForce(0, 0, 0)
 {
 }
 
 PhysicsObject::PhysicsObject(ObjectType type, Real mass) : BaseObject(), m_type(type), m_mass(mass), 
-	m_velocity(0, 0, 0), m_acceleration(0, 0, 0), m_force(Vector3(0, 0 ,0))
+	m_velocity(0, 0, 0), m_acceleration(0, 0, 0), m_force(0, 0 ,0), m_tempForce(0, 0, 0)
 {
 }
 
 PhysicsObject::PhysicsObject(const PhysicsObject& copy) : BaseObject(copy), m_type(copy.m_type), 
 	m_mass(copy.m_mass), m_velocity(copy.m_velocity), m_acceleration(copy.m_acceleration),
-	m_force(copy.m_force)
+	m_force(copy.m_force), m_tempForce(copy.m_tempForce)
 {
 }
 
@@ -132,9 +136,15 @@ void PhysicsObject::applyForce(Vector3 force)
 	m_force = m_force + force;
 }
 
+void PhysicsObject::applyTempForce(Vector3 force) 
+{
+	m_tempForce = m_tempForce + force;
+}
+
 void PhysicsObject::clearForces() 
 {
 	m_force = Vector3(0, 0, 0);
+	m_tempForce = Vector3(0, 0, 0);
 }
 
 void PhysicsObject::updatePhysics(Real timeElapsed) 
@@ -143,9 +153,44 @@ void PhysicsObject::updatePhysics(Real timeElapsed)
 	// TODO: Throw exception
 	// }
 	
-	m_acceleration = m_force / m_mass;
+	m_acceleration = (m_force + m_tempForce) / m_mass;
 	m_velocity = m_velocity + (m_acceleration * timeElapsed);
 	setPosition(getPosition() + (m_velocity * timeElapsed));
+	m_tempForce = Vector3(0, 0, 0);
+}
+
+
+// ========================================================================
+// Constraint Implementation
+// ========================================================================
+Constraint::Constraint(PhysicsObject * startObject, PhysicsObject * endObject, Real distance) :
+	m_startObject(startObject), m_endObject(endObject), m_distance(distance)
+{
+}
+
+PhysicsObject * Constraint::getStartObject()
+{
+	return m_startObject;
+}
+
+PhysicsObject * Constraint::getEndObject()
+{
+	return m_endObject;
+}
+
+void Constraint::applyForces()
+{
+	Real distance = m_startObject->getOffset(*m_endObject).length();
+	Real appliedForce = Math::Pow((distance - m_distance), 2) * 1 + Math::Abs(distance - m_distance) * 3;
+	if(distance < m_distance) {
+		appliedForce = -appliedForce;
+	}
+
+	m_startObject->applyTempForce((m_startObject->getOffset(*m_endObject)).normalisedCopy()
+		* appliedForce);
+
+	m_endObject->applyTempForce((m_endObject->getOffset(*m_startObject)).normalisedCopy()
+		* appliedForce);
 }
 
 

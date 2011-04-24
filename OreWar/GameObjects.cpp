@@ -213,8 +213,8 @@ void GameArena::updatePhysics(Real timeElapsed)
 			|| (*shipIter)->getPosition().z > m_arenaSize || (*shipIter)->getPosition().z < - m_arenaSize) 
 		{
 			(*shipIter)->setVelocity((*shipIter)->getVelocity() * Vector3(-1, -1, -1));
-			(*shipIter)->setOrientation(Vector3(0, 0, -1).getRotationTo((*shipIter)->getVelocity()));
 		}
+		(*shipIter)->setOrientation(Vector3(0, 0, -1).getRotationTo((*shipIter)->getVelocity()));
 	}
 
 	// Update physics for projectiles and check for collisions
