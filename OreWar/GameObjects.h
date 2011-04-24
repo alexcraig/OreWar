@@ -90,6 +90,9 @@ private:
 
 	/** A vector of pointers to GameArenaListener instances registered with the GameArena*/
 	std::vector<GameArenaListener *> m_listeners;
+
+	void notifyCreation(PhysicsObject * object);
+	void notifyDestruction(PhysicsObject * object);
 public:
 	/** Constructs a new, empty GameArena with the specified size. */
 	GameArena(Real size);
@@ -121,9 +124,9 @@ public:
 	SphereCollisionObject * addProjectile(const SphereCollisionObject& projectile);
 
 	/** Destroys a projectile, erasing it from the vector of stored PhysicsObjects */
-	bool destroyProjectile(SphereCollisionObject * projectile);
+	std::vector<SphereCollisionObject * >::iterator destroyProjectile(SphereCollisionObject * projectile);
 
-	bool destroyNpcShip(SphereCollisionObject * npcShip);
+	std::vector<SphereCollisionObject * >::iterator destroyNpcShip(SphereCollisionObject * npcShip);
 
 	PlayerShip * getPlayerShip();
 

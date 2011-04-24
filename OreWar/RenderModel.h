@@ -40,6 +40,8 @@ public:
 
 	/** Temp - for testing */
 	void setNode2(SceneNode * node);
+
+	bool operator==(const RenderObject &other) const;
 };
 
 /**
@@ -87,6 +89,8 @@ public:
 
 	/** Called whenever a PhysicsObject is destroyed by the observed GameArena */
 	virtual void destroyedPhysicsObject(PhysicsObject * object);
+
+	int getNumObjects() const;
 };
 
 #endif

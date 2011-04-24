@@ -38,6 +38,11 @@ void RenderObject::setNode2(SceneNode * node) {
 	mp_node2 = node;
 }
 
+bool RenderObject::operator==(const RenderObject &other) const
+{
+	return (mp_node == other.mp_node && mp_object == other.mp_object);
+}
+
 // ========================================================================
 // RenderModel Implementation
 // ========================================================================
@@ -57,6 +62,9 @@ RenderModel::RenderModel(GameArena& model, SceneManager * mgr) : m_model(model),
 
 void RenderModel::generateRenderObject(PhysicsObject * object)
 {
+	// TODO: Resource construction / release should all be in virtual methods
+	// of RenderObject subclasses
+
 	if(object->getType() == ObjectType::SHIP || object->getType() == ObjectType::NPC_SHIP) {
 		SceneNode * shipNode = mp_mgr->getRootSceneNode()->createChildSceneNode();
 		std::stringstream oss;
@@ -98,6 +106,7 @@ void RenderModel::generateRenderObject(PhysicsObject * object)
 		
 		RenderObject renderShip = RenderObject(object, shipNode);
 
+		
 		// Add a target frame if the ship is an NPC ship
 		if(object->getType() == ObjectType::NPC_SHIP) {
 			SceneNode * frameNode = mp_mgr->getRootSceneNode()->createChildSceneNode();
@@ -110,6 +119,7 @@ void RenderModel::generateRenderObject(PhysicsObject * object)
 			frameNode->attachObject(frameSprite);
 			renderShip.setNode2(frameNode);
 		}
+		
 
 		m_renderList.push_back(renderShip);
 		m_entityIndex++;
@@ -144,10 +154,25 @@ void RenderModel::generateRenderObject(PhysicsObject * object)
 
 void RenderModel::destroyRenderObject(PhysicsObject * object)
 {
-	for(int i = 0; i < m_renderList.size(); i++) {
-		if(m_renderList[i].getObject() == object) {
-			mp_mgr->destroySceneNode(m_renderList[i].getRootNode());
-			m_renderList.erase(m_renderList.begin() + i);
+	for(std::vector<RenderObject>::iterator renderIter =  m_renderList.begin(); 
+		renderIter != m_renderList.end();
+		renderIter++) {
+
+		if((*renderIter).getObject() == object) {
+			// TODO: Resource construction / release should all be in virtual methods
+			// of RenderObject subclasses
+			SceneNode::ObjectIterator iter = (*renderIter).getRootNode()->getAttachedObjectIterator();
+			while(iter.hasMoreElements()) {
+				mp_mgr->destroyMovableObject(iter.getNext());
+				iter = (*renderIter).getRootNode()->getAttachedObjectIterator();
+			}
+			(*renderIter).getRootNode()->detachAllObjects();
+			(*renderIter).getRootNode()->removeAndDestroyAllChildren();
+			mp_mgr->destroySceneNode((*renderIter).getRootNode());
+
+			// TODO: Remove - Testing
+			m_renderList.erase(std::remove(m_renderList.begin(), m_renderList.end(), (*renderIter)), m_renderList.end());
+			return;
 		}
 	}
 }
@@ -167,4 +192,10 @@ void RenderModel::newPhysicsObject(PhysicsObject * object)
 void RenderModel::destroyedPhysicsObject(PhysicsObject * object)
 {
 	destroyRenderObject(object);
+}
+
+
+int RenderModel::getNumObjects() const
+{
+	return m_renderList.size();
 }

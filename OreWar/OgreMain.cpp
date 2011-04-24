@@ -124,12 +124,10 @@ public:
 
 		// Update FPS counter
 		m_timer += evt.timeSinceLastFrame;
-		if (m_timer > 1.0f / 60.0f)
-		{
+		if (m_timer > 1.0f / 60.0f) {
 			m_timer = 0;
 			mp_fps->text("FPS: " + Ogre::StringConverter::toString(mp_renderWindow->getLastFPS())
-				+ " - Bolts: " + Ogre::StringConverter::toString(m_arena.getProjectiles()->size())
-				+ " - Ships: " + Ogre::StringConverter::toString(m_arena.getNpcShips()->size()));
+				+ " - RenderObjects: " + Ogre::StringConverter::toString(m_renderModel.getNumObjects()));
 		}
 
 		// Update the position of the physics object and move the scene node

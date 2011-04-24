@@ -65,6 +65,26 @@ void PlayerShip::updatePhysics(Real timeElapsed)
 // GameArena Implementation
 // ========================================================================
 
+void GameArena::notifyCreation(PhysicsObject * object)
+{
+	for(std::vector<GameArenaListener * >::iterator listenerIter = m_listeners.begin(); 
+		listenerIter != m_listeners.end();
+		listenerIter++)
+	{
+		(*listenerIter)->newPhysicsObject(object);
+	}
+}
+
+void GameArena::notifyDestruction(PhysicsObject * object)
+{
+	for(std::vector<GameArenaListener * >::iterator listenerIter = m_listeners.begin(); 
+		listenerIter != m_listeners.end();
+		listenerIter++)
+	{
+		(*listenerIter)->destroyedPhysicsObject(object);
+	}
+}
+
 GameArena::GameArena(Real size) : m_arenaSize(size), m_playerShip(NULL), m_npcShips(), m_projectiles(),
 	m_listeners()
 {
@@ -77,11 +97,7 @@ void GameArena::addGameArenaListener(GameArenaListener * listener)
 
 void GameArena::removeGameArenaListener(GameArenaListener * listener)
 {
-	for(int i = 0; i < m_listeners.size(); i++) {
-		if(m_listeners[i] == listener) {
-			m_listeners.erase(m_listeners.begin() + i);
-		}
-	}
+	m_listeners.erase(std::remove(m_listeners.begin(), m_listeners.end(), listener), m_listeners.end());
 }
 
 Real GameArena::getSize() const {
@@ -90,9 +106,7 @@ Real GameArena::getSize() const {
 
 PlayerShip * GameArena::setPlayerShip(const PlayerShip& ship) {
 	if(m_playerShip != NULL) {
-		for(int i = 0; i < m_listeners.size(); i++) {
-			m_listeners[i]->destroyedPhysicsObject(m_playerShip);
-		}
+		notifyDestruction(m_playerShip);
 		delete m_playerShip;
 		m_playerShip = NULL;
 	}
@@ -100,9 +114,7 @@ PlayerShip * GameArena::setPlayerShip(const PlayerShip& ship) {
 	// TODO: Deconstructor needs to handle deleting this
 	// memory
 	m_playerShip = new PlayerShip(ship);
-	for(int i = 0; i < m_listeners.size(); i++) {
-		m_listeners[i]->newPhysicsObject(m_playerShip);
-	}
+	notifyCreation(m_playerShip);
 
 	return m_playerShip;
 }
@@ -111,45 +123,50 @@ SphereCollisionObject * GameArena::addNpcShip(const SphereCollisionObject& ship)
 {
 	SphereCollisionObject * p_ship = new SphereCollisionObject(ship);
 	m_npcShips.push_back(p_ship);
-	for(int i = 0; i < m_listeners.size(); i++) {
-		m_listeners[i]->newPhysicsObject(p_ship);
-	}
+	notifyCreation(p_ship);
 	return p_ship;
 }
-
 
 SphereCollisionObject * GameArena::addProjectile(const SphereCollisionObject& projectile)
 {
 	SphereCollisionObject * p_projectile = new SphereCollisionObject(projectile);
 	m_projectiles.push_back(p_projectile);
-	for(int i = 0; i < m_listeners.size(); i++) {
-		m_listeners[i]->newPhysicsObject(p_projectile);
-	}
+	notifyCreation(p_projectile);
 	return p_projectile;
 }
 
-bool GameArena::destroyProjectile(SphereCollisionObject * projectile) 
+std::vector<SphereCollisionObject * >::iterator GameArena::destroyProjectile(SphereCollisionObject * projectile) 
 {
-	for(int i = 0; i < m_projectiles.size(); i++) {
-		if(m_projectiles[i] == projectile) {
+	for(std::vector<SphereCollisionObject * >::iterator iter =  m_projectiles.begin(); 
+		iter != m_projectiles.end();
+		iter++)
+	{
+		if(*iter == projectile) {
+			notifyDestruction(projectile);
 			delete projectile;
-			m_projectiles.erase(m_projectiles.begin() + i);
-			return true;
+			return m_projectiles.erase(iter);
 		}
 	}
-	return false;
+	
+	// TODO: Throw exception, ship not found
+	return m_projectiles.end();
 }
 
-bool GameArena::destroyNpcShip(SphereCollisionObject * npcShip) 
+std::vector<SphereCollisionObject * >::iterator GameArena::destroyNpcShip(SphereCollisionObject * npcShip) 
 {
-	for(int i = 0; i < m_npcShips.size(); i++) {
-		if(m_npcShips[i] == npcShip) {
+	for(std::vector<SphereCollisionObject * >::iterator iter =  m_npcShips.begin(); 
+		iter != m_npcShips.end();
+		iter++)
+	{
+		if(*iter == npcShip) {
+			notifyDestruction(npcShip);
 			delete npcShip;
-			m_npcShips.erase(m_npcShips.begin() + i);
-			return true;
+			return m_npcShips.erase(iter);
 		}
 	}
-	return false;
+
+	// TODO: Throw exception, ship not found
+	return m_npcShips.end();
 }
 
 PlayerShip * GameArena::getPlayerShip()
@@ -173,7 +190,7 @@ std::vector<SphereCollisionObject *> * GameArena::getNpcShips() {
 
 void GameArena::updatePhysics(Real timeElapsed)
 {
-	int i, j;
+	// Update the player ship's physics, and reverse its velocity if it passes a wall
 	if(m_playerShip != NULL) {
 		m_playerShip->updatePhysics(timeElapsed);
 		if(m_playerShip->getPosition().x > m_arenaSize || m_playerShip->getPosition().x < - m_arenaSize
@@ -184,37 +201,50 @@ void GameArena::updatePhysics(Real timeElapsed)
 		}
 	}
 
-	for(i = 0; i < m_npcShips.size(); i++) {
-		m_npcShips[i]->updatePhysics(timeElapsed);
+	// Update physics for all NPC ships
+	for(std::vector<SphereCollisionObject * >::iterator shipIter =  m_npcShips.begin(); 
+		shipIter != m_npcShips.end();
+		shipIter++) {
 
-		if(m_npcShips[i]->getPosition().x > m_arenaSize || m_npcShips[i]->getPosition().x < - m_arenaSize
-			|| m_npcShips[i]->getPosition().y > m_arenaSize || m_npcShips[i]->getPosition().y < - m_arenaSize
-			|| m_npcShips[i]->getPosition().z > m_arenaSize || m_npcShips[i]->getPosition().z < - m_arenaSize) 
+		(*shipIter)->updatePhysics(timeElapsed);
+
+		if((*shipIter)->getPosition().x > m_arenaSize || (*shipIter)->getPosition().x < - m_arenaSize
+			|| (*shipIter)->getPosition().y > m_arenaSize || (*shipIter)->getPosition().y < - m_arenaSize
+			|| (*shipIter)->getPosition().z > m_arenaSize || (*shipIter)->getPosition().z < - m_arenaSize) 
 		{
-			m_npcShips[i]->setVelocity(m_npcShips[i]->getVelocity() * Vector3(-1, -1, -1));
-			m_npcShips[i]->setOrientation(Vector3(0, 0, -1).getRotationTo(m_npcShips[i]->getVelocity()));
+			(*shipIter)->setVelocity((*shipIter)->getVelocity() * Vector3(-1, -1, -1));
+			(*shipIter)->setOrientation(Vector3(0, 0, -1).getRotationTo((*shipIter)->getVelocity()));
 		}
 	}
 
-	for(i = 0; i < m_projectiles.size(); i++) {
-		m_projectiles[i]->updatePhysics(timeElapsed);
+	// Update physics for projectiles and check for collisions
+	for(std::vector<SphereCollisionObject * >::iterator projIter =  m_projectiles.begin(); 
+		projIter != m_projectiles.end(); )
+	{
+		(*projIter)->updatePhysics(timeElapsed);
 
-		if(m_projectiles[i]->getPosition().x > m_arenaSize || m_projectiles[i]->getPosition().x < - m_arenaSize
-			|| m_projectiles[i]->getPosition().y > m_arenaSize || m_projectiles[i]->getPosition().y < - m_arenaSize
-			|| m_projectiles[i]->getPosition().z > m_arenaSize || m_projectiles[i]->getPosition().z < - m_arenaSize) 
-		{
-			destroyProjectile(m_projectiles[i]);
-			i--; // Kludgey, should fix this
+		if((*projIter)->getPosition().x > m_arenaSize || (*projIter)->getPosition().x < - m_arenaSize
+			|| (*projIter)->getPosition().y > m_arenaSize || (*projIter)->getPosition().y < - m_arenaSize
+			|| (*projIter)->getPosition().z > m_arenaSize || (*projIter)->getPosition().z < - m_arenaSize) {
+
+			projIter = destroyProjectile((*projIter));
 			continue;
 		}
 
-		for(j = 0; j < m_npcShips.size(); j++) {
-			if(m_projectiles[i]->checkCollision(*m_npcShips[j])) {
-				destroyProjectile(m_projectiles[i]);
-				destroyNpcShip(m_npcShips[j]);
-				i--; // Kludgey, should fix this
+		bool projDestroyed = false;
+		for(std::vector<SphereCollisionObject * >::iterator shipIter =  m_npcShips.begin(); 
+			shipIter != m_npcShips.end();
+			shipIter++) {
+			if((*projIter)->checkCollision(*(*shipIter))) {
+				projIter = destroyProjectile(*projIter);
+				destroyNpcShip(*shipIter);
+				projDestroyed = true;
 				break;
 			}
+		}
+
+		if(!projDestroyed) {
+			projIter++;
 		}
 	}
 }
