@@ -34,8 +34,11 @@ bool RenderObject::operator==(const RenderObject &other) const
 // ========================================================================
 // ConstraintRenderObject Implementation
 // ========================================================================
+bool ConstraintRenderObject::m_resourcesLoaded = false;
+
 ConstraintRenderObject::ConstraintRenderObject(Constraint * constraint, SceneManager * mgr)
-	: RenderObject(mgr), mp_constraint(constraint)
+	: RenderObject(mgr), mp_constraint(constraint), mp_node1(NULL), mp_node2(NULL),
+	mp_sprite1(NULL), mp_sprite2(NULL)
 {
 }
 
@@ -43,6 +46,63 @@ Constraint * ConstraintRenderObject::getConstraint()
 {
 	return mp_constraint;
 }
+
+void ConstraintRenderObject::updateNode(Real elapsedTime, Quaternion camOrientation)
+{
+	Vector3 offset = mp_constraint->getEndObject()->getPosition() - mp_constraint->getStartObject()->getPosition();
+
+	mp_node1->setPosition(mp_constraint->getStartObject()->getPosition()
+		+ (offset * Real(0.5)));
+
+	mp_node2->setPosition(mp_constraint->getStartObject()->getPosition()
+		+ (offset * Real(0.2)));
+
+	mp_node1->setOrientation(camOrientation);
+	mp_node2->setOrientation(camOrientation);
+}
+
+void ConstraintRenderObject::loadSceneResources()
+{
+	if(!m_resourcesLoaded) {
+		Plane planePlasma = Plane(Ogre::Vector3::UNIT_Z, 0);
+		MeshManager::getSingleton().createPlane("conSprite", Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME,
+			planePlasma, 100, 100, 1, 1, true, 1, 1, 1, Ogre::Vector3::UNIT_Y);
+		m_resourcesLoaded = true;
+	}
+}
+
+void ConstraintRenderObject::buildNode()
+{
+	mp_node1 = getSceneManager()->getRootSceneNode()->createChildSceneNode();
+	mp_node2 = getSceneManager()->getRootSceneNode()->createChildSceneNode();
+
+	std::stringstream oss;
+	oss << "Constraint" << getRenderIndex();
+	mp_sprite1 = getSceneManager()->createEntity(oss.str(), "conSprite");
+	mp_sprite1->setMaterialName("Orewar/ConstraintSprite");
+	mp_sprite1->setCastShadows(false);
+	mp_node1->attachObject(mp_sprite1);
+
+	oss << "_2";
+	mp_sprite2 = getSceneManager()->createEntity(oss.str(), "conSprite");
+	mp_sprite2->setMaterialName("Orewar/ConstraintSprite");
+	mp_sprite2->setCastShadows(false);
+	mp_node2->attachObject(mp_sprite2);
+}
+
+void ConstraintRenderObject::destroyNode()
+{
+	mp_node1->detachAllObjects();
+	mp_node1->removeAllChildren();
+	getSceneManager()->destroyMovableObject(mp_sprite1);
+	getSceneManager()->destroySceneNode(mp_node1);
+
+	mp_node2->detachAllObjects();
+	mp_node2->removeAllChildren();
+	getSceneManager()->destroyMovableObject(mp_sprite2);
+	getSceneManager()->destroySceneNode(mp_node2);
+}
+
 
 // ========================================================================
 // PhysicsRenderObject Implementation
@@ -59,6 +119,8 @@ PhysicsObject * PhysicsRenderObject::getObject() {
 // ========================================================================
 // ShipRO Implementation
 // ========================================================================
+bool ShipRO::m_resourcesLoaded = false;
+
 ShipRO::ShipRO(PhysicsObject * object, SceneManager * mgr)
 	: PhysicsRenderObject(object, mgr), mp_shipNode(NULL), mp_shipRotateNode(NULL), mp_shipEntity(NULL),
 	mp_spotLight(NULL), mp_pointLight(NULL)
@@ -239,8 +301,8 @@ void ProjectileRO::destroyNode()
 // ========================================================================
 // RenderModel Implementation
 // ========================================================================
-RenderModel::RenderModel(GameArena& model, SceneManager * mgr) : m_model(model), m_renderList(),
-	mp_mgr(mgr), m_entityIndex(0)
+RenderModel::RenderModel(GameArena& model, SceneManager * mgr) : m_model(model), m_physicsRenderList(),
+	mp_mgr(mgr)
 {
 	m_model.addGameArenaListener(this);
 }
@@ -248,11 +310,18 @@ RenderModel::RenderModel(GameArena& model, SceneManager * mgr) : m_model(model),
 
 void RenderModel::updateRenderList(Real elapsedTime, Quaternion camOrientation)
 {
-	for(std::vector<PhysicsRenderObject *>::iterator renderIter = m_renderList.begin();
-		renderIter != m_renderList.end();
-		renderIter++) 
+	for(std::vector<PhysicsRenderObject *>::iterator physIter = m_physicsRenderList.begin();
+		physIter != m_physicsRenderList.end();
+		physIter++) 
 	{
-		(*(*renderIter)).updateNode(elapsedTime, camOrientation);
+		(*(*physIter)).updateNode(elapsedTime, camOrientation);
+	}
+
+	for(std::vector<ConstraintRenderObject *>::iterator conIter = m_constraintRenderList.begin();
+		conIter != m_constraintRenderList.end();
+		conIter++) 
+	{
+		(*(*conIter)).updateNode(elapsedTime, camOrientation);
 	}
 }
 
@@ -269,34 +338,51 @@ void RenderModel::newPhysicsObject(PhysicsObject * object)
 
 	p_renderObj->loadSceneResources();
 	p_renderObj->buildNode();
-	m_renderList.push_back(p_renderObj);
-	m_entityIndex++;
+	m_physicsRenderList.push_back(p_renderObj);
 }
 
 void RenderModel::destroyedPhysicsObject(PhysicsObject * object)
 {
-	for(std::vector<PhysicsRenderObject *>::iterator renderIter =  m_renderList.begin(); 
-		renderIter != m_renderList.end();
+	for(std::vector<PhysicsRenderObject *>::iterator renderIter =  m_physicsRenderList.begin(); 
+		renderIter != m_physicsRenderList.end();
 		renderIter++) {
 
 		if((*(*renderIter)).getObject() == object) {
 			(*(*renderIter)).destroyNode();
 			delete (*renderIter);
-			m_renderList.erase(std::remove(m_renderList.begin(), m_renderList.end(), (*renderIter)), m_renderList.end());
+			m_physicsRenderList.erase(std::remove(m_physicsRenderList.begin(), 
+				m_physicsRenderList.end(), (*renderIter)), m_physicsRenderList.end());
 			return;
 		}
 	}
 }
 
-void RenderModel::newConstraint(Constraint * object)
+void RenderModel::newConstraint(Constraint * constraint)
 {
+	ConstraintRenderObject * p_renderObj = new ConstraintRenderObject(constraint, mp_mgr);
+
+	p_renderObj->loadSceneResources();
+	p_renderObj->buildNode();
+	m_constraintRenderList.push_back(p_renderObj);
 }
 
-void RenderModel::destroyedConstraint(Constraint * object)
+void RenderModel::destroyedConstraint(Constraint * constraint)
 {
+	for(std::vector<ConstraintRenderObject *>::iterator renderIter =  m_constraintRenderList.begin(); 
+		renderIter != m_constraintRenderList.end();
+		renderIter++) {
+
+		if((*(*renderIter)).getConstraint() == constraint) {
+			(*(*renderIter)).destroyNode();
+			delete (*renderIter);
+			m_constraintRenderList.erase(std::remove(m_constraintRenderList.begin(), 
+				m_constraintRenderList.end(), (*renderIter)), m_constraintRenderList.end());
+			return;
+		}
+	}
 }
 
 int RenderModel::getNumObjects() const
 {
-	return m_renderList.size();
+	return m_physicsRenderList.size() + m_constraintRenderList.size();
 }

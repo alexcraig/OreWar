@@ -42,6 +42,11 @@ class ConstraintRenderObject : public RenderObject
 private:
 	Constraint * mp_constraint;
 
+	SceneNode * mp_node1;
+	SceneNode * mp_node2;
+	Entity * mp_sprite1;
+	Entity * mp_sprite2;
+
 	static bool m_resourcesLoaded;
 public:
 	/** Constructs a new PhysicsRenderObject */
@@ -51,13 +56,13 @@ public:
 	Constraint * getConstraint();
 
 	/** Updates the node based on passed time and camera orientation (useful for sprites) */
-	virtual void updateNode(Real elapsedTime, Quaternion camOrientation) = 0;
+	virtual void updateNode(Real elapsedTime, Quaternion camOrientation);
 
-	virtual void loadSceneResources() = 0;
+	virtual void loadSceneResources();
 
-	virtual void buildNode() = 0;
+	virtual void buildNode();
 
-	virtual void destroyNode() = 0;
+	virtual void destroyNode();
 };
 
 
@@ -170,13 +175,12 @@ private:
 	GameArena & m_model;
 
 	/** List of all PhysicsRenderObjects that should be updated and rendered each frame */
-	std::vector<PhysicsRenderObject * > m_renderList;
+	std::vector<PhysicsRenderObject * > m_physicsRenderList;
+
+	std::vector<ConstraintRenderObject * > m_constraintRenderList;
 
 	/** The SceneManager for the scene represented by the RenderModel */
 	SceneManager * mp_mgr;
-
-	/** Counter used to ensure entities are generated with unique identifiers */
-	int m_entityIndex;
 
 public:
 	/**
