@@ -82,6 +82,7 @@ void ShipRO::buildNode(int entityIndex)
 		mp_pointLight->setSpecularColour(0.4, 0.4, 0.4);
 	}
 	mp_shipNode->attachObject(mp_pointLight);
+	
 }
 
 void ShipRO::destroyNode()

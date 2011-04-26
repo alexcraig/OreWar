@@ -175,7 +175,7 @@ public:
 
 	PhysicsObject * getEndObject();
 
-	void applyForces();
+	void applyForces(Real timeElapsed);
 };
 
 

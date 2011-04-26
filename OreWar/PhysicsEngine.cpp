@@ -1,5 +1,6 @@
 #include "PhysicsEngine.h"
 #include <OgreMath.h>
+#include <OgrePlane.h>
 
 using namespace Ogre;
 
@@ -178,8 +179,10 @@ PhysicsObject * Constraint::getEndObject()
 	return m_endObject;
 }
 
-void Constraint::applyForces()
+void Constraint::applyForces(Real timeElapsed)
 {
+	// Spring based constraint
+	/*
 	Real distance = m_startObject->getOffset(*m_endObject).length();
 	Real appliedForce = Math::Pow((distance - m_distance), 2) * 1 + Math::Abs(distance - m_distance) * 3;
 	if(distance < m_distance) {
@@ -191,6 +194,19 @@ void Constraint::applyForces()
 
 	m_endObject->applyTempForce((m_endObject->getOffset(*m_startObject)).normalisedCopy()
 		* appliedForce);
+	*/
+
+	// Orbit constraint
+	Vector3 normalVector = m_endObject->getOffset(*m_startObject);
+	if(normalVector.length() > m_distance) {
+		Plane normalPlane = Plane(normalVector, 0);
+		normalPlane.normalise();
+		Vector3 curVelocity = m_startObject->getVelocity() - m_endObject->getVelocity();
+		Vector3 desiredVelocity = normalPlane.projectVector(curVelocity) + m_endObject->getVelocity();
+		Vector3 velocityOffset = desiredVelocity - m_startObject->getVelocity();
+	
+		m_startObject->applyTempForce(((velocityOffset * m_startObject->getMass()) / timeElapsed));
+	}
 }
 
 

@@ -17,7 +17,7 @@ class KeyboardTestListener : public FrameListener
 public:
 	KeyboardTestListener(OIS::Keyboard *keyboard, SceneManager *mgr, Camera *cam, RenderWindow * renderWindow)
         : m_Keyboard(keyboard), m_rotateNode(mgr->getRootSceneNode()->createChildSceneNode()), m_cam(cam), 
-		m_camHeight(0), m_camOffset(0), m_arena(5000), m_mgr(mgr),
+		m_camHeight(0), m_camOffset(0), m_arena(10000), m_mgr(mgr),
 		m_thirdPersonCam(true), m_renderModel(m_arena, m_mgr), mp_vp(cam->getViewport()), mp_fps(NULL), m_timer(0),
 		mp_renderWindow(renderWindow), m_con(NULL)
 	{
@@ -48,18 +48,17 @@ public:
 		PlayerShip * playerShip = m_arena.getPlayerShip();
 
 		// Add random NPC ships to shoot
-		for(int i = 0; i < m_arena.getNpcShips()->size() - 1; i++) {
+		for(int i = 0; i < m_arena.getNpcShips()->size() - 4; i++) {
 			// Add some NPC ships
-			SphereCollisionObject npcShip = SphereCollisionObject(ObjectType::NPC_SHIP, 150, 1);
+			SphereCollisionObject npcShip = SphereCollisionObject(ObjectType::NPC_SHIP, 150, 1000);
 			npcShip.setPosition(Vector3(Math::RangeRandom(0, m_arena.getSize()),
 				Math::RangeRandom(0, m_arena.getSize()),
 				Math::RangeRandom(0, m_arena.getSize())));
-			/*
+			// npcShip.setVelocity(Vector3(0, 0, 0));
 			npcShip.setVelocity(Vector3(Math::RangeRandom(0, 2000),
 				Math::RangeRandom(0, 2000),
 				Math::RangeRandom(0, 2000)));
-			*/
-			npcShip.setVelocity(Vector3(0, 0, 0));
+
 			npcShip.setOrientation(Vector3(0, 0, -1).getRotationTo(npcShip.getVelocity()));
 			m_arena.addNpcShip(npcShip);
 		}
@@ -125,15 +124,28 @@ public:
 		}
 
 		// Generate constraint - TESTING
-		if(m_Keyboard->isKeyDown(OIS::KC_RCONTROL)) {
-			if(m_con == NULL) {
+		if(m_Keyboard->isKeyDown(OIS::KC_RCONTROL)) 
+		{
+			if(m_con == NULL) 
+			{
 				PhysicsObject * closestShip = m_arena.getNpcShips()->front();
+				for(std::vector<SphereCollisionObject * >::iterator shipIter = m_arena.getNpcShips()->begin(); 
+					shipIter != m_arena.getNpcShips()->end();
+					shipIter++) 
+				{
+					if(playerShip->getPosition().squaredDistance((*shipIter)->getPosition()) <
+						playerShip->getPosition().squaredDistance(closestShip->getPosition())) 
+					{
+						closestShip = *shipIter;
+					}
+				}
 				m_con = new Constraint(playerShip, closestShip, 
 					playerShip->getOffset(*closestShip).length());
 			}
-			m_con->applyForces();
+			m_con->applyForces(evt.timeSinceLastFrame);
 		} else {
-			if(m_con != NULL) {
+			if(m_con != NULL) 
+			{
 				delete m_con;
 				m_con = NULL;
 			}
@@ -142,7 +154,8 @@ public:
 
 		// Update FPS counter
 		m_timer += evt.timeSinceLastFrame;
-		if (m_timer > 1.0f / 60.0f) {
+		if (m_timer > 1.0f / 60.0f) 
+		{
 			m_timer = 0;
 			mp_fps->text("FPS: " + Ogre::StringConverter::toString(mp_renderWindow->getLastFPS())
 				+ " - RenderObjects: " + Ogre::StringConverter::toString(m_renderModel.getNumObjects())
@@ -282,6 +295,10 @@ private:
     {
 		// Create the SceneManager
 		SceneManager *mgr = mRoot->createSceneManager(ST_GENERIC, "Default SceneManager");
+		
+		// Setup ambient light and shadows
+		mgr->setShadowTechnique(Ogre::SHADOWTYPE_TEXTURE_ADDITIVE);
+		mgr->setAmbientLight(Ogre::ColourValue(0.4, 0.4, 0.5));
 
 		// Create a camera
 		Camera *cam = mgr->createCamera("Camera");
@@ -292,56 +309,52 @@ private:
         Viewport *vp = mRoot->getAutoCreatedWindow()->addViewport(cam);
 		cam->setAspectRatio(Real(vp->getActualWidth()) / Real(vp->getActualHeight()));
 
-		// Setup ambient light and shadows
-		mgr->setAmbientLight(Ogre::ColourValue(0.4, 0.4, 0.5));
-		mgr->setShadowTechnique(Ogre::SHADOWTYPE_TEXTURE_MODULATIVE);
-
 		// Add planes for the arena boundaries
 		Plane plane(Ogre::Vector3::UNIT_Y, 0);
 		MeshManager::getSingleton().createPlane("starwall", Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME,
-        plane, 10000, 10000, 100, 100, true, 1, 1, 1, Ogre::Vector3::UNIT_Z);
+        plane, 20000, 20000, 100, 100, true, 1, 1, 1, Ogre::Vector3::UNIT_Z);
 		MeshManager::getSingleton().createPlane("starwall2", Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME,
-        plane, 14000, 14000, 100, 100, true, 1, 2, 2, Ogre::Vector3::UNIT_Z);
+        plane, 28000, 28000, 100, 100, true, 1, 2, 2, Ogre::Vector3::UNIT_Z);
 		MeshManager::getSingleton().createPlane("starwall3", Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME,
-        plane, 18000, 18000, 100, 100, true, 1, 3, 3, Ogre::Vector3::UNIT_Z);
+        plane, 36000, 36000, 100, 100, true, 1, 3, 3, Ogre::Vector3::UNIT_Z);
 
 		Ogre::Entity* wallEnt = mgr->createEntity("BottomWall", "starwall");
 		SceneNode * wallNode = mgr->getRootSceneNode()->createChildSceneNode();
 		wallNode->attachObject(wallEnt);
-		wallNode->setPosition(Vector3(0, -5000, 0));
+		wallNode->setPosition(Vector3(0, -10000, 0));
 		wallEnt->setMaterialName("Orewar/Starfield");
 		wallEnt->setCastShadows(false);
 		wallEnt = mgr->createEntity("BottomWall2", "starwall2");
 		wallNode = mgr->getRootSceneNode()->createChildSceneNode();
 		wallNode->attachObject(wallEnt);
-		wallNode->setPosition(Vector3(0, -7000, 0));
+		wallNode->setPosition(Vector3(0, -14000, 0));
 		wallEnt->setMaterialName("Orewar/Starfield");
 		wallEnt->setCastShadows(false);
 		wallEnt = mgr->createEntity("BottomWall3", "starwall3");
 		wallNode = mgr->getRootSceneNode()->createChildSceneNode();
 		wallNode->attachObject(wallEnt);
-		wallNode->setPosition(Vector3(0, -9000, 0));
+		wallNode->setPosition(Vector3(0, -18000, 0));
 		wallEnt->setMaterialName("Orewar/Starfield");
 		wallEnt->setCastShadows(false);
 
 		wallEnt = mgr->createEntity("TopWall", "starwall");
 		wallNode = mgr->getRootSceneNode()->createChildSceneNode();
 		wallNode->attachObject(wallEnt);
-		wallNode->setPosition(Vector3(0, 5000, 0));
+		wallNode->setPosition(Vector3(0, 10000, 0));
 		wallNode->setOrientation(Quaternion(Degree(180), Vector3::UNIT_X));
 		wallEnt->setMaterialName("Orewar/Starfield");
 		wallEnt->setCastShadows(false);
 		wallEnt = mgr->createEntity("TopWall2", "starwall2");
 		wallNode = mgr->getRootSceneNode()->createChildSceneNode();
 		wallNode->attachObject(wallEnt);
-		wallNode->setPosition(Vector3(0, 7000, 0));
+		wallNode->setPosition(Vector3(0, 14000, 0));
 		wallNode->setOrientation(Quaternion(Degree(180), Vector3::UNIT_X));
 		wallEnt->setMaterialName("Orewar/Starfield");
 		wallEnt->setCastShadows(false);
 		wallEnt = mgr->createEntity("TopWall3", "starwall3");
 		wallNode = mgr->getRootSceneNode()->createChildSceneNode();
 		wallNode->attachObject(wallEnt);
-		wallNode->setPosition(Vector3(0, 9000, 0));
+		wallNode->setPosition(Vector3(0, 18000, 0));
 		wallNode->setOrientation(Quaternion(Degree(180), Vector3::UNIT_X));
 		wallEnt->setMaterialName("Orewar/Starfield");
 		wallEnt->setCastShadows(false);
@@ -349,21 +362,21 @@ private:
 		wallEnt = mgr->createEntity("LeftWall", "starwall");
 		wallNode = mgr->getRootSceneNode()->createChildSceneNode();
 		wallNode->attachObject(wallEnt);
-		wallNode->setPosition(Vector3(-5000, 0, 0));
+		wallNode->setPosition(Vector3(-10000, 0, 0));
 		wallNode->setOrientation(Quaternion(Degree(-90), Vector3::UNIT_Z));
 		wallEnt->setMaterialName("Orewar/Starfield");
 		wallEnt->setCastShadows(false);
 		wallEnt = mgr->createEntity("LeftWall2", "starwall2");
 		wallNode = mgr->getRootSceneNode()->createChildSceneNode();
 		wallNode->attachObject(wallEnt);
-		wallNode->setPosition(Vector3(-7000, 0, 0));
+		wallNode->setPosition(Vector3(-14000, 0, 0));
 		wallNode->setOrientation(Quaternion(Degree(-90), Vector3::UNIT_Z));
 		wallEnt->setMaterialName("Orewar/Starfield");
 		wallEnt->setCastShadows(false);
 		wallEnt = mgr->createEntity("LeftWal3", "starwall3");
 		wallNode = mgr->getRootSceneNode()->createChildSceneNode();
 		wallNode->attachObject(wallEnt);
-		wallNode->setPosition(Vector3(-9000, 0, 0));
+		wallNode->setPosition(Vector3(-18000, 0, 0));
 		wallNode->setOrientation(Quaternion(Degree(-90), Vector3::UNIT_Z));
 		wallEnt->setMaterialName("Orewar/Starfield");
 		wallEnt->setCastShadows(false);
@@ -372,41 +385,41 @@ private:
 		wallNode = mgr->getRootSceneNode()->createChildSceneNode();
 		wallNode->attachObject(wallEnt);
 		wallNode->setOrientation(Quaternion(Degree(90), Vector3::UNIT_Z));
-		wallNode->setPosition(Vector3(5000, 0, 0));
+		wallNode->setPosition(Vector3(10000, 0, 0));
 		wallEnt->setMaterialName("Orewar/Starfield");
 		wallEnt->setCastShadows(false);
 		wallEnt = mgr->createEntity("RightWall2", "starwall2");
 		wallNode = mgr->getRootSceneNode()->createChildSceneNode();
 		wallNode->attachObject(wallEnt);
 		wallNode->setOrientation(Quaternion(Degree(90), Vector3::UNIT_Z));
-		wallNode->setPosition(Vector3(7000, 0, 0));
+		wallNode->setPosition(Vector3(14000, 0, 0));
 		wallEnt->setMaterialName("Orewar/Starfield");
 		wallEnt = mgr->createEntity("RightWall3", "starwall3");
 		wallNode = mgr->getRootSceneNode()->createChildSceneNode();
 		wallNode->attachObject(wallEnt);
 		wallNode->setOrientation(Quaternion(Degree(90), Vector3::UNIT_Z));
-		wallNode->setPosition(Vector3(9000, 0, 0));
+		wallNode->setPosition(Vector3(18000, 0, 0));
 		wallEnt->setMaterialName("Orewar/Starfield");
 		wallEnt->setCastShadows(false);
 
 		wallEnt = mgr->createEntity("FrontWall", "starwall");
 		wallNode = mgr->getRootSceneNode()->createChildSceneNode();
 		wallNode->attachObject(wallEnt);
-		wallNode->setPosition(Vector3(0, 0, 5000));
+		wallNode->setPosition(Vector3(0, 0, 10000));
 		wallNode->setOrientation(Quaternion(Degree(-90), Vector3::UNIT_X));
 		wallEnt->setMaterialName("Orewar/Starfield");
 		wallEnt->setCastShadows(false);
 		wallEnt = mgr->createEntity("FrontWall2", "starwall2");
 		wallNode = mgr->getRootSceneNode()->createChildSceneNode();
 		wallNode->attachObject(wallEnt);
-		wallNode->setPosition(Vector3(0, 0, 7000));
+		wallNode->setPosition(Vector3(0, 0, 14000));
 		wallNode->setOrientation(Quaternion(Degree(-90), Vector3::UNIT_X));
 		wallEnt->setMaterialName("Orewar/Starfield");
 		wallEnt->setCastShadows(false);
 		wallEnt = mgr->createEntity("FrontWall3", "starwall3");
 		wallNode = mgr->getRootSceneNode()->createChildSceneNode();
 		wallNode->attachObject(wallEnt);
-		wallNode->setPosition(Vector3(0, 0, 9000));
+		wallNode->setPosition(Vector3(0, 0, 18000));
 		wallNode->setOrientation(Quaternion(Degree(-90), Vector3::UNIT_X));
 		wallEnt->setMaterialName("Orewar/Starfield");
 		wallEnt->setCastShadows(false);
@@ -415,34 +428,40 @@ private:
 		wallNode = mgr->getRootSceneNode()->createChildSceneNode();
 		wallNode->attachObject(wallEnt);
 		wallNode->setOrientation(Quaternion(Degree(90), Vector3::UNIT_X));
-		wallNode->setPosition(Vector3(0, 0, -5000));
+		wallNode->setPosition(Vector3(0, 0, -10000));
 		wallEnt->setMaterialName("Orewar/Starfield");
 		wallEnt->setCastShadows(false);
 		wallEnt = mgr->createEntity("BackWall2", "starwall2");
 		wallNode = mgr->getRootSceneNode()->createChildSceneNode();
 		wallNode->attachObject(wallEnt);
 		wallNode->setOrientation(Quaternion(Degree(90), Vector3::UNIT_X));
-		wallNode->setPosition(Vector3(0, 0, -7000));
+		wallNode->setPosition(Vector3(0, 0, -14000));
 		wallEnt->setMaterialName("Orewar/Starfield");
 		wallEnt->setCastShadows(false);
 		wallEnt = mgr->createEntity("BackWall3", "starwall3");
 		wallNode = mgr->getRootSceneNode()->createChildSceneNode();
 		wallNode->attachObject(wallEnt);
 		wallNode->setOrientation(Quaternion(Degree(90), Vector3::UNIT_X));
-		wallNode->setPosition(Vector3(0, 0, -9000));
+		wallNode->setPosition(Vector3(0, 0, -18000));
 		wallEnt->setMaterialName("Orewar/Starfield");
 		wallEnt->setCastShadows(false);
 
 
-		// Put a giant ship in the middle of the arena
-		SceneNode * shipNode = mgr->getRootSceneNode()->createChildSceneNode();
-		Entity * shipEntity = mgr->createEntity("GiantShip", "RZR-002.mesh");
-		shipEntity->setCastShadows(true);
-		shipNode->attachObject(shipEntity);
-		shipNode->setScale(100, 100, 100);
+		// Put a star in the middle of the arena
+		SceneNode * starNode = mgr->getRootSceneNode()->createChildSceneNode();
+		Entity * starEntity = mgr->createEntity("Sphere", "sphere.mesh");
+		starEntity->setMaterialName("Orewar/Star");
+		starNode->attachObject(starEntity);
+		starNode->setScale(15, 15, 15);
 
-		// Add a skybox
-		// mgr->setSkyBox(true, "Orewar/SpaceSkyBox", 20000, false);
+		
+		Light * starLight = mgr->createLight("StarLight");
+		starLight->setType(Ogre::Light::LT_POINT);
+		starLight->setDiffuseColour(0.9, 0.6, 0.05);
+		starLight->setSpecularColour(1, 1, 1);
+		starLight->setAttenuation(40000, 1.0, 0.007, 0.00014);
+		starLight->setCastShadows(false);
+		starNode->attachObject(starLight);
     }
  
     void setupInputSystem()
