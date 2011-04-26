@@ -64,8 +64,12 @@ void PlayerShip::updatePhysics(Real timeElapsed)
 // ========================================================================
 // GameArena Implementation
 // ========================================================================
+GameArena::GameArena(Real size) : m_arenaSize(size), m_playerShip(NULL), m_npcShips(), m_projectiles(),
+	m_constraints(), m_listeners()
+{
+}
 
-void GameArena::notifyCreation(PhysicsObject * object)
+void GameArena::notifyPhysicsCreation(PhysicsObject * object)
 {
 	for(std::vector<GameArenaListener * >::iterator listenerIter = m_listeners.begin(); 
 		listenerIter != m_listeners.end();
@@ -75,7 +79,7 @@ void GameArena::notifyCreation(PhysicsObject * object)
 	}
 }
 
-void GameArena::notifyDestruction(PhysicsObject * object)
+void GameArena::notifyPhysicsDestruction(PhysicsObject * object)
 {
 	for(std::vector<GameArenaListener * >::iterator listenerIter = m_listeners.begin(); 
 		listenerIter != m_listeners.end();
@@ -85,9 +89,24 @@ void GameArena::notifyDestruction(PhysicsObject * object)
 	}
 }
 
-GameArena::GameArena(Real size) : m_arenaSize(size), m_playerShip(NULL), m_npcShips(), m_projectiles(),
-	m_listeners()
+void GameArena::notifyConstraintCreation(Constraint * constraint)
 {
+	for(std::vector<GameArenaListener * >::iterator listenerIter = m_listeners.begin(); 
+		listenerIter != m_listeners.end();
+		listenerIter++)
+	{
+		(*listenerIter)->newConstraint(constraint);
+	}
+}
+
+void GameArena::notifyConstraintDestruction(Constraint * constraint)
+{
+	for(std::vector<GameArenaListener * >::iterator listenerIter = m_listeners.begin(); 
+		listenerIter != m_listeners.end();
+		listenerIter++)
+	{
+		(*listenerIter)->destroyedConstraint(constraint);
+	}
 }
 
 void GameArena::addGameArenaListener(GameArenaListener * listener) 
@@ -106,7 +125,7 @@ Real GameArena::getSize() const {
 
 PlayerShip * GameArena::setPlayerShip(const PlayerShip& ship) {
 	if(m_playerShip != NULL) {
-		notifyDestruction(m_playerShip);
+		notifyPhysicsDestruction(m_playerShip);
 		delete m_playerShip;
 		m_playerShip = NULL;
 	}
@@ -114,7 +133,7 @@ PlayerShip * GameArena::setPlayerShip(const PlayerShip& ship) {
 	// TODO: Deconstructor needs to handle deleting this
 	// memory
 	m_playerShip = new PlayerShip(ship);
-	notifyCreation(m_playerShip);
+	notifyPhysicsCreation(m_playerShip);
 
 	return m_playerShip;
 }
@@ -123,7 +142,7 @@ SphereCollisionObject * GameArena::addNpcShip(const SphereCollisionObject& ship)
 {
 	SphereCollisionObject * p_ship = new SphereCollisionObject(ship);
 	m_npcShips.push_back(p_ship);
-	notifyCreation(p_ship);
+	notifyPhysicsCreation(p_ship);
 	return p_ship;
 }
 
@@ -131,8 +150,33 @@ SphereCollisionObject * GameArena::addProjectile(const SphereCollisionObject& pr
 {
 	SphereCollisionObject * p_projectile = new SphereCollisionObject(projectile);
 	m_projectiles.push_back(p_projectile);
-	notifyCreation(p_projectile);
+	notifyPhysicsCreation(p_projectile);
 	return p_projectile;
+}
+
+Constraint * GameArena::addConstraint(const Constraint& constraint)
+{
+	Constraint * p_constraint = new Constraint(constraint);
+	m_constraints.push_back(p_constraint);
+	notifyConstraintCreation(p_constraint);
+	return p_constraint;
+}
+
+std::vector<Constraint * >::iterator GameArena::destroyConstraint(Constraint * constraint) 
+{
+	for(std::vector<Constraint * >::iterator iter =  m_constraints.begin(); 
+		iter != m_constraints.end();
+		iter++)
+	{
+		if(*iter == constraint) {
+			notifyConstraintDestruction(constraint);
+			delete constraint;
+			return m_constraints.erase(iter);
+		}
+	}
+	
+	// TODO: Throw exception, constraint not found
+	return m_constraints.end();
 }
 
 std::vector<SphereCollisionObject * >::iterator GameArena::destroyProjectile(SphereCollisionObject * projectile) 
@@ -142,13 +186,13 @@ std::vector<SphereCollisionObject * >::iterator GameArena::destroyProjectile(Sph
 		iter++)
 	{
 		if(*iter == projectile) {
-			notifyDestruction(projectile);
+			notifyPhysicsDestruction(projectile);
 			delete projectile;
 			return m_projectiles.erase(iter);
 		}
 	}
 	
-	// TODO: Throw exception, ship not found
+	// TODO: Throw exception, projectile not found
 	return m_projectiles.end();
 }
 
@@ -159,7 +203,7 @@ std::vector<SphereCollisionObject * >::iterator GameArena::destroyNpcShip(Sphere
 		iter++)
 	{
 		if(*iter == npcShip) {
-			notifyDestruction(npcShip);
+			notifyPhysicsDestruction(npcShip);
 			delete npcShip;
 			return m_npcShips.erase(iter);
 		}
@@ -190,6 +234,14 @@ std::vector<SphereCollisionObject *> * GameArena::getNpcShips() {
 
 void GameArena::updatePhysics(Real timeElapsed)
 {
+	// Apply forces from constraints
+	for(std::vector<Constraint * >::iterator conIter =  m_constraints.begin(); 
+		conIter != m_constraints.end();
+		conIter++)
+	{
+		(*conIter)->applyForces(timeElapsed);
+	}
+
 	// Update the player ship's physics, and reverse its velocity if it passes a wall
 	if(m_playerShip != NULL) {
 		m_playerShip->updatePhysics(timeElapsed);

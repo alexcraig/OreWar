@@ -159,7 +159,6 @@ public:
 	virtual void updatePhysics(Real timeElapsed);
 };
 
-
 class Constraint
 {
 private:

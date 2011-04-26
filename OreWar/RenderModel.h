@@ -8,41 +8,90 @@
 
 using namespace Ogre;
 
-/**
- * A RenderObject represents a single logical object from the game model
- * that should be rendered to screen. The RenderObject combines a reference
- * to the PhysicsObject of the model with a reference to the root sceneNode
- * that should be used to render the entity through OGRE.
- */
 class RenderObject
 {
 private:
-	/** A pointer to the model object */
-	PhysicsObject * mp_object;
-
 	SceneManager * mp_mgr;
-public:
-	/** Constructs a new RenderObject */
-	RenderObject(PhysicsObject * object, SceneManager * mgr);
 
-	/** @return A pointer to the model object */
-	PhysicsObject * getObject();
+	static int m_nextRenderIndex;
+
+	int m_renderIndex;
+
+public:
+	RenderObject(SceneManager * mgr);
 
 	SceneManager * getSceneManager();
+
+	int getRenderIndex();
 
 	/** Updates the node based on passed time and camera orientation (useful for sprites) */
 	virtual void updateNode(Real elapsedTime, Quaternion camOrientation) = 0;
 
 	virtual void loadSceneResources() = 0;
 
-	virtual void buildNode(int entityIndex) = 0;
+	virtual void buildNode() = 0;
 
 	virtual void destroyNode() = 0;
 
 	bool operator==(const RenderObject &other) const;
 };
 
-class ShipRO : public RenderObject
+
+class ConstraintRenderObject : public RenderObject
+{
+private:
+	Constraint * mp_constraint;
+
+	static bool m_resourcesLoaded;
+public:
+	/** Constructs a new PhysicsRenderObject */
+	ConstraintRenderObject(Constraint * constraint, SceneManager * mgr);
+
+	/** @return A pointer to the model object */
+	Constraint * getConstraint();
+
+	/** Updates the node based on passed time and camera orientation (useful for sprites) */
+	virtual void updateNode(Real elapsedTime, Quaternion camOrientation) = 0;
+
+	virtual void loadSceneResources() = 0;
+
+	virtual void buildNode() = 0;
+
+	virtual void destroyNode() = 0;
+};
+
+
+/**
+ * A PhysicsRenderObject represents a single logical object from the game model
+ * that should be rendered to screen.
+ */
+class PhysicsRenderObject : public RenderObject
+{
+private:
+	/** A pointer to the model object */
+	PhysicsObject * mp_object;
+
+public:
+	/** Constructs a new PhysicsRenderObject */
+	PhysicsRenderObject(PhysicsObject * object, SceneManager * mgr);
+
+	/** @return A pointer to the model object */
+	PhysicsObject * getObject();
+
+	/** Updates the node based on passed time and camera orientation (useful for sprites) */
+	virtual void updateNode(Real elapsedTime, Quaternion camOrientation) = 0;
+
+	virtual void loadSceneResources() = 0;
+
+	virtual void buildNode() = 0;
+
+	virtual void destroyNode() = 0;
+
+	bool operator==(const RenderObject &other) const;
+};
+
+
+class ShipRO : public PhysicsRenderObject
 {
 private:
 	SceneNode * mp_shipNode;
@@ -51,6 +100,7 @@ private:
 	Light * mp_spotLight;
 	Light * mp_pointLight;
 
+	static bool m_resourcesLoaded;
 public:
 	ShipRO(PhysicsObject * object, SceneManager * mgr);
 
@@ -59,10 +109,11 @@ public:
 
 	virtual void loadSceneResources();
 
-	virtual void buildNode(int entityIndex);
+	virtual void buildNode();
 
 	virtual void destroyNode();
 };
+
 
 class NpcShipRO : public ShipRO
 {
@@ -79,12 +130,13 @@ public:
 
 	virtual void loadSceneResources();
 
-	virtual void buildNode(int entityIndex);
+	virtual void buildNode();
 
 	virtual void destroyNode();
 };
 
-class ProjectileRO : public RenderObject
+
+class ProjectileRO : public PhysicsRenderObject
 {
 private:
 	SceneNode * mp_projNode;
@@ -101,10 +153,11 @@ public:
 
 	virtual void loadSceneResources();
 
-	virtual void buildNode(int entityIndex);
+	virtual void buildNode();
 
 	virtual void destroyNode();
 };
+
 
 /**
  * The RenderModel stores the complete list of RenderObjects that should be rendered each frame
@@ -116,8 +169,8 @@ private:
 	/** Reference to the GameArena object that should be observed */
 	GameArena & m_model;
 
-	/** List of all RenderObjects that should be updated and rendered each frame */
-	std::vector<RenderObject * > m_renderList;
+	/** List of all PhysicsRenderObjects that should be updated and rendered each frame */
+	std::vector<PhysicsRenderObject * > m_renderList;
 
 	/** The SceneManager for the scene represented by the RenderModel */
 	SceneManager * mp_mgr;
@@ -132,17 +185,6 @@ public:
 	 */
 	RenderModel(GameArena& model, SceneManager * mgr);
 
-	/**
-	 * Generates a RenderObject to represent the passed PhysicsObject, and adds it to the render list 
-	 */
-	void generateRenderObject(PhysicsObject * object);
-
-	/**
-	 * Searches the render list for a RenderObject representing the passed object, and deletes it if
-	 * it exists.
-	 */
-	void destroyRenderObject(PhysicsObject * object);
-
 	/** Calls the updateNode() method of all RenderObjects stored in the RenderModel's render list */
 	void updateRenderList(Real elapsedTime, Quaternion camOrientation);
 
@@ -151,6 +193,12 @@ public:
 
 	/** Called whenever a PhysicsObject is destroyed by the observed GameArena */
 	virtual void destroyedPhysicsObject(PhysicsObject * object);
+
+	/** Called whenever a new Constraint is generated in the GameArena */
+	virtual void newConstraint(Constraint * object);
+
+	/** Called just before a Constraint is destroyed in the GameArena */
+	virtual void destroyedConstraint(Constraint * object);
 
 	int getNumObjects() const;
 };

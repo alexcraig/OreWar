@@ -61,6 +61,12 @@ public:
 
 	/** Called just before a PhysicsObject is destroyed in the GameArena */
 	virtual void destroyedPhysicsObject(PhysicsObject * object) = 0;
+
+	/** Called whenever a new Constraint is generated in the GameArena */
+	virtual void newConstraint(Constraint * object) = 0;
+
+	/** Called just before a Constraint is destroyed in the GameArena */
+	virtual void destroyedConstraint(Constraint * object) = 0;
 };
 
 /**
@@ -88,11 +94,16 @@ private:
 	/** A vector of pointers to dynamically allocated memory for all projectiles in the GameArena */
 	std::vector<SphereCollisionObject *> m_projectiles;
 
+	/** A vector of pointers to dynamically allocated memory for all projectiles in the GameArena */
+	std::vector<Constraint *> m_constraints;
+
 	/** A vector of pointers to GameArenaListener instances registered with the GameArena*/
 	std::vector<GameArenaListener *> m_listeners;
 
-	void notifyCreation(PhysicsObject * object);
-	void notifyDestruction(PhysicsObject * object);
+	void notifyPhysicsCreation(PhysicsObject * object);
+	void notifyPhysicsDestruction(PhysicsObject * object);
+	void notifyConstraintCreation(Constraint * object);
+	void notifyConstraintDestruction(Constraint * object);
 public:
 	/** Constructs a new, empty GameArena with the specified size. */
 	GameArena(Real size);
@@ -112,6 +123,10 @@ public:
 	 *			for the lifetime of the GameArena.
 	 */
 	PlayerShip * setPlayerShip(const PlayerShip& ship);
+
+	Constraint * addConstraint(const Constraint& constraint);
+
+	std::vector<Constraint * >::iterator destroyConstraint(Constraint * constraint);
 
 	SphereCollisionObject * addNpcShip(const SphereCollisionObject& ship);
 

@@ -3,12 +3,16 @@
 
 using namespace Ogre;
 
+
 // ========================================================================
 // RenderObject Implementation
 // ========================================================================
-RenderObject::RenderObject(PhysicsObject * object, SceneManager * mgr)
-	: mp_object(object), mp_mgr(mgr)
+int RenderObject::m_nextRenderIndex = 1;
+
+RenderObject::RenderObject(SceneManager * mgr)
+	: mp_mgr(mgr), m_renderIndex(m_nextRenderIndex)
 {
+	m_nextRenderIndex++;
 }
 
 SceneManager * RenderObject::getSceneManager()
@@ -16,21 +20,47 @@ SceneManager * RenderObject::getSceneManager()
 	return mp_mgr;
 }
 
-PhysicsObject * RenderObject::getObject() {
-	return mp_object;
+int RenderObject::getRenderIndex()
+{
+	return m_renderIndex;
 }
 
 bool RenderObject::operator==(const RenderObject &other) const
 {
-	return (mp_object == other.mp_object);
+	return (m_renderIndex == other.m_renderIndex);
 }
 
+
+// ========================================================================
+// ConstraintRenderObject Implementation
+// ========================================================================
+ConstraintRenderObject::ConstraintRenderObject(Constraint * constraint, SceneManager * mgr)
+	: RenderObject(mgr), mp_constraint(constraint)
+{
+}
+
+Constraint * ConstraintRenderObject::getConstraint()
+{
+	return mp_constraint;
+}
+
+// ========================================================================
+// PhysicsRenderObject Implementation
+// ========================================================================
+PhysicsRenderObject::PhysicsRenderObject(PhysicsObject * object, SceneManager * mgr)
+	: RenderObject(mgr), mp_object(object)
+{
+}
+
+PhysicsObject * PhysicsRenderObject::getObject() {
+	return mp_object;
+}
 
 // ========================================================================
 // ShipRO Implementation
 // ========================================================================
 ShipRO::ShipRO(PhysicsObject * object, SceneManager * mgr)
-	: RenderObject(object, mgr), mp_shipNode(NULL), mp_shipRotateNode(NULL), mp_shipEntity(NULL),
+	: PhysicsRenderObject(object, mgr), mp_shipNode(NULL), mp_shipRotateNode(NULL), mp_shipEntity(NULL),
 	mp_spotLight(NULL), mp_pointLight(NULL)
 {
 }
@@ -46,11 +76,11 @@ void ShipRO::loadSceneResources()
 {
 }
 
-void ShipRO::buildNode(int entityIndex)
+void ShipRO::buildNode()
 {
 	mp_shipNode = getSceneManager()->getRootSceneNode()->createChildSceneNode();
 	std::stringstream oss;
-	oss << "Ship" << entityIndex;
+	oss << "Ship" << getRenderIndex();
 	mp_shipEntity = getSceneManager()->createEntity(oss.str(), "RZR-002.mesh");
 	mp_shipEntity->setCastShadows(true);
 	mp_shipNode->setScale(10, 10, 10);
@@ -125,13 +155,13 @@ void NpcShipRO::loadSceneResources()
 	}
 }
 
-void NpcShipRO::buildNode(int entityIndex)
+void NpcShipRO::buildNode()
 {
-	ShipRO::buildNode(entityIndex);
+	ShipRO::buildNode();
 	mp_frameNode = getSceneManager()->getRootSceneNode()->createChildSceneNode();
 
 	std::stringstream oss;
-	oss << "TargetFrame" << entityIndex;
+	oss << "TargetFrame" << getRenderIndex();
 	mp_frameSprite = getSceneManager()->createEntity(oss.str(), "targetFrameSprite");
 	mp_frameSprite->setMaterialName("Orewar/TargetFrame");
 	mp_frameSprite->setCastShadows(false);
@@ -153,7 +183,7 @@ void NpcShipRO::destroyNode()
 bool ProjectileRO::m_resourcesLoaded = false;
 
 ProjectileRO::ProjectileRO(PhysicsObject * object, SceneManager * mgr)
-	: RenderObject(object, mgr), mp_projNode(NULL), mp_projSprite(NULL), mp_pointLight(NULL)
+	: PhysicsRenderObject(object, mgr), mp_projNode(NULL), mp_projSprite(NULL), mp_pointLight(NULL)
 {
 }
 
@@ -174,12 +204,12 @@ void ProjectileRO::loadSceneResources()
 	}
 }
 
-void ProjectileRO::buildNode(int entityIndex)
+void ProjectileRO::buildNode()
 {
 	mp_projNode = getSceneManager()->getRootSceneNode()->createChildSceneNode();
 
 	std::stringstream oss;
-	oss << "Projectile" << entityIndex;
+	oss << "Projectile" << getRenderIndex();
 	mp_projSprite = getSceneManager()->createEntity(oss.str(), "projSprite");
 	mp_projSprite->setMaterialName("Orewar/PlasmaSprite");
 	mp_projSprite->setCastShadows(false);
@@ -215,11 +245,20 @@ RenderModel::RenderModel(GameArena& model, SceneManager * mgr) : m_model(model),
 	m_model.addGameArenaListener(this);
 }
 
-void RenderModel::generateRenderObject(PhysicsObject * object)
+
+void RenderModel::updateRenderList(Real elapsedTime, Quaternion camOrientation)
 {
-	// TODO: Resource construction / release should all be in virtual methods
-	// of RenderObject subclasses
-	RenderObject * p_renderObj = NULL;
+	for(std::vector<PhysicsRenderObject *>::iterator renderIter = m_renderList.begin();
+		renderIter != m_renderList.end();
+		renderIter++) 
+	{
+		(*(*renderIter)).updateNode(elapsedTime, camOrientation);
+	}
+}
+
+void RenderModel::newPhysicsObject(PhysicsObject * object)
+{
+	PhysicsRenderObject * p_renderObj = NULL;
 	if(object->getType() == ObjectType::SHIP) {
 		p_renderObj = new ShipRO(object, mp_mgr);
 	} else if (object->getType() == ObjectType::NPC_SHIP) {
@@ -229,14 +268,14 @@ void RenderModel::generateRenderObject(PhysicsObject * object)
 	}
 
 	p_renderObj->loadSceneResources();
-	p_renderObj->buildNode(m_entityIndex);
+	p_renderObj->buildNode();
 	m_renderList.push_back(p_renderObj);
 	m_entityIndex++;
 }
 
-void RenderModel::destroyRenderObject(PhysicsObject * object)
+void RenderModel::destroyedPhysicsObject(PhysicsObject * object)
 {
-	for(std::vector<RenderObject *>::iterator renderIter =  m_renderList.begin(); 
+	for(std::vector<PhysicsRenderObject *>::iterator renderIter =  m_renderList.begin(); 
 		renderIter != m_renderList.end();
 		renderIter++) {
 
@@ -249,23 +288,12 @@ void RenderModel::destroyRenderObject(PhysicsObject * object)
 	}
 }
 
-void RenderModel::updateRenderList(Real elapsedTime, Quaternion camOrientation)
+void RenderModel::newConstraint(Constraint * object)
 {
-	for(std::vector<RenderObject *>::iterator renderIter =  m_renderList.begin(); 
-		renderIter != m_renderList.end();
-		renderIter++) {
-		(*(*renderIter)).updateNode(elapsedTime, camOrientation);
-	}
 }
 
-void RenderModel::newPhysicsObject(PhysicsObject * object)
+void RenderModel::destroyedConstraint(Constraint * object)
 {
-	generateRenderObject(object);
-}
-
-void RenderModel::destroyedPhysicsObject(PhysicsObject * object)
-{
-	destroyRenderObject(object);
 }
 
 int RenderModel::getNumObjects() const

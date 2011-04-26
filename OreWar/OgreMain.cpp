@@ -139,14 +139,12 @@ public:
 						closestShip = *shipIter;
 					}
 				}
-				m_con = new Constraint(playerShip, closestShip, 
-					playerShip->getOffset(*closestShip).length());
+				m_con = m_arena.addConstraint(Constraint(playerShip, closestShip, 
+					playerShip->getOffset(*closestShip).length()));
 			}
-			m_con->applyForces(evt.timeSinceLastFrame);
 		} else {
-			if(m_con != NULL) 
-			{
-				delete m_con;
+			if(m_con != NULL) {
+				m_arena.destroyConstraint(m_con);
 				m_con = NULL;
 			}
 		}
