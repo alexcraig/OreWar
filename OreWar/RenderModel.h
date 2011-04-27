@@ -41,16 +41,15 @@ class ConstraintRenderObject : public RenderObject
 {
 private:
 	Constraint * mp_constraint;
+	int m_numSprites;
 
-	SceneNode * mp_node1;
-	SceneNode * mp_node2;
-	Entity * mp_sprite1;
-	Entity * mp_sprite2;
+	std::vector<SceneNode * > m_nodes;
+	std::vector<Entity * > m_entities;
 
 	static bool m_resourcesLoaded;
 public:
 	/** Constructs a new PhysicsRenderObject */
-	ConstraintRenderObject(Constraint * constraint, SceneManager * mgr);
+	ConstraintRenderObject(Constraint * constraint, SceneManager * mgr, int numSprites);
 
 	/** @return A pointer to the model object */
 	Constraint * getConstraint();

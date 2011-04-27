@@ -36,9 +36,10 @@ bool RenderObject::operator==(const RenderObject &other) const
 // ========================================================================
 bool ConstraintRenderObject::m_resourcesLoaded = false;
 
-ConstraintRenderObject::ConstraintRenderObject(Constraint * constraint, SceneManager * mgr)
-	: RenderObject(mgr), mp_constraint(constraint), mp_node1(NULL), mp_node2(NULL),
-	mp_sprite1(NULL), mp_sprite2(NULL)
+ConstraintRenderObject::ConstraintRenderObject(Constraint * constraint, SceneManager * mgr,
+	int numSprites)
+	: RenderObject(mgr), mp_constraint(constraint), m_numSprites(numSprites), m_nodes(),
+	m_entities()
 {
 }
 
@@ -51,14 +52,17 @@ void ConstraintRenderObject::updateNode(Real elapsedTime, Quaternion camOrientat
 {
 	Vector3 offset = mp_constraint->getEndObject()->getPosition() - mp_constraint->getStartObject()->getPosition();
 
-	mp_node1->setPosition(mp_constraint->getStartObject()->getPosition()
-		+ (offset * Real(0.5)));
-
-	mp_node2->setPosition(mp_constraint->getStartObject()->getPosition()
-		+ (offset * Real(0.2)));
-
-	mp_node1->setOrientation(camOrientation);
-	mp_node2->setOrientation(camOrientation);
+	Real increment = Real(1) / Real(m_numSprites + 2);
+	int moveCounter = 1;
+	for(std::vector<SceneNode *>::iterator nodeIter = m_nodes.begin();
+		nodeIter != m_nodes.end();
+		nodeIter++) 
+	{
+		(*nodeIter)->setPosition(mp_constraint->getStartObject()->getPosition()
+		+ (offset * Real(increment * moveCounter)));
+		(*nodeIter)->setOrientation(camOrientation);
+		moveCounter++;
+	}
 }
 
 void ConstraintRenderObject::loadSceneResources()
@@ -73,34 +77,39 @@ void ConstraintRenderObject::loadSceneResources()
 
 void ConstraintRenderObject::buildNode()
 {
-	mp_node1 = getSceneManager()->getRootSceneNode()->createChildSceneNode();
-	mp_node2 = getSceneManager()->getRootSceneNode()->createChildSceneNode();
+	int i;
 
-	std::stringstream oss;
-	oss << "Constraint" << getRenderIndex();
-	mp_sprite1 = getSceneManager()->createEntity(oss.str(), "conSprite");
-	mp_sprite1->setMaterialName("Orewar/ConstraintSprite");
-	mp_sprite1->setCastShadows(false);
-	mp_node1->attachObject(mp_sprite1);
+	for(i = 0; i < m_numSprites; i++)
+	{
+		SceneNode * p_node = getSceneManager()->getRootSceneNode()->createChildSceneNode();
 
-	oss << "_2";
-	mp_sprite2 = getSceneManager()->createEntity(oss.str(), "conSprite");
-	mp_sprite2->setMaterialName("Orewar/ConstraintSprite");
-	mp_sprite2->setCastShadows(false);
-	mp_node2->attachObject(mp_sprite2);
+		std::stringstream oss;
+		oss << "Constraint" << getRenderIndex() << "_" << i;
+		Entity * p_entity = getSceneManager()->createEntity(oss.str(), "conSprite");
+		p_entity->setMaterialName("Orewar/ConstraintSprite");
+		p_entity->setCastShadows(false);
+		p_node->attachObject(p_entity);
+		m_nodes.push_back(p_node);
+		m_entities.push_back(p_entity);
+	}
 }
 
 void ConstraintRenderObject::destroyNode()
 {
-	mp_node1->detachAllObjects();
-	mp_node1->removeAllChildren();
-	getSceneManager()->destroyMovableObject(mp_sprite1);
-	getSceneManager()->destroySceneNode(mp_node1);
+	std::vector<Entity *>::iterator entIter = m_entities.begin();
+	for(std::vector<SceneNode *>::iterator nodeIter = m_nodes.begin();
+		nodeIter != m_nodes.end();
+		nodeIter++) 
+	{
+		(*nodeIter)->detachAllObjects();
+		(*nodeIter)->removeAllChildren();
+		getSceneManager()->destroyMovableObject((*entIter));
+		getSceneManager()->destroySceneNode((*nodeIter));
+		entIter++;
+	}
 
-	mp_node2->detachAllObjects();
-	mp_node2->removeAllChildren();
-	getSceneManager()->destroyMovableObject(mp_sprite2);
-	getSceneManager()->destroySceneNode(mp_node2);
+	m_nodes.clear();
+	m_entities.clear();
 }
 
 
@@ -359,7 +368,7 @@ void RenderModel::destroyedPhysicsObject(PhysicsObject * object)
 
 void RenderModel::newConstraint(Constraint * constraint)
 {
-	ConstraintRenderObject * p_renderObj = new ConstraintRenderObject(constraint, mp_mgr);
+	ConstraintRenderObject * p_renderObj = new ConstraintRenderObject(constraint, mp_mgr, 10);
 
 	p_renderObj->loadSceneResources();
 	p_renderObj->buildNode();

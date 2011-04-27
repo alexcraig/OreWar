@@ -202,7 +202,19 @@ std::vector<SphereCollisionObject * >::iterator GameArena::destroyNpcShip(Sphere
 		iter != m_npcShips.end();
 		iter++)
 	{
-		if(*iter == npcShip) {
+		if(*iter == npcShip) 
+		{
+			// Ensure any constraints attached to this ship are also destroyed
+			for(std::vector<Constraint * >::iterator conIter =  m_constraints.begin(); 
+				conIter != m_constraints.end();)
+			{
+				if((*conIter)->getEndObject() == npcShip || (*conIter)->getStartObject() == npcShip)
+				{
+					conIter = destroyConstraint(*conIter);
+				} else {
+					conIter++;
+				}
+			}
 			notifyPhysicsDestruction(npcShip);
 			delete npcShip;
 			return m_npcShips.erase(iter);

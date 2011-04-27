@@ -12,11 +12,11 @@
  
 using namespace Ogre;
  
-class KeyboardTestListener : public FrameListener
+class TestFrameListener : public FrameListener
 {
 public:
-	KeyboardTestListener(OIS::Keyboard *keyboard, SceneManager *mgr, Camera *cam, RenderWindow * renderWindow)
-        : m_Keyboard(keyboard), m_rotateNode(mgr->getRootSceneNode()->createChildSceneNode()), m_cam(cam), 
+	TestFrameListener(OIS::Keyboard *keyboard, OIS::Mouse *mouse, SceneManager *mgr, Camera *cam, RenderWindow * renderWindow)
+        : m_Keyboard(keyboard), m_mouse(mouse), m_rotateNode(mgr->getRootSceneNode()->createChildSceneNode()), m_cam(cam), 
 		m_camHeight(0), m_camOffset(0), m_arena(10000), m_mgr(mgr),
 		m_thirdPersonCam(true), m_renderModel(m_arena, m_mgr), mp_vp(cam->getViewport()), mp_fps(NULL), m_timer(0),
 		mp_renderWindow(renderWindow), m_con(NULL)
@@ -80,20 +80,28 @@ public:
 		if(m_Keyboard->isKeyDown(OIS::KC_LEFT)) {
 			m_camOffset -= 2;
 		}
+
+		// Mouse control
+		m_mouse->capture();
+		playerShip->pitch(Radian(m_mouse->getMouseState().Y.rel * -0.25 * evt.timeSinceLastFrame));
+		playerShip->yaw(Radian(m_mouse->getMouseState().X.rel * -0.25 * evt.timeSinceLastFrame));
 		
 		// Clear all existing forces, and add keyboard forces
 		if(m_Keyboard->isKeyDown(OIS::KC_W)) {
-			playerShip->pitch(Radian(2 * evt.timeSinceLastFrame));
+			playerShip->applyTempForce(playerShip->getHeading() * Vector3(1000, 1000, 1000));
 		}
 		if(m_Keyboard->isKeyDown(OIS::KC_S)) {
-			playerShip->pitch(Radian(-2 * evt.timeSinceLastFrame));
+			playerShip->applyTempForce(playerShip->getHeading() * Vector3(-1000, -1000, -1000));
 		}
 		if(m_Keyboard->isKeyDown(OIS::KC_A)) {
-			playerShip->yaw(Radian(2 * evt.timeSinceLastFrame));
+			playerShip->applyTempForce((playerShip->getOrientation() * Quaternion(Degree(90), Vector3::UNIT_Y)) 
+				* Vector3(0, 0, -1732));
 		}
 		if(m_Keyboard->isKeyDown(OIS::KC_D)) {
-			playerShip->yaw(Radian(-2 * evt.timeSinceLastFrame));
+			playerShip->applyTempForce((playerShip->getOrientation() * Quaternion(Degree(-90), Vector3::UNIT_Y)) 
+				* Vector3(0, 0, -1732));
 		}
+
 		if(m_Keyboard->isKeyDown(OIS::KC_Q)) {
 			playerShip->roll(Radian(2 * evt.timeSinceLastFrame));
 		}
@@ -105,26 +113,19 @@ public:
 			playerShip->applyTempForce(playerShip->getVelocity().normalisedCopy() * (-1) * Vector3(2000, 2000, 2000));
 		}
 
-		if(m_Keyboard->isKeyDown(OIS::KC_UP)) {
-			playerShip->applyTempForce(playerShip->getHeading() * Vector3(1000, 1000, 1000));
-		}
-		if(m_Keyboard->isKeyDown(OIS::KC_DOWN)) {
-			playerShip->applyTempForce(playerShip->getHeading() * Vector3(-1000, -1000, -1000));
-		}
-
 		if(m_Keyboard->isKeyDown(OIS::KC_C)) {
 			m_thirdPersonCam = !m_thirdPersonCam; 
 		}
 
 		// Generate projectile if required
-		if(m_Keyboard->isKeyDown(OIS::KC_SPACE)) {
+		if(m_Keyboard->isKeyDown(OIS::KC_SPACE) || m_mouse->getMouseState().buttonDown(OIS::MB_Left)) {
 			if(playerShip->canShoot()) {
 				m_arena.fireProjectileFromShip(playerShip);
 			}
 		}
 
 		// Generate constraint - TESTING
-		if(m_Keyboard->isKeyDown(OIS::KC_RCONTROL)) 
+		if(m_Keyboard->isKeyDown(OIS::KC_RCONTROL) || m_mouse->getMouseState().buttonDown(OIS::MB_Right))
 		{
 			if(m_con == NULL) 
 			{
@@ -149,7 +150,6 @@ public:
 			}
 		}
 
-
 		// Update FPS counter
 		m_timer += evt.timeSinceLastFrame;
 		if (m_timer > 1.0f / 60.0f) 
@@ -157,7 +157,9 @@ public:
 			m_timer = 0;
 			mp_fps->text("FPS: " + Ogre::StringConverter::toString(mp_renderWindow->getLastFPS())
 				+ " - RenderObjects: " + Ogre::StringConverter::toString(m_renderModel.getNumObjects())
-				+ " - Spring Enabled: " +  Ogre::StringConverter::toString(m_Keyboard->isKeyDown(OIS::KC_RCONTROL)));
+				+ " - Spring Enabled: " +  Ogre::StringConverter::toString(m_Keyboard->isKeyDown(OIS::KC_RCONTROL))
+				+ " - Mouse X: " + Ogre::StringConverter::toString(m_mouse->getMouseState().X.rel)
+				+ " - Mouse Y: " + Ogre::StringConverter::toString(m_mouse->getMouseState().Y.rel));
 		}
 
 		// Update the position of the physics object and move the scene node
@@ -178,6 +180,7 @@ public:
  
 private:
     OIS::Keyboard *m_Keyboard;
+	OIS::Mouse *m_mouse;
 	SceneNode *m_rotateNode;
 	Camera *m_cam;
 	int m_camHeight;
@@ -221,9 +224,10 @@ public:
 private:
     Root *mRoot;
 	SceneManager* mMgr;
-    OIS::Keyboard *mKeyboard;
+    OIS::Keyboard * mKeyboard;
+	OIS::Mouse * mMouse;
     OIS::InputManager *mInputManager;
-    KeyboardTestListener *mListener;
+    TestFrameListener *mListener;
  
     void createRoot()
     {
@@ -479,7 +483,7 @@ private:
 		// Setup (Unbuffered in this case) input objects
 		try {
             mKeyboard = static_cast<OIS::Keyboard*>(mInputManager->createInputObject(OIS::OISKeyboard, false));
-            //mMouse = static_cast<OIS::Mouse*>(mInputManager->createInputObject(OIS::OISMouse, false));
+            mMouse = static_cast<OIS::Mouse*>(mInputManager->createInputObject(OIS::OISMouse, false));
             //mJoy = static_cast<OIS::JoyStick*>(mInputManager->createInputObject(OIS::OISJoyStick, false));
         }
         catch (const OIS::Exception &e) {
@@ -491,7 +495,7 @@ private:
     {
 		// Create and add a listener for the keyboard
 		// Note: Input devices can have only one listener
-		mListener = new KeyboardTestListener(mKeyboard, mRoot->getSceneManager("Default SceneManager"), 
+		mListener = new TestFrameListener(mKeyboard, mMouse, mRoot->getSceneManager("Default SceneManager"), 
 			mRoot->getSceneManager("Default SceneManager")->getCamera("Camera"),
 			mRoot->getAutoCreatedWindow());
         mRoot->addFrameListener(mListener);
