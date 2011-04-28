@@ -92,23 +92,23 @@ particle_system Orewar/ConstraintStream
 
 particle_system Orewar/PlasmaStream
 {
-    material Orewar/PlasmaSprite
+    material Orewar/Flare
     particle_width 80
     particle_height 80
     cull_each false
-    quota 40
+    quota 20
     billboard_type point
     local_space true
 
     // Area emitter
     emitter Point
     {
-        angle 10
-        emission_rate 40
+        angle 15
+        emission_rate 20
         time_to_live 1
         direction 0 0 1
-        velocity_min 400
-        velocity_max 600
+        velocity_min 200
+        velocity_max 400
         colour_range_start 0 1 0
         colour_range_end 0.4 0.8 0.4
     }
