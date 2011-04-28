@@ -19,7 +19,7 @@ public:
         : m_Keyboard(keyboard), m_mouse(mouse), m_rotateNode(mgr->getRootSceneNode()->createChildSceneNode()), m_cam(cam), 
 		m_camHeight(0), m_camOffset(0), m_arena(10000), m_mgr(mgr),
 		m_thirdPersonCam(true), m_renderModel(m_arena, m_mgr), mp_vp(cam->getViewport()), mp_fps(NULL), m_timer(0),
-		mp_renderWindow(renderWindow), m_con(NULL)
+		mp_renderWindow(renderWindow), m_con(NULL), m_camParticle(NULL), m_camNode(NULL)
 	{
 		m_cam->setFarClipDistance(0);
 
@@ -39,6 +39,12 @@ public:
 		crosshair->background_image("crosshair");
 
 		mp_fps = layer->createCaption(14, 5, mp_vp->getActualHeight() - 24, "FPS Counter");
+		m_camNode = m_mgr->getRootSceneNode()->createChildSceneNode();
+		m_camNode->attachObject(m_cam);
+		m_cam->setPosition(0, 0, 0);
+		m_camParticle = m_mgr->createParticleSystem("CamStars", "Orewar/CamStarField");
+		m_camParticle->setEmitting(true);
+		m_camNode->attachObject(m_camParticle);
     }
  
     bool frameStarted(const FrameEvent& evt)
@@ -156,23 +162,20 @@ public:
 		{
 			m_timer = 0;
 			mp_fps->text("FPS: " + Ogre::StringConverter::toString(mp_renderWindow->getLastFPS())
-				+ " - RenderObjects: " + Ogre::StringConverter::toString(m_renderModel.getNumObjects())
-				+ " - Spring Enabled: " +  Ogre::StringConverter::toString(m_Keyboard->isKeyDown(OIS::KC_RCONTROL))
-				+ " - Mouse X: " + Ogre::StringConverter::toString(m_mouse->getMouseState().X.rel)
-				+ " - Mouse Y: " + Ogre::StringConverter::toString(m_mouse->getMouseState().Y.rel));
+				+ " - RenderObjects: " + Ogre::StringConverter::toString(m_renderModel.getNumObjects()));
 		}
 
 		// Update the position of the physics object and move the scene node
 		m_arena.updatePhysics(evt.timeSinceLastFrame);
-		m_renderModel.updateRenderList(evt.timeSinceLastFrame, m_cam->getOrientation());
+		m_renderModel.updateRenderList(evt.timeSinceLastFrame, m_camNode->getOrientation());
 
 		// Move the camera
 		if(m_thirdPersonCam) {
-			m_cam->setPosition(playerShip->getPosition() + Vector3(0, 1000, 1000));
-			m_cam->lookAt(playerShip->getPosition());
+			m_camNode->setPosition(playerShip->getPosition() + Vector3(0, 1000, 1000));
+			m_camNode->lookAt(playerShip->getPosition(), Node::TS_WORLD);
 		} else {
-			m_cam->setPosition(playerShip->getPosition() + playerShip->getNormal() * 60 - playerShip->getHeading() * 160);
-			m_cam->setOrientation(playerShip->getOrientation());
+			m_camNode->setPosition(playerShip->getPosition() + playerShip->getNormal() * 80 - playerShip->getHeading() * 200);
+			m_camNode->setOrientation(playerShip->getOrientation());
 		}
 
         return !m_Keyboard->isKeyDown(OIS::KC_ESCAPE);
@@ -195,6 +198,8 @@ private:
 	Real m_timer;
 	RenderWindow * mp_renderWindow;
 	Constraint * m_con;
+	ParticleSystem * m_camParticle;
+	SceneNode * m_camNode;
 };
  
 class Application
@@ -217,7 +222,7 @@ public:
     {
 		mInputManager->destroyInputObject(mKeyboard);
 		OIS::InputManager::destroyInputSystem(mInputManager);
-		delete mListener;
+ 		delete mListener;
         delete mRoot;
     }
  

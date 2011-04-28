@@ -1,0 +1,121 @@
+particle_system Orewar/CamStarField
+{
+    material Orewar/Flare
+    particle_width 25
+    particle_height 25
+    cull_each true
+    quota 500
+    billboard_type point
+
+    // Area emitter
+    emitter Box
+    {
+        width 6000
+        height 6000
+        depth 6000
+        emission_rate 100
+        time_to_live 5
+        velocity_min 0
+        velocity_max 0
+        colour_range_start 1 1 1
+        colour_range_end 0.8 0.8 0.8
+    }
+
+    // Fader
+    affector ColourFader
+    {
+        alpha 0.2
+    }
+}
+
+particle_system Orewar/EngineStream
+{
+    material Orewar/Flare
+    particle_width 50
+    particle_height 50
+    cull_each false
+    quota 20
+    billboard_type point
+
+    // Area emitter
+    emitter Point
+    {
+        angle 10
+        emission_rate 20
+        time_to_live 1
+        direction 0 0 1
+        velocity_min 400
+        velocity_max 600
+        colour_range_start 1 1 1
+        colour_range_end 0.9 0.6 0.05
+    }
+
+    // Fader
+    affector ColourFader
+    {
+        alpha -1
+    }
+}
+
+particle_system Orewar/ConstraintStream
+{
+    material Orewar/Flare
+    particle_width 60
+    particle_height 60
+    cull_each false
+    quota 100
+    billboard_type point
+    local_space true
+
+    // Area emitter
+    emitter Cylinder
+    {
+        depth 100
+        width 10
+        height 10
+        angle 360
+        emission_rate 50
+        time_to_live 2
+        direction 0 0 1
+        velocity_min 25
+        velocity_max 50
+        colour_range_start 0 0 1
+        colour_range_end 0.4 0.4 0.8
+    }
+
+    // Fader
+    affector ColourFader
+    {
+        alpha -1
+    }
+}
+
+particle_system Orewar/PlasmaStream
+{
+    material Orewar/PlasmaSprite
+    particle_width 80
+    particle_height 80
+    cull_each false
+    quota 40
+    billboard_type point
+    local_space true
+
+    // Area emitter
+    emitter Point
+    {
+        angle 10
+        emission_rate 40
+        time_to_live 1
+        direction 0 0 1
+        velocity_min 400
+        velocity_max 600
+        colour_range_start 0 1 0
+        colour_range_end 0.4 0.8 0.4
+    }
+
+    // Fader
+    affector ColourFader
+    {
+        alpha -1
+    }
+}

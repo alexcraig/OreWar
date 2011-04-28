@@ -4,6 +4,7 @@
 #include <Ogre.h>
 #include <vector>
 #include <sstream>
+#include <OgreParticleSystem.h>
 #include "GameObjects.h"
 
 using namespace Ogre;
@@ -41,15 +42,14 @@ class ConstraintRenderObject : public RenderObject
 {
 private:
 	Constraint * mp_constraint;
-	int m_numSprites;
 
-	std::vector<SceneNode * > m_nodes;
-	std::vector<Entity * > m_entities;
+	SceneNode * mp_node;
+	ParticleSystem * mp_particle;
 
 	static bool m_resourcesLoaded;
 public:
 	/** Constructs a new PhysicsRenderObject */
-	ConstraintRenderObject(Constraint * constraint, SceneManager * mgr, int numSprites);
+	ConstraintRenderObject(Constraint * constraint, SceneManager * mgr);
 
 	/** @return A pointer to the model object */
 	Constraint * getConstraint();
@@ -103,6 +103,7 @@ private:
 	Entity * mp_shipEntity;
 	Light * mp_spotLight;
 	Light * mp_pointLight;
+	ParticleSystem * mp_engineParticles;
 
 	static bool m_resourcesLoaded;
 public:
@@ -145,8 +146,9 @@ class ProjectileRO : public PhysicsRenderObject
 private:
 	SceneNode * mp_projNode;
 
-	Entity * mp_projSprite;
 	Light * mp_pointLight;
+
+	ParticleSystem * mp_particle;
 
 	static bool m_resourcesLoaded;
 public:

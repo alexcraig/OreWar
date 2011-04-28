@@ -36,10 +36,8 @@ bool RenderObject::operator==(const RenderObject &other) const
 // ========================================================================
 bool ConstraintRenderObject::m_resourcesLoaded = false;
 
-ConstraintRenderObject::ConstraintRenderObject(Constraint * constraint, SceneManager * mgr,
-	int numSprites)
-	: RenderObject(mgr), mp_constraint(constraint), m_numSprites(numSprites), m_nodes(),
-	m_entities()
+ConstraintRenderObject::ConstraintRenderObject(Constraint * constraint, SceneManager * mgr)
+	: RenderObject(mgr), mp_constraint(constraint), mp_node(), mp_particle(NULL)
 {
 }
 
@@ -51,65 +49,34 @@ Constraint * ConstraintRenderObject::getConstraint()
 void ConstraintRenderObject::updateNode(Real elapsedTime, Quaternion camOrientation)
 {
 	Vector3 offset = mp_constraint->getEndObject()->getPosition() - mp_constraint->getStartObject()->getPosition();
+	mp_node->setPosition(mp_constraint->getStartObject()->getPosition() + (offset * Real(0.5)));
+	mp_node->setOrientation(Vector3(0, 0, -1).getRotationTo(offset));
 
-	Real increment = Real(1) / Real(m_numSprites + 2);
-	int moveCounter = 1;
-	for(std::vector<SceneNode *>::iterator nodeIter = m_nodes.begin();
-		nodeIter != m_nodes.end();
-		nodeIter++) 
-	{
-		(*nodeIter)->setPosition(mp_constraint->getStartObject()->getPosition()
-		+ (offset * Real(increment * moveCounter)));
-		(*nodeIter)->setOrientation(camOrientation);
-		moveCounter++;
-	}
+	// Note: This relies on a single Cylinder emitter being present in the Orewar/ConstraintStream script
+	mp_particle->getEmitter(0)->setParameter("depth", Ogre::StringConverter::toString(offset.length()));
 }
 
 void ConstraintRenderObject::loadSceneResources()
 {
-	if(!m_resourcesLoaded) {
-		Plane planePlasma = Plane(Ogre::Vector3::UNIT_Z, 0);
-		MeshManager::getSingleton().createPlane("conSprite", Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME,
-			planePlasma, 100, 100, 1, 1, true, 1, 1, 1, Ogre::Vector3::UNIT_Y);
-		m_resourcesLoaded = true;
-	}
 }
 
 void ConstraintRenderObject::buildNode()
 {
-	int i;
+	mp_node = getSceneManager()->getRootSceneNode()->createChildSceneNode();
 
-	for(i = 0; i < m_numSprites; i++)
-	{
-		SceneNode * p_node = getSceneManager()->getRootSceneNode()->createChildSceneNode();
-
-		std::stringstream oss;
-		oss << "Constraint" << getRenderIndex() << "_" << i;
-		Entity * p_entity = getSceneManager()->createEntity(oss.str(), "conSprite");
-		p_entity->setMaterialName("Orewar/ConstraintSprite");
-		p_entity->setCastShadows(false);
-		p_node->attachObject(p_entity);
-		m_nodes.push_back(p_node);
-		m_entities.push_back(p_entity);
-	}
+	std::stringstream oss;
+	oss << "Constraint" << getRenderIndex();
+	mp_particle = getSceneManager()->createParticleSystem(oss.str(), "Orewar/ConstraintStream");
+	mp_particle->setEmitting(true);
+	mp_node->attachObject(mp_particle);
 }
 
 void ConstraintRenderObject::destroyNode()
 {
-	std::vector<Entity *>::iterator entIter = m_entities.begin();
-	for(std::vector<SceneNode *>::iterator nodeIter = m_nodes.begin();
-		nodeIter != m_nodes.end();
-		nodeIter++) 
-	{
-		(*nodeIter)->detachAllObjects();
-		(*nodeIter)->removeAllChildren();
-		getSceneManager()->destroyMovableObject((*entIter));
-		getSceneManager()->destroySceneNode((*nodeIter));
-		entIter++;
-	}
-
-	m_nodes.clear();
-	m_entities.clear();
+	mp_node->detachAllObjects();
+	mp_node->removeAllChildren();
+	getSceneManager()->destroyParticleSystem(mp_particle);
+	getSceneManager()->destroySceneNode(mp_node);
 }
 
 
@@ -132,7 +99,7 @@ bool ShipRO::m_resourcesLoaded = false;
 
 ShipRO::ShipRO(PhysicsObject * object, SceneManager * mgr)
 	: PhysicsRenderObject(object, mgr), mp_shipNode(NULL), mp_shipRotateNode(NULL), mp_shipEntity(NULL),
-	mp_spotLight(NULL), mp_pointLight(NULL)
+	mp_spotLight(NULL), mp_pointLight(NULL), mp_engineParticles(NULL)
 {
 }
 
@@ -145,6 +112,9 @@ void ShipRO::updateNode(Real elapsedTime, Quaternion camOrientation)
 
 void ShipRO::loadSceneResources() 
 {
+	if(!m_resourcesLoaded) {
+		m_resourcesLoaded = true;
+	}
 }
 
 void ShipRO::buildNode()
@@ -183,7 +153,12 @@ void ShipRO::buildNode()
 		mp_pointLight->setSpecularColour(0.4, 0.4, 0.4);
 	}
 	mp_shipNode->attachObject(mp_pointLight);
-	
+
+	// Add the engine particle stream
+	oss << "P";
+	mp_engineParticles = getSceneManager()->createParticleSystem(oss.str(), "Orewar/EngineStream");
+	mp_engineParticles->setEmitting(true);
+	mp_shipNode->attachObject(mp_engineParticles);
 }
 
 void ShipRO::destroyNode()
@@ -196,6 +171,7 @@ void ShipRO::destroyNode()
 
 	getSceneManager()->destroyLight(mp_spotLight);
 	getSceneManager()->destroyLight(mp_pointLight);
+	getSceneManager()->destroyParticleSystem(mp_engineParticles);
 }
 
 
@@ -219,6 +195,7 @@ void NpcShipRO::updateNode(Real elapsedTime, Quaternion camOrientation)
 
 void NpcShipRO::loadSceneResources()
 {
+	ShipRO::loadSceneResources();
 	if(!m_resourcesLoaded) {
 		Plane planeTarget = Plane(Ogre::Vector3::UNIT_Z, 0);
 		MeshManager::getSingleton().createPlane("targetFrameSprite", Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME,
@@ -254,23 +231,21 @@ void NpcShipRO::destroyNode()
 bool ProjectileRO::m_resourcesLoaded = false;
 
 ProjectileRO::ProjectileRO(PhysicsObject * object, SceneManager * mgr)
-	: PhysicsRenderObject(object, mgr), mp_projNode(NULL), mp_projSprite(NULL), mp_pointLight(NULL)
+	: PhysicsRenderObject(object, mgr), mp_projNode(NULL), mp_pointLight(NULL),
+	mp_particle(NULL)
 {
 }
 
 void ProjectileRO::updateNode(Real elapsedTime, Quaternion camOrientation)
 {
 	mp_projNode->setPosition(getObject()->getPosition());
-	mp_projNode->setOrientation(camOrientation);
+	mp_projNode->setOrientation(Vector3(0, 0, -1).getRotationTo(getObject()->getVelocity()));
 }
 
 
 void ProjectileRO::loadSceneResources()
 {
 	if(!m_resourcesLoaded) {
-		Plane planePlasma = Plane(Ogre::Vector3::UNIT_Z, 0);
-		MeshManager::getSingleton().createPlane("projSprite", Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME,
-			planePlasma, 100, 100, 1, 1, true, 1, 1, 1, Ogre::Vector3::UNIT_Y);
 		m_resourcesLoaded = true;
 	}
 }
@@ -281,13 +256,8 @@ void ProjectileRO::buildNode()
 
 	std::stringstream oss;
 	oss << "Projectile" << getRenderIndex();
-	mp_projSprite = getSceneManager()->createEntity(oss.str(), "projSprite");
-	mp_projSprite->setMaterialName("Orewar/PlasmaSprite");
-	mp_projSprite->setCastShadows(false);
-	mp_projNode->attachObject(mp_projSprite);
 
 	// Dynamic point lights on projectiles
-	oss << "Light";
 	mp_pointLight = getSceneManager()->createLight(oss.str());
 	mp_pointLight->setType(Ogre::Light::LT_POINT);
 	mp_pointLight->setPosition(Ogre::Vector3(0, 60, 0));
@@ -296,15 +266,20 @@ void ProjectileRO::buildNode()
 	mp_pointLight->setAttenuation(3250, 1.0, 0.0014, 0.000007);
 	mp_pointLight->setCastShadows(false);
 	mp_projNode->attachObject(mp_pointLight);
+
+	oss << "P";
+	mp_particle = getSceneManager()->createParticleSystem(oss.str(), "Orewar/PlasmaStream");
+	mp_particle->setEmitting(true);
+	mp_projNode->attachObject(mp_particle);
 }
 
 void ProjectileRO::destroyNode()
 {
 	mp_projNode->detachAllObjects();
 	mp_projNode->removeAllChildren();
-	getSceneManager()->destroyMovableObject(mp_projSprite);
 	getSceneManager()->destroyLight(mp_pointLight);
 	getSceneManager()->destroySceneNode(mp_projNode);
+	getSceneManager()->destroyParticleSystem(mp_particle);
 }
 
 // ========================================================================
@@ -368,7 +343,7 @@ void RenderModel::destroyedPhysicsObject(PhysicsObject * object)
 
 void RenderModel::newConstraint(Constraint * constraint)
 {
-	ConstraintRenderObject * p_renderObj = new ConstraintRenderObject(constraint, mp_mgr, 10);
+	ConstraintRenderObject * p_renderObj = new ConstraintRenderObject(constraint, mp_mgr);
 
 	p_renderObj->loadSceneResources();
 	p_renderObj->buildNode();

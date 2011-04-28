@@ -14,6 +14,86 @@ material Orewar/Star
          }
      }
  }
+ 
+material Orewar/Flare
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend add
+            depth_write off
+            diffuse vertexcolour
+
+            texture_unit
+            {
+                texture flare.png
+            }
+        }
+    }
+}
+
+material Orewar/Flare2
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend add
+            depth_write off
+            diffuse vertexcolour
+
+            texture_unit
+            {
+                texture flaretrail.png
+            }
+        }
+    }
+}
+
+material Orewar/Flare3
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_write off
+            diffuse vertexcolour
+
+            texture_unit
+            {
+                texture flare_alpha.dds
+            }
+        }
+    }
+}
+
+material Examples/FlarePointSprite
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend add
+            depth_write off
+            diffuse vertexcolour
+
+            point_sprites on
+            point_size 2
+            point_size_attenuation on
+
+            texture_unit
+            {
+                texture flare.png
+            }
+        }
+    }
+}
 
 material Orewar/Starfield
 {
