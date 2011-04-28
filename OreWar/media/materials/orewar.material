@@ -25,7 +25,7 @@ material Orewar/Flare
             scene_blend add
             depth_write off
             diffuse vertexcolour
-
+            
             texture_unit
             {
                 texture flare.png
@@ -192,3 +192,21 @@ material Orewar/PlasmaSprite
          }
      }
  }
+ 
+ material Orewar/SpaceSkyBox
+{
+	technique
+	{
+		pass
+		{
+			lighting off
+			depth_write off
+
+			texture_unit
+			{
+				cubic_texture stars.png separateUV
+				tex_address_mode clamp
+			}
+		}
+	}
+}

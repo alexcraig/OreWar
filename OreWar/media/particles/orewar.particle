@@ -4,27 +4,34 @@ particle_system Orewar/CamStarField
     particle_width 25
     particle_height 25
     cull_each true
-    quota 500
+    quota 2800
     billboard_type point
 
     // Area emitter
     emitter Box
     {
-        width 6000
-        height 6000
-        depth 6000
-        emission_rate 100
-        time_to_live 5
+        width 10000
+        height 10000
+        depth 10000
+        angle 360
+        emission_rate 700
+        time_to_live 4
         velocity_min 0
-        velocity_max 0
-        colour_range_start 1 1 1
-        colour_range_end 0.8 0.8 0.8
+        velocity_max 15
+        colour 0 0 0
     }
 
-    // Fader
-    affector ColourFader
+    affector ColourFader2
     {
-        alpha 0.2
+        state_change 1
+        
+        red1 1
+        green1 1
+        blue1 1
+        
+        red2 -0.333
+        green2 -0.333
+        blue2 -0.333
     }
 }
 
@@ -46,14 +53,16 @@ particle_system Orewar/EngineStream
         direction 0 0 1
         velocity_min 400
         velocity_max 600
-        colour_range_start 1 1 1
-        colour_range_end 0.9 0.6 0.05
+        colour 0.2 0.6 1
     }
 
-    // Fader
-    affector ColourFader
+    affector ColourInterpolator
     {
-        alpha -1
+        time0 0
+        colour0 0.2 0.6 1 1
+        
+        time1 1
+        colour1 1 0.9 0.05 1
     }
 }
 
@@ -86,7 +95,9 @@ particle_system Orewar/ConstraintStream
     // Fader
     affector ColourFader
     {
-        alpha -1
+        red -0.5
+        green -0.5
+        blue -0.5
     }
 }
 
@@ -116,6 +127,8 @@ particle_system Orewar/PlasmaStream
     // Fader
     affector ColourFader
     {
-        alpha -1
+        red -1
+        green -1
+        blue -1
     }
 }
