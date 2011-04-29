@@ -59,7 +59,7 @@ void ConstraintRenderObject::updateNode(Real elapsedTime, Quaternion camOrientat
 void ConstraintRenderObject::loadSceneResources()
 {
 }
-
+ 
 void ConstraintRenderObject::buildNode()
 {
 	mp_node = getSceneManager()->getRootSceneNode()->createChildSceneNode();

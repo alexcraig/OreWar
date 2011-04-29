@@ -9,6 +9,54 @@
 
 using namespace Ogre;
 
+class GameObject
+{
+private:
+	ObjectType m_type;
+
+	SphereCollisionObject * m_physModel;
+
+	Real m_maxHealth;
+
+	Real m_health;
+
+	Real m_maxShields;
+
+	Real m_shields;
+
+public: 
+	GameObject(ObjectType type, const SphereCollisionObject& object, Real maxHealth, Real maxShields);
+
+	SphereCollisionObject * getPhysicsModel();
+
+	ObjectType getType() const;
+
+	Real getHealth() const;
+	Real getMaxHealth() const;
+	Real getShields() const;
+	Real getMaxShields() const;
+
+	Real getMass() const;
+	Vector3 getPosition() const;
+	Vector3 getVelocity() const;
+	Vector3 getHeading() const;
+	Vector3 getNormal() const;
+	Vector3 getForce() const; 
+	Vector3 getTempForce() const;
+	Vector3 getOrientation() const;
+
+	void setPosition(Vector3 position);
+	void setVelocity(Vector3 velocity);
+	void setOrientation(Quaternion orientation);
+	void applyTempForce(Vector3 tempForce);
+	void applyForce(Vector3 Force);
+
+	void updatePhysics(Real timeElapsed);
+	void setHealth(Real health);
+	void setShields(Real shields);
+};
+
+
 /**
  * PlayerShip represents a ship controllable by a human player which
  * can generate projectiles.
@@ -29,10 +77,10 @@ private:
 	bool m_shootLeft;
 
 public:
-	/** Construct a PlayerShip with the specified mass at the specified position */
+	/** Construct a PlayerShip with the specified mass and size at the specified position */
 	PlayerShip(Real mass, Vector3 position);
 
-	/** Construct a PlayerShip with the specified mass at the origin */
+	/** Construct a PlayerShip with the specified mass and size at the origin */
 	PlayerShip(Real mass);
 
 	/** Copy constructor */

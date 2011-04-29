@@ -127,9 +127,14 @@ Vector3 PhysicsObject::getAcceleration() const
 	return m_acceleration;
 }
 
-Vector3 PhysicsObject::getSumForce() const
+Vector3 PhysicsObject::getForce() const
 {
 	return m_force;
+}
+
+Vector3 PhysicsObject::getTempForce() const
+{
+	return m_tempForce;
 }
 
 void PhysicsObject::applyForce(Vector3 force) 
@@ -166,6 +171,11 @@ void PhysicsObject::updatePhysics(Real timeElapsed)
 // ========================================================================
 Constraint::Constraint(PhysicsObject * startObject, PhysicsObject * endObject, Real distance) :
 	m_startObject(startObject), m_endObject(endObject), m_distance(distance)
+{
+}
+
+Constraint::Constraint(const Constraint& copy) :
+	m_startObject(copy.m_startObject), m_endObject(copy.m_endObject), m_distance(copy.m_distance)
 {
 }
 

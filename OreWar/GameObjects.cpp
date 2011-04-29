@@ -3,6 +3,57 @@
 using namespace Ogre;
 
 // ========================================================================
+// GameObject Implementation
+// ========================================================================
+
+GameObject::GameObject(ObjectType type, const SphereCollisionObject& object, Real maxHealth, Real maxShields)
+	: m_type(type), m_physModel(NULL), m_maxHealth(maxHealth), m_health(maxHealth), m_maxShields(maxShields), m_shields(maxShields)
+{
+	m_physModel = new SphereCollisionObject(object);
+}
+
+SphereCollisionObject * GameObject::getPhysicsModel()
+{
+	return m_physModel;
+}
+
+ObjectType GameObject::getType() const
+{
+	return m_type;
+}
+
+Real GameObject::getHealth() const
+{
+	return m_health;
+}
+
+Real GameObject::getMaxHealth() const
+{
+	return m_maxHealth;
+}
+
+Real GameObject:: getShields() const
+{
+	return m_shields;
+}
+
+Real GameObject::getMaxShields() const
+{
+	return m_maxShields;
+}
+
+void GameObject::setHealth(Real health)
+{
+	m_health = health > m_maxHealth ? m_maxHealth : health;
+}
+
+void GameObject::setShields(Real shields)
+{
+	m_shields = shields > m_maxShields ? m_maxShields : shields;
+}
+
+
+// ========================================================================
 // PlayerShip Implementation
 // ========================================================================
 

@@ -133,8 +133,11 @@ public:
 	/** @return The acceleration of the object */
 	Vector3 getAcceleration() const;
 
-	/** @return The vector sum of all forces on the object */
-	Vector3 getSumForce() const;
+	/** @return The vector sum of permanent all (not cleared on physics update) forces on the object */
+	Vector3 getForce() const;
+
+	/** @return The vector sum of all temporary (cleared on physics update) forces on the object */
+	Vector3 getTempForce() const;
 
 	/** 
 	 * Applies an addititve force on the object which will be taken into account
@@ -169,6 +172,8 @@ private:
 	Real m_distance;
 public:
 	Constraint(PhysicsObject * startObject, PhysicsObject * endObject, Real distance);
+
+	Constraint(const Constraint& copy);
 
 	PhysicsObject * getStartObject();
 

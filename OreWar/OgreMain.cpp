@@ -94,18 +94,18 @@ public:
 		
 		// Clear all existing forces, and add keyboard forces
 		if(m_Keyboard->isKeyDown(OIS::KC_W)) {
-			playerShip->applyTempForce(playerShip->getHeading() * Vector3(1000, 1000, 1000));
+			playerShip->applyTempForce(playerShip->getHeading() * Real(2000));
 		}
 		if(m_Keyboard->isKeyDown(OIS::KC_S)) {
-			playerShip->applyTempForce(playerShip->getHeading() * Vector3(-1000, -1000, -1000));
+			playerShip->applyTempForce(playerShip->getHeading() * Real(2000));
 		}
 		if(m_Keyboard->isKeyDown(OIS::KC_A)) {
 			playerShip->applyTempForce((playerShip->getOrientation() * Quaternion(Degree(90), Vector3::UNIT_Y)) 
-				* Vector3(0, 0, -1732));
+				* Vector3(0, 0, -1500));
 		}
 		if(m_Keyboard->isKeyDown(OIS::KC_D)) {
 			playerShip->applyTempForce((playerShip->getOrientation() * Quaternion(Degree(-90), Vector3::UNIT_Y)) 
-				* Vector3(0, 0, -1732));
+				* Vector3(0, 0, -1500));
 		}
 
 		if(m_Keyboard->isKeyDown(OIS::KC_Q)) {
@@ -162,7 +162,9 @@ public:
 		{
 			m_timer = 0;
 			mp_fps->text("FPS: " + Ogre::StringConverter::toString(mp_renderWindow->getLastFPS())
-				+ " - RenderObjects: " + Ogre::StringConverter::toString(m_renderModel.getNumObjects()));
+				+ " - RenderObjects: " + Ogre::StringConverter::toString(m_renderModel.getNumObjects())
+				+ " - Speed: " + Ogre::StringConverter::toString(playerShip->getVelocity().length())
+				+ " - Force: " + Ogre::StringConverter::toString((playerShip->getForce() + playerShip->getTempForce()).length()));
 		}
 
 		// Update the position of the physics object and move the scene node
