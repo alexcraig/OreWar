@@ -24,14 +24,14 @@ public:
 		m_cam->setFarClipDistance(0);
 
 		// Generate the keyboard testing entity and attach it to the listener's scene node
-		PlayerShip playerShip = PlayerShip(1, Vector3(0, -2000, 0));
-		PlayerShip * p_playerShip = m_arena.setPlayerShip(playerShip);
+		SpaceShip playerShip = SpaceShip(ObjectType::SHIP, 1, Vector3(0, -2000, 0));
+		SpaceShip * p_playerShip = m_arena.setPlayerShip(playerShip);
 
 		// Generate GUI elements
-		Gorilla::Silverback * mGorilla = new Gorilla::Silverback();
-		mGorilla->loadAtlas("dejavu");
-		Gorilla::Screen * mScreen = mGorilla->createScreen(mp_vp, "dejavu");
-		Gorilla::Layer * layer = mScreen->createLayer(10);
+		Gorilla::Silverback * gorilla = new Gorilla::Silverback();
+		gorilla->loadAtlas("dejavu");
+		Gorilla::Screen * screen = gorilla->createScreen(mp_vp, "dejavu");
+		Gorilla::Layer * layer = screen->createLayer(10);
 
 		layer->createCaption(14, 5, 5, "OreWar Beta v0.01");
 		Gorilla::Rectangle * crosshair = layer->createRectangle(Vector2(mp_vp->getActualWidth() / 2.0f - 6, mp_vp->getActualHeight() / 2.0f - 6),
@@ -39,6 +39,7 @@ public:
 		crosshair->background_image("crosshair");
 
 		mp_fps = layer->createCaption(14, 5, mp_vp->getActualHeight() - 24, "FPS Counter");
+
 		m_camNode = m_mgr->getRootSceneNode()->createChildSceneNode();
 		m_camNode->attachObject(m_cam);
 		m_cam->setPosition(0, 0, 0);
@@ -51,21 +52,23 @@ public:
     {
 		// Capture the keyboard input
         m_Keyboard->capture();
-		PlayerShip * playerShip = m_arena.getPlayerShip();
+		SpaceShip * playerShip = m_arena.getPlayerShip();
+		SphereCollisionObject * playerShipPhys = playerShip->getPhysicsModel();
 
 		// Add random NPC ships to shoot
 		for(int i = 0; i < m_arena.getNpcShips()->size() - 6; i++) {
 			// Add some NPC ships
-			SphereCollisionObject npcShip = SphereCollisionObject(ObjectType::NPC_SHIP, 150, 1000);
-			npcShip.setPosition(Vector3(Math::RangeRandom(0, m_arena.getSize()),
+			SpaceShip npcShip = SpaceShip(ObjectType::NPC_SHIP, 1);
+			SphereCollisionObject * npcShipPhysics = npcShip.getPhysicsModel();
+			npcShipPhysics->setPosition(Vector3(Math::RangeRandom(0, m_arena.getSize()),
 				Math::RangeRandom(0, m_arena.getSize()),
 				Math::RangeRandom(0, m_arena.getSize())));
 			// npcShip.setVelocity(Vector3(0, 0, 0));
-			npcShip.setVelocity(Vector3(Math::RangeRandom(0, 2000),
+			npcShipPhysics->setVelocity(Vector3(Math::RangeRandom(0, 2000),
 				Math::RangeRandom(0, 2000),
 				Math::RangeRandom(0, 2000)));
 
-			npcShip.setOrientation(Vector3(0, 0, -1).getRotationTo(npcShip.getVelocity()));
+			npcShipPhysics->setOrientation(Vector3(0, 0, -1).getRotationTo(npcShipPhysics->getVelocity()));
 			m_arena.addNpcShip(npcShip);
 		}
 
@@ -89,34 +92,34 @@ public:
 
 		// Mouse control
 		m_mouse->capture();
-		playerShip->pitch(Radian(m_mouse->getMouseState().Y.rel * -0.25 * evt.timeSinceLastFrame));
-		playerShip->yaw(Radian(m_mouse->getMouseState().X.rel * -0.25 * evt.timeSinceLastFrame));
+		playerShipPhys->pitch(Radian(m_mouse->getMouseState().Y.rel * -0.25 * evt.timeSinceLastFrame));
+		playerShipPhys->yaw(Radian(m_mouse->getMouseState().X.rel * -0.25 * evt.timeSinceLastFrame));
 		
 		// Clear all existing forces, and add keyboard forces
 		if(m_Keyboard->isKeyDown(OIS::KC_W)) {
-			playerShip->applyTempForce(playerShip->getHeading() * Real(2000));
+			playerShipPhys->applyTempForce(playerShipPhys->getHeading() * Real(2000));
 		}
 		if(m_Keyboard->isKeyDown(OIS::KC_S)) {
-			playerShip->applyTempForce(playerShip->getHeading() * Real(2000));
+			playerShipPhys->applyTempForce(playerShipPhys->getHeading() * Real(-2000));
 		}
 		if(m_Keyboard->isKeyDown(OIS::KC_A)) {
-			playerShip->applyTempForce((playerShip->getOrientation() * Quaternion(Degree(90), Vector3::UNIT_Y)) 
+			playerShipPhys->applyTempForce((playerShipPhys->getOrientation() * Quaternion(Degree(90), Vector3::UNIT_Y)) 
 				* Vector3(0, 0, -1500));
 		}
 		if(m_Keyboard->isKeyDown(OIS::KC_D)) {
-			playerShip->applyTempForce((playerShip->getOrientation() * Quaternion(Degree(-90), Vector3::UNIT_Y)) 
+			playerShipPhys->applyTempForce((playerShipPhys->getOrientation() * Quaternion(Degree(-90), Vector3::UNIT_Y)) 
 				* Vector3(0, 0, -1500));
 		}
 
 		if(m_Keyboard->isKeyDown(OIS::KC_Q)) {
-			playerShip->roll(Radian(2 * evt.timeSinceLastFrame));
+			playerShipPhys->roll(Radian(2 * evt.timeSinceLastFrame));
 		}
 		if(m_Keyboard->isKeyDown(OIS::KC_E)) {
-			playerShip->roll(Radian(-2 * evt.timeSinceLastFrame));
+			playerShipPhys->roll(Radian(-2 * evt.timeSinceLastFrame));
 		}
 
 		if(m_Keyboard->isKeyDown(OIS::KC_LCONTROL)) {
-			playerShip->applyTempForce(playerShip->getVelocity().normalisedCopy() * (-1) * Vector3(2000, 2000, 2000));
+			playerShipPhys->applyTempForce(playerShipPhys->getVelocity().normalisedCopy() * (-1) * Vector3(2000, 2000, 2000));
 		}
 
 		if(m_Keyboard->isKeyDown(OIS::KC_C)) {
@@ -135,19 +138,20 @@ public:
 		{
 			if(m_con == NULL) 
 			{
-				PhysicsObject * closestShip = m_arena.getNpcShips()->front();
-				for(std::vector<SphereCollisionObject * >::iterator shipIter = m_arena.getNpcShips()->begin(); 
+				SpaceShip * closestShip = m_arena.getNpcShips()->front();
+				for(std::vector<SpaceShip * >::iterator shipIter = m_arena.getNpcShips()->begin(); 
 					shipIter != m_arena.getNpcShips()->end();
 					shipIter++) 
 				{
-					if(playerShip->getPosition().squaredDistance((*shipIter)->getPosition()) <
-						playerShip->getPosition().squaredDistance(closestShip->getPosition())) 
+					if(playerShipPhys->getPosition().squaredDistance((*shipIter)->getPhysicsModel()->getPosition()) <
+						playerShipPhys->getPosition().squaredDistance(closestShip->getPhysicsModel()->getPosition())) 
 					{
 						closestShip = *shipIter;
 					}
 				}
-				m_con = m_arena.addConstraint(Constraint(playerShip, closestShip, 
-					playerShip->getOffset(*closestShip).length()));
+				m_con = m_arena.addConstraint(Constraint(playerShip->getPhysicsModel(), 
+					closestShip->getPhysicsModel(), 
+					playerShipPhys->getOffset(*(closestShip->getPhysicsModel())).length()));
 			}
 		} else {
 			if(m_con != NULL) {
@@ -163,8 +167,9 @@ public:
 			m_timer = 0;
 			mp_fps->text("FPS: " + Ogre::StringConverter::toString(mp_renderWindow->getLastFPS())
 				+ " - RenderObjects: " + Ogre::StringConverter::toString(m_renderModel.getNumObjects())
-				+ " - Speed: " + Ogre::StringConverter::toString(playerShip->getVelocity().length())
-				+ " - Force: " + Ogre::StringConverter::toString((playerShip->getForce() + playerShip->getTempForce()).length()));
+				+ " - Health: " + Ogre::StringConverter::toString(playerShip->getHealth())
+				+ " - Speed: " + Ogre::StringConverter::toString(playerShipPhys->getVelocity().length())
+				+ " - Force: " + Ogre::StringConverter::toString((playerShipPhys->getForce() + playerShipPhys->getTempForce()).length()));
 		}
 
 		// Update the position of the physics object and move the scene node
@@ -173,11 +178,11 @@ public:
 
 		// Move the camera
 		if(m_thirdPersonCam) {
-			m_camNode->setPosition(playerShip->getPosition() + Vector3(0, 1000, 1000));
-			m_camNode->lookAt(playerShip->getPosition(), Node::TS_WORLD);
+			m_camNode->setPosition(playerShipPhys->getPosition() + Vector3(0, 1000, 1000));
+			m_camNode->lookAt(playerShipPhys->getPosition(), Node::TS_WORLD);
 		} else {
-			m_camNode->setPosition(playerShip->getPosition() + playerShip->getNormal() * 80 - playerShip->getHeading() * 200);
-			m_camNode->setOrientation(playerShip->getOrientation());
+			m_camNode->setPosition(playerShipPhys->getPosition() + playerShipPhys->getNormal() * 80 - playerShipPhys->getHeading() * 200);
+			m_camNode->setOrientation(playerShipPhys->getOrientation());
 		}
 
         return !m_Keyboard->isKeyDown(OIS::KC_ESCAPE);

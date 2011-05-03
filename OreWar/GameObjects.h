@@ -12,9 +12,10 @@ using namespace Ogre;
 class GameObject
 {
 private:
-	ObjectType m_type;
+	// TODO: The object type should probably move into this class and out
+	//	     of the physics subsystem.
 
-	SphereCollisionObject * m_physModel;
+	SphereCollisionObject * mp_physModel;
 
 	Real m_maxHealth;
 
@@ -25,9 +26,11 @@ private:
 	Real m_shields;
 
 public: 
-	GameObject(ObjectType type, const SphereCollisionObject& object, Real maxHealth, Real maxShields);
+	GameObject(const SphereCollisionObject& object, Real maxHealth, Real maxShields);
+	GameObject(const GameObject& copy);
+	~GameObject();
 
-	SphereCollisionObject * getPhysicsModel();
+	SphereCollisionObject * getPhysicsModel() const;
 
 	ObjectType getType() const;
 
@@ -36,32 +39,30 @@ public:
 	Real getShields() const;
 	Real getMaxShields() const;
 
-	Real getMass() const;
-	Vector3 getPosition() const;
-	Vector3 getVelocity() const;
-	Vector3 getHeading() const;
-	Vector3 getNormal() const;
-	Vector3 getForce() const; 
-	Vector3 getTempForce() const;
-	Vector3 getOrientation() const;
-
-	void setPosition(Vector3 position);
-	void setVelocity(Vector3 velocity);
-	void setOrientation(Quaternion orientation);
-	void applyTempForce(Vector3 tempForce);
-	void applyForce(Vector3 Force);
-
-	void updatePhysics(Real timeElapsed);
+	virtual void updatePhysics(Real timeElapsed) = 0;
 	void setHealth(Real health);
 	void setShields(Real shields);
 };
 
+class Projectile : public GameObject
+{
+private:
+	Real m_damage;
+
+public:
+	Projectile(const SphereCollisionObject& physModel, Real damage);
+
+	void updatePhysics(Real timeElapsed);
+
+	Real getDamage();
+};
+
 
 /**
- * PlayerShip represents a ship controllable by a human player which
+ * Represents a human or NPC controllable space ship which
  * can generate projectiles.
  */
-class PlayerShip : public SphereCollisionObject
+class SpaceShip : public GameObject
 {
 private:
 	/** The time which should elapsed between projectile generations */
@@ -77,20 +78,20 @@ private:
 	bool m_shootLeft;
 
 public:
-	/** Construct a PlayerShip with the specified mass and size at the specified position */
-	PlayerShip(Real mass, Vector3 position);
+	/** Construct a SpaceShip with the specified mass and size at the specified position */
+	SpaceShip(ObjectType type, Real mass, Vector3 position);
 
-	/** Construct a PlayerShip with the specified mass and size at the origin */
-	PlayerShip(Real mass);
+	/** Construct a SpaceShip with the specified mass and size at the origin */
+	SpaceShip(ObjectType type, Real mass);
 
 	/** Copy constructor */
-	PlayerShip(const PlayerShip& copy);
+	SpaceShip(const SpaceShip& copy);
 
 	/** @return True if the ship has a loaded weapon */
 	bool canShoot() const;
 
 	/** Generates a projectile PhysicsObject, and resets the ship's reload counter*/
-	SphereCollisionObject generateProjectile();
+	Projectile generateProjectile();
 
 	/** Updates the ship's position and reload status */
 	void updatePhysics(Real timeElapsed);
@@ -104,11 +105,11 @@ public:
 class GameArenaListener
 {
 public:
-	/** Called whenever a new PhysicsObject is generated in the GameArena */
-	virtual void newPhysicsObject(PhysicsObject * object) = 0;
+	/** Called whenever a new GameObject is generated in the GameArena */
+	virtual void newGameObject(GameObject * object) = 0;
 
-	/** Called just before a PhysicsObject is destroyed in the GameArena */
-	virtual void destroyedPhysicsObject(PhysicsObject * object) = 0;
+	/** Called just before a GameObject is destroyed in the GameArena */
+	virtual void destroyedGameObject(GameObject * object) = 0;
 
 	/** Called whenever a new Constraint is generated in the GameArena */
 	virtual void newConstraint(Constraint * object) = 0;
@@ -134,13 +135,13 @@ private:
 	 */
 	Real m_arenaSize;
 
-	PlayerShip * m_playerShip;
+	SpaceShip * m_playerShip;
 
 	/** A vector of pointers to dynamically allocated memory for all npc ships in the GameArena */
-	std::vector<SphereCollisionObject *> m_npcShips;
+	std::vector<SpaceShip *> m_npcShips;
 
 	/** A vector of pointers to dynamically allocated memory for all projectiles in the GameArena */
-	std::vector<SphereCollisionObject *> m_projectiles;
+	std::vector<Projectile *> m_projectiles;
 
 	/** A vector of pointers to dynamically allocated memory for all projectiles in the GameArena */
 	std::vector<Constraint *> m_constraints;
@@ -148,8 +149,8 @@ private:
 	/** A vector of pointers to GameArenaListener instances registered with the GameArena*/
 	std::vector<GameArenaListener *> m_listeners;
 
-	void notifyPhysicsCreation(PhysicsObject * object);
-	void notifyPhysicsDestruction(PhysicsObject * object);
+	void notifyObjectCreation(GameObject * object);
+	void notifyObjectDestruction(GameObject * object);
 	void notifyConstraintCreation(Constraint * object);
 	void notifyConstraintDestruction(Constraint * object);
 public:
@@ -165,18 +166,18 @@ public:
 	Real getSize() const;
 
 	/**
-	 * Adds a PlayerShip to the GameArena.
-	 * Note: A copy of the passed PlayerShip is created and stored in dynamic memory.
-	 * @return	A pointer to the new copy of the PlayerShip. This pointer will remain valuid
+	 * Adds a SpaceShip to the GameArena.
+	 * Note: A copy of the passed SpaceShip is created and stored in dynamic memory.
+	 * @return	A pointer to the new copy of the SpaceShip. This pointer will remain valuid
 	 *			for the lifetime of the GameArena.
 	 */
-	PlayerShip * setPlayerShip(const PlayerShip& ship);
+	SpaceShip * setPlayerShip(const SpaceShip& ship);
 
 	Constraint * addConstraint(const Constraint& constraint);
 
 	std::vector<Constraint * >::iterator destroyConstraint(Constraint * constraint);
 
-	SphereCollisionObject * addNpcShip(const SphereCollisionObject& ship);
+	SpaceShip * addNpcShip(const SpaceShip& ship);
 
 	/**
 	 * Adds a projectile to the GameArena.
@@ -184,26 +185,26 @@ public:
 	 * @return	A pointer to the new copy of the PhysicsObject. This pointer will remain valuid
 	 *			for the lifetime of the GameArena.
 	 */
-	SphereCollisionObject * addProjectile(const SphereCollisionObject& projectile);
+	Projectile * addProjectile(const Projectile& projectile);
 
 	/** Destroys a projectile, erasing it from the vector of stored PhysicsObjects */
-	std::vector<SphereCollisionObject * >::iterator destroyProjectile(SphereCollisionObject * projectile);
+	std::vector<Projectile * >::iterator destroyProjectile(Projectile * projectile);
 
-	std::vector<SphereCollisionObject * >::iterator destroyNpcShip(SphereCollisionObject * npcShip);
+	std::vector<SpaceShip * >::iterator destroyNpcShip(SpaceShip * npcShip);
 
-	PlayerShip * getPlayerShip();
+	SpaceShip * getPlayerShip();
 
 	/** @return The list of pointers to all active projectiles */
-	std::vector<SphereCollisionObject *> * getProjectiles();
+	std::vector<Projectile *> * getProjectiles();
 
 	/** @return The list of pointers to all active ships */
-	std::vector<SphereCollisionObject *> * getNpcShips();
+	std::vector<SpaceShip *> * getNpcShips();
 
 	/** 
 	 * @return A pointer to the PhysicsObject produced by generating a projectile from the passed ship 
 	 * and stored in dynamic memory.
 	 */
-	SphereCollisionObject * fireProjectileFromShip(PlayerShip * ship);
+	Projectile * fireProjectileFromShip(SpaceShip * ship);
 
 	/** Updates the physics of all ships and projectiles in the arena */
 	void updatePhysics(Real timeElapsed);

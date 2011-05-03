@@ -73,14 +73,14 @@ class PhysicsRenderObject : public RenderObject
 {
 private:
 	/** A pointer to the model object */
-	PhysicsObject * mp_object;
+	SphereCollisionObject * mp_object;
 
 public:
 	/** Constructs a new PhysicsRenderObject */
-	PhysicsRenderObject(PhysicsObject * object, SceneManager * mgr);
+	PhysicsRenderObject(SphereCollisionObject * object, SceneManager * mgr);
 
 	/** @return A pointer to the model object */
-	PhysicsObject * getObject();
+	SphereCollisionObject * getObject();
 
 	/** Updates the node based on passed time and camera orientation (useful for sprites) */
 	virtual void updateNode(Real elapsedTime, Quaternion camOrientation) = 0;
@@ -98,6 +98,8 @@ public:
 class ShipRO : public PhysicsRenderObject
 {
 private:
+	SpaceShip * mp_spaceShip;
+
 	SceneNode * mp_shipNode;
 	SceneNode * mp_shipRotateNode;
 	Entity * mp_shipEntity;
@@ -107,7 +109,9 @@ private:
 
 	static bool m_resourcesLoaded;
 public:
-	ShipRO(PhysicsObject * object, SceneManager * mgr);
+	ShipRO(SpaceShip * ship, SceneManager * mgr);
+
+	SpaceShip * getSpaceShip() const;
 
 	/** Updates the node based on passed time and camera orientation (useful for sprites) */
 	virtual void updateNode(Real elapsedTime, Quaternion camOrientation);
@@ -128,7 +132,7 @@ private:
 
 	static bool m_resourcesLoaded;
 public:
-	NpcShipRO(PhysicsObject * object, SceneManager * mgr);
+	NpcShipRO(SpaceShip * ship, SceneManager * mgr);
 
 	/** Updates the node based on passed time and camera orientation (useful for sprites) */
 	virtual void updateNode(Real elapsedTime, Quaternion camOrientation);
@@ -144,6 +148,8 @@ public:
 class ProjectileRO : public PhysicsRenderObject
 {
 private:
+	Projectile * mp_projectile;
+
 	SceneNode * mp_projNode;
 
 	Light * mp_pointLight;
@@ -152,7 +158,9 @@ private:
 
 	static bool m_resourcesLoaded;
 public:
-	ProjectileRO(PhysicsObject * object, SceneManager * mgr);
+	ProjectileRO(Projectile * proj, SceneManager * mgr);
+
+	Projectile * getProjectile() const;
 
 	/** Updates the node based on passed time and camera orientation (useful for sprites) */
 	virtual void updateNode(Real elapsedTime, Quaternion camOrientation);
@@ -193,11 +201,11 @@ public:
 	/** Calls the updateNode() method of all RenderObjects stored in the RenderModel's render list */
 	void updateRenderList(Real elapsedTime, Quaternion camOrientation);
 
-	/** Called whenever a new PhysicsObject is created by the observed GameArena */
-	virtual void newPhysicsObject(PhysicsObject * object);
+	/** Called whenever a new GameObject is created by the observed GameArena */
+	virtual void newGameObject(GameObject * object);
 
-	/** Called whenever a PhysicsObject is destroyed by the observed GameArena */
-	virtual void destroyedPhysicsObject(PhysicsObject * object);
+	/** Called whenever a GameObject is destroyed by the observed GameArena */
+	virtual void destroyedGameObject(GameObject * object);
 
 	/** Called whenever a new Constraint is generated in the GameArena */
 	virtual void newConstraint(Constraint * object);

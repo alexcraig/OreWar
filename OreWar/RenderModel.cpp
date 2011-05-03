@@ -1,4 +1,5 @@
 #include "RenderModel.h"
+#include "Gorilla.h"
 #include <OgreMatrix4.h>
 
 using namespace Ogre;
@@ -83,12 +84,12 @@ void ConstraintRenderObject::destroyNode()
 // ========================================================================
 // PhysicsRenderObject Implementation
 // ========================================================================
-PhysicsRenderObject::PhysicsRenderObject(PhysicsObject * object, SceneManager * mgr)
+PhysicsRenderObject::PhysicsRenderObject(SphereCollisionObject * object, SceneManager * mgr)
 	: RenderObject(mgr), mp_object(object)
 {
 }
 
-PhysicsObject * PhysicsRenderObject::getObject() {
+SphereCollisionObject * PhysicsRenderObject::getObject() {
 	return mp_object;
 }
 
@@ -97,8 +98,8 @@ PhysicsObject * PhysicsRenderObject::getObject() {
 // ========================================================================
 bool ShipRO::m_resourcesLoaded = false;
 
-ShipRO::ShipRO(PhysicsObject * object, SceneManager * mgr)
-	: PhysicsRenderObject(object, mgr), mp_shipNode(NULL), mp_shipRotateNode(NULL), mp_shipEntity(NULL),
+ShipRO::ShipRO(SpaceShip * ship, SceneManager * mgr)
+	: PhysicsRenderObject(ship->getPhysicsModel(), mgr), mp_spaceShip(ship), mp_shipNode(NULL), mp_shipRotateNode(NULL), mp_shipEntity(NULL),
 	mp_spotLight(NULL), mp_pointLight(NULL), mp_engineParticles(NULL)
 {
 }
@@ -180,8 +181,8 @@ void ShipRO::destroyNode()
 // ========================================================================
 bool NpcShipRO::m_resourcesLoaded = false;
 
-NpcShipRO::NpcShipRO(PhysicsObject * object, SceneManager * mgr)
-	: ShipRO(object, mgr), mp_frameNode(NULL), mp_frameSprite(NULL)
+NpcShipRO::NpcShipRO(SpaceShip * ship, SceneManager * mgr)
+	: ShipRO(ship, mgr), mp_frameNode(NULL), mp_frameSprite(NULL)
 {
 }
 
@@ -230,10 +231,15 @@ void NpcShipRO::destroyNode()
 // ========================================================================
 bool ProjectileRO::m_resourcesLoaded = false;
 
-ProjectileRO::ProjectileRO(PhysicsObject * object, SceneManager * mgr)
-	: PhysicsRenderObject(object, mgr), mp_projNode(NULL), mp_pointLight(NULL),
-	mp_particle(NULL)
+ProjectileRO::ProjectileRO(Projectile * proj, SceneManager * mgr)
+	: PhysicsRenderObject(proj->getPhysicsModel(), mgr), mp_projectile(proj), mp_projNode(NULL), 
+	mp_pointLight(NULL), mp_particle(NULL)
 {
+}
+
+Projectile * ProjectileRO::getProjectile() const
+{
+	return mp_projectile;
 }
 
 void ProjectileRO::updateNode(Real elapsedTime, Quaternion camOrientation)
@@ -309,15 +315,15 @@ void RenderModel::updateRenderList(Real elapsedTime, Quaternion camOrientation)
 	}
 }
 
-void RenderModel::newPhysicsObject(PhysicsObject * object)
+void RenderModel::newGameObject(GameObject * object)
 {
 	PhysicsRenderObject * p_renderObj = NULL;
 	if(object->getType() == ObjectType::SHIP) {
-		p_renderObj = new ShipRO(object, mp_mgr);
+		p_renderObj = new ShipRO((SpaceShip*)object, mp_mgr);
 	} else if (object->getType() == ObjectType::NPC_SHIP) {
-		p_renderObj = new NpcShipRO(object, mp_mgr);
+		p_renderObj = new NpcShipRO((SpaceShip*)object, mp_mgr);
 	} else if (object->getType() == ObjectType::PROJECTILE) {
-		p_renderObj = new ProjectileRO(object, mp_mgr);
+		p_renderObj = new ProjectileRO((Projectile*)object, mp_mgr);
 	}
 
 	p_renderObj->loadSceneResources();
@@ -325,13 +331,13 @@ void RenderModel::newPhysicsObject(PhysicsObject * object)
 	m_physicsRenderList.push_back(p_renderObj);
 }
 
-void RenderModel::destroyedPhysicsObject(PhysicsObject * object)
+void RenderModel::destroyedGameObject(GameObject * object)
 {
 	for(std::vector<PhysicsRenderObject *>::iterator renderIter =  m_physicsRenderList.begin(); 
 		renderIter != m_physicsRenderList.end();
 		renderIter++) {
 
-		if((*(*renderIter)).getObject() == object) {
+			if((*(*renderIter)).getObject() == object->getPhysicsModel()) {
 			(*(*renderIter)).destroyNode();
 			delete (*renderIter);
 			m_physicsRenderList.erase(std::remove(m_physicsRenderList.begin(), 
