@@ -6,6 +6,7 @@
 #include <sstream>
 #include <OgreParticleSystem.h>
 #include "GameObjects.h"
+#include "Gorilla.h"
 
 using namespace Ogre;
 
@@ -129,6 +130,9 @@ class NpcShipRO : public ShipRO
 private:
 	SceneNode * mp_frameNode;
 	Entity * mp_frameSprite;
+	Gorilla::ScreenRenderable * mp_screen;
+	Gorilla::Rectangle * mp_healthBar;
+	Gorilla::Rectangle * mp_energyBar;
 
 	static bool m_resourcesLoaded;
 public:

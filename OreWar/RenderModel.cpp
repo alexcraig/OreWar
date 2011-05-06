@@ -1,5 +1,4 @@
 #include "RenderModel.h"
-#include "Gorilla.h"
 #include <OgreMatrix4.h>
 
 using namespace Ogre;
@@ -104,6 +103,11 @@ ShipRO::ShipRO(SpaceShip * ship, SceneManager * mgr)
 {
 }
 
+SpaceShip * ShipRO::getSpaceShip() const
+{
+	return mp_spaceShip;
+}
+
 /** Updates the node based on passed time and camera orientation (useful for sprites) */
 void ShipRO::updateNode(Real elapsedTime, Quaternion camOrientation)
 {
@@ -182,7 +186,8 @@ void ShipRO::destroyNode()
 bool NpcShipRO::m_resourcesLoaded = false;
 
 NpcShipRO::NpcShipRO(SpaceShip * ship, SceneManager * mgr)
-	: ShipRO(ship, mgr), mp_frameNode(NULL), mp_frameSprite(NULL)
+	: ShipRO(ship, mgr), mp_frameNode(NULL), mp_frameSprite(NULL), mp_screen(NULL),
+	mp_healthBar(NULL), mp_energyBar(NULL)
 {
 }
 
@@ -191,6 +196,9 @@ void NpcShipRO::updateNode(Real elapsedTime, Quaternion camOrientation)
 	ShipRO::updateNode(elapsedTime, camOrientation);
 	mp_frameNode->setPosition(getObject()->getPosition());
 	mp_frameNode->setOrientation(camOrientation);
+
+	mp_healthBar->width((getSpaceShip()->getHealth() / getSpaceShip()->getMaxHealth()) * 25000);
+	mp_energyBar->width((getSpaceShip()->getShields() / getSpaceShip()->getMaxShields()) * 25000);
 }
 
 
@@ -215,6 +223,22 @@ void NpcShipRO::buildNode()
 	mp_frameSprite->setMaterialName("Orewar/TargetFrame");
 	mp_frameSprite->setCastShadows(false);
 	mp_frameNode->attachObject(mp_frameSprite);
+
+	
+	Viewport * p_vp = getSceneManager()->getCamera("Camera")->getViewport();
+	Gorilla::Silverback * gorilla = Gorilla::Silverback::getSingletonPtr();
+	mp_screen = gorilla->createScreenRenderable(Vector2(250, 440), "dejavu");
+	mp_frameNode->attachObject(mp_screen);
+
+	Gorilla::Layer * layer = mp_screen->createLayer(10);
+
+	mp_healthBar = layer->createRectangle(Vector2(0, 0), Vector2(25000, 2000));
+	mp_healthBar->background_colour(Gorilla::Colours::Red);
+	mp_healthBar->border_colour(Gorilla::Colours::Red);
+
+	mp_energyBar = layer->createRectangle(Vector2(0, 2200), Vector2(25000, 2000));
+	mp_energyBar->background_colour(Gorilla::Colours::Blue);
+	mp_energyBar->border_colour(Gorilla::Colours::Blue);
 }
 
 void NpcShipRO::destroyNode()
@@ -224,6 +248,7 @@ void NpcShipRO::destroyNode()
 	mp_frameNode->removeAllChildren();
 	getSceneManager()->destroyMovableObject(mp_frameSprite);
 	getSceneManager()->destroySceneNode(mp_frameNode);
+	Gorilla::Silverback::getSingletonPtr()->destroyScreenRenderable(mp_screen);
 }
 
 // ========================================================================

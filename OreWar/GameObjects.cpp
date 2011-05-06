@@ -131,7 +131,7 @@ Projectile SpaceShip::generateProjectile()
 	m_shootLeft = !m_shootLeft;
 	m_canShoot = false;
 	m_lastShotCounter = 0;
-	return Projectile(projectilePhysics, 50);
+	return Projectile(projectilePhysics, 35);
 }
 
 void SpaceShip::updatePhysics(Real timeElapsed) 

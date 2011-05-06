@@ -19,7 +19,8 @@ public:
         : m_Keyboard(keyboard), m_mouse(mouse), m_rotateNode(mgr->getRootSceneNode()->createChildSceneNode()), m_cam(cam), 
 		m_camHeight(0), m_camOffset(0), m_arena(30000), m_mgr(mgr),
 		m_thirdPersonCam(true), m_renderModel(m_arena, m_mgr), mp_vp(cam->getViewport()), mp_fps(NULL), m_timer(0),
-		mp_renderWindow(renderWindow), m_con(NULL), m_camParticle(NULL), m_camNode(NULL)
+		mp_renderWindow(renderWindow), m_con(NULL), m_camParticle(NULL), m_camNode(NULL),
+		mp_healthBar(NULL), mp_energyBar(NULL), mp_speedBar(NULL)
 	{
 		m_cam->setFarClipDistance(0);
 
@@ -28,17 +29,28 @@ public:
 		SpaceShip * p_playerShip = m_arena.setPlayerShip(playerShip);
 
 		// Generate GUI elements
-		Gorilla::Silverback * gorilla = new Gorilla::Silverback();
-		gorilla->loadAtlas("dejavu");
+		Gorilla::Silverback * gorilla = Gorilla::Silverback::getSingletonPtr();
 		Gorilla::Screen * screen = gorilla->createScreen(mp_vp, "dejavu");
 		Gorilla::Layer * layer = screen->createLayer(10);
 
-		layer->createCaption(14, 5, 5, "OreWar Beta v0.01");
+		layer->createCaption(14, 5, 5, "OreWar Alpha v0.02");
 		Gorilla::Rectangle * crosshair = layer->createRectangle(Vector2(mp_vp->getActualWidth() / 2.0f - 6, mp_vp->getActualHeight() / 2.0f - 6),
 			Vector2(12, 12));
 		crosshair->background_image("crosshair");
 
 		mp_fps = layer->createCaption(14, 5, mp_vp->getActualHeight() - 24, "FPS Counter");
+
+		mp_healthBar = layer->createRectangle(Vector2(14, mp_vp->getActualHeight() - 66), Vector2(mp_vp->getActualWidth() * 0.25, 12));
+		mp_healthBar->background_colour(Gorilla::Colours::Red);
+		mp_healthBar->border_colour(Gorilla::Colours::Red);
+
+		mp_energyBar = layer->createRectangle(Vector2(14, mp_vp->getActualHeight() - 60), Vector2(mp_vp->getActualWidth() * 0.25, 12));
+		mp_energyBar->background_colour(Gorilla::Colours::Blue);
+		mp_energyBar->border_colour(Gorilla::Colours::Blue);
+
+		mp_speedBar = layer->createRectangle(Vector2(14, mp_vp->getActualHeight() - 82), Vector2(mp_vp->getActualWidth() * 0.25, 12));
+		mp_speedBar->background_colour(Gorilla::Colours::Orange);
+		mp_energyBar->border_colour(Gorilla::Colours::Orange);
 
 		m_camNode = m_mgr->getRootSceneNode()->createChildSceneNode();
 		m_camNode->attachObject(m_cam);
@@ -172,6 +184,11 @@ public:
 				+ " - Force: " + Ogre::StringConverter::toString((playerShipPhys->getForce() + playerShipPhys->getTempForce()).length()));
 		}
 
+		// Update UI
+		mp_healthBar->width((mp_vp->getActualWidth() * 0.2) * (playerShip->getHealth() / playerShip->getMaxHealth()));
+		mp_energyBar->width((mp_vp->getActualWidth() * 0.2) * (playerShip->getShields() / playerShip->getMaxShields()));
+		mp_speedBar->width((mp_vp->getActualWidth() * 0.2) * (playerShipPhys->getVelocity().length() / Real(6000)));
+
 		// Update the position of the physics object and move the scene node
 		m_arena.updatePhysics(evt.timeSinceLastFrame);
 		m_renderModel.updateRenderList(evt.timeSinceLastFrame, m_camNode->getOrientation());
@@ -207,6 +224,10 @@ private:
 	Constraint * m_con;
 	ParticleSystem * m_camParticle;
 	SceneNode * m_camNode;
+
+	Gorilla::Rectangle * mp_healthBar;
+	Gorilla::Rectangle * mp_energyBar;
+	Gorilla::Rectangle * mp_speedBar;
 };
  
 class Application
@@ -309,6 +330,10 @@ private:
     {
 		// Create the SceneManager
 		SceneManager *mgr = mRoot->createSceneManager(ST_GENERIC, "Default SceneManager");
+
+		// Initialize Gorilla
+		Gorilla::Silverback * gorilla = new Gorilla::Silverback();
+		gorilla->loadAtlas("dejavu");
 		
 		// Setup ambient light and shadows
 		mgr->setShadowTechnique(Ogre::SHADOWTYPE_TEXTURE_ADDITIVE);
