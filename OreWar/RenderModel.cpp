@@ -236,9 +236,19 @@ void NpcShipRO::buildNode()
 	mp_healthBar->background_colour(Gorilla::Colours::Red);
 	mp_healthBar->border_colour(Gorilla::Colours::Red);
 
-	mp_energyBar = layer->createRectangle(Vector2(0, 2200), Vector2(25000, 2000));
+	Gorilla::Rectangle * healthBarBorder = layer->createRectangle(Vector2(0, 0), Vector2(25000, 2000));
+	healthBarBorder->no_background();
+	healthBarBorder->border_colour(Gorilla::Colours::Red);
+	healthBarBorder->border_width(200);
+
+	mp_energyBar = layer->createRectangle(Vector2(0, 2500), Vector2(25000, 2000));
 	mp_energyBar->background_colour(Gorilla::Colours::Blue);
 	mp_energyBar->border_colour(Gorilla::Colours::Blue);
+
+	Gorilla::Rectangle * energyBarBorder = layer->createRectangle(Vector2(0, 2500), Vector2(25000, 2000));
+	energyBarBorder->no_background();
+	energyBarBorder->border_colour(Gorilla::Colours::Blue);
+	energyBarBorder->border_width(200);
 }
 
 void NpcShipRO::destroyNode()

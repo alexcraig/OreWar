@@ -44,11 +44,21 @@ public:
 		mp_healthBar->background_colour(Gorilla::Colours::Red);
 		mp_healthBar->border_colour(Gorilla::Colours::Red);
 
-		mp_energyBar = layer->createRectangle(Vector2(14, mp_vp->getActualHeight() - 60), Vector2(mp_vp->getActualWidth() * 0.25, 12));
+		Gorilla::Rectangle * healthBarBorder = layer->createRectangle(Vector2(14, mp_vp->getActualHeight() - 66), Vector2(mp_vp->getActualWidth() * 0.25, 12));
+		healthBarBorder->no_background();
+		healthBarBorder->border_colour(Gorilla::Colours::Red);
+		healthBarBorder->border_width(1);
+
+		mp_energyBar = layer->createRectangle(Vector2(14, mp_vp->getActualHeight() - 82), Vector2(mp_vp->getActualWidth() * 0.25, 12));
 		mp_energyBar->background_colour(Gorilla::Colours::Blue);
 		mp_energyBar->border_colour(Gorilla::Colours::Blue);
 
-		mp_speedBar = layer->createRectangle(Vector2(14, mp_vp->getActualHeight() - 82), Vector2(mp_vp->getActualWidth() * 0.25, 12));
+		Gorilla::Rectangle * energyBarBorder = layer->createRectangle(Vector2(14, mp_vp->getActualHeight() - 82), Vector2(mp_vp->getActualWidth() * 0.25, 12));
+		energyBarBorder->no_background();
+		energyBarBorder->border_colour(Gorilla::Colours::Blue);
+		energyBarBorder->border_width(1);
+
+		mp_speedBar = layer->createRectangle(Vector2(14, mp_vp->getActualHeight() - 98), Vector2(mp_vp->getActualWidth() * 0.25, 12));
 		mp_speedBar->background_colour(Gorilla::Colours::Orange);
 		mp_energyBar->border_colour(Gorilla::Colours::Orange);
 
@@ -185,9 +195,9 @@ public:
 		}
 
 		// Update UI
-		mp_healthBar->width((mp_vp->getActualWidth() * 0.2) * (playerShip->getHealth() / playerShip->getMaxHealth()));
-		mp_energyBar->width((mp_vp->getActualWidth() * 0.2) * (playerShip->getShields() / playerShip->getMaxShields()));
-		mp_speedBar->width((mp_vp->getActualWidth() * 0.2) * (playerShipPhys->getVelocity().length() / Real(6000)));
+		mp_healthBar->width((mp_vp->getActualWidth() * 0.25) * (playerShip->getHealth() / playerShip->getMaxHealth()));
+		mp_energyBar->width((mp_vp->getActualWidth() * 0.25) * (playerShip->getShields() / playerShip->getMaxShields()));
+		mp_speedBar->width((mp_vp->getActualWidth() * 0.25) * (playerShipPhys->getVelocity().length() / Real(6000)));
 
 		// Update the position of the physics object and move the scene node
 		m_arena.updatePhysics(evt.timeSinceLastFrame);
