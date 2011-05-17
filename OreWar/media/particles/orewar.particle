@@ -101,6 +101,38 @@ particle_system Orewar/ConstraintStream
     }
 }
 
+particle_system Orewar/Anchor
+{
+    material Orewar/Flare
+    particle_width 150
+    particle_height 150
+    cull_each false
+    quota 10
+    billboard_type point
+    local_space true
+
+    // Area emitter
+    emitter Point
+    {
+        angle 360
+        emission_rate 10
+        time_to_live 1
+        direction 0 0 1
+        velocity_min 100
+        velocity_max 150
+        colour_range_start 1 0 0
+        colour_range_end 0.7 0.2 0.2
+    }
+
+    // Fader
+    affector ColourFader
+    {
+        red -1
+        green -1
+        blue -1
+    }
+}
+
 particle_system Orewar/PlasmaStream
 {
     material Orewar/Flare

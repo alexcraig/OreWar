@@ -85,63 +85,151 @@ Real Projectile::getDamage()
 	return m_damage;
 }
 
+
 // ========================================================================
-// SpaceShip Implementation
+// Weapon Implementation
 // ========================================================================
-
-SpaceShip::SpaceShip(ObjectType type, Real mass, Vector3 position) : 
-	GameObject(SphereCollisionObject(type, 150, mass, position), 100, 100), m_reloadTime(0.2), m_lastShotCounter(0),
-	m_canShoot(true), m_shootLeft(true)
+Weapon::Weapon(Real reloadTime) : m_reloadTime(reloadTime), m_lastShotCounter(reloadTime),
+	m_canShoot(true)
 {
 }
 
-SpaceShip::SpaceShip(ObjectType type, Real mass) :
-	GameObject(SphereCollisionObject(type, 150, mass), 100, 100), m_reloadTime(0.2), m_lastShotCounter(0),
-	m_canShoot(true), m_shootLeft(true)
+Weapon::Weapon(const Weapon& copy) : m_reloadTime(copy.m_reloadTime), m_lastShotCounter(copy.m_lastShotCounter),
+	m_canShoot(copy.m_canShoot)
 {
 }
 
-SpaceShip::SpaceShip(const SpaceShip& copy) :
-	GameObject(copy), m_reloadTime(copy.m_reloadTime), 
-	m_lastShotCounter(copy.m_lastShotCounter), m_canShoot(copy.canShoot()), m_shootLeft(copy.m_shootLeft)
+Weapon::~Weapon()
 {
 }
 
-bool SpaceShip::canShoot() const
+bool Weapon::canShoot() const
 {
 	return m_canShoot;
 }
 
-Projectile SpaceShip::generateProjectile()
+
+void Weapon::resetShotCounter()
 {
-	SphereCollisionObject * shipPhysics = getPhysicsModel();
-	SphereCollisionObject projectilePhysics = SphereCollisionObject(ObjectType::PROJECTILE, 75, 1, shipPhysics->getPosition());
-	projectilePhysics.setVelocity(shipPhysics->getVelocity() + shipPhysics->getHeading() * 4000);
-	projectilePhysics.applyForce(shipPhysics->getHeading() * 4000);
-	projectilePhysics.setOrientation(shipPhysics->getOrientation());
-
-	if(m_shootLeft) {
-		projectilePhysics.setPosition(shipPhysics->getPosition() + 
-			(shipPhysics->getOrientation() * Vector3(40, -30, -30)));
-	} else {
-		projectilePhysics.setPosition(shipPhysics->getPosition() + 
-			(shipPhysics->getOrientation() * Vector3(-40, -30, -30)));
-	}
-
-	m_shootLeft = !m_shootLeft;
-	m_canShoot = false;
 	m_lastShotCounter = 0;
-	return Projectile(projectilePhysics, 35);
+	m_canShoot = false;
 }
 
-void SpaceShip::updatePhysics(Real timeElapsed) 
-{
-	getPhysicsModel()->updatePhysics(timeElapsed);
+void Weapon::updatePhysics(Real timeElapsed) {
 	if(!m_canShoot) {
 		m_lastShotCounter += timeElapsed;
 		if(m_lastShotCounter >= m_reloadTime) {
 			m_canShoot = true;
 		}
+	}
+}
+
+
+// ========================================================================
+// PlasmaCannon Implementation
+// ========================================================================
+PlasmaCannon::PlasmaCannon() : Weapon(0.2), m_shootLeft(true)
+{
+}
+
+PlasmaCannon::PlasmaCannon(const PlasmaCannon& copy) : Weapon(copy), m_shootLeft(copy.m_shootLeft)
+{
+}
+
+Projectile PlasmaCannon::generateProjectile(PhysicsObject& origin)
+{
+	SphereCollisionObject projectilePhysics = SphereCollisionObject(ObjectType::PROJECTILE, 75, 1, origin.getPosition());
+	projectilePhysics.setVelocity(origin.getVelocity() + origin.getHeading() * 4000);
+	projectilePhysics.applyForce(origin.getHeading() * 4000);
+	projectilePhysics.setOrientation(origin.getOrientation());
+
+	if(m_shootLeft) {
+		projectilePhysics.setPosition(origin.getPosition() + 
+			(origin.getOrientation() * Vector3(40, -30, -30)));
+	} else {
+		projectilePhysics.setPosition(origin.getPosition() + 
+			(origin.getOrientation() * Vector3(-40, -30, -30)));
+	}
+
+	m_shootLeft = !m_shootLeft;
+	resetShotCounter();
+	return Projectile(projectilePhysics, 35);
+}
+
+
+// ========================================================================
+// AnchorLauncher Implementation
+// ========================================================================
+AnchorLauncher::AnchorLauncher() : Weapon(3)
+{
+}
+
+AnchorLauncher::AnchorLauncher(const AnchorLauncher& copy) : Weapon(copy)
+{
+}
+
+Projectile AnchorLauncher::generateProjectile(PhysicsObject& origin)
+{
+	SphereCollisionObject projectilePhysics = SphereCollisionObject(ObjectType::ANCHOR_PROJECTILE, 75, 1, origin.getPosition());
+	projectilePhysics.setVelocity(origin.getVelocity() + origin.getHeading() * 4000);
+	projectilePhysics.setOrientation(origin.getOrientation());
+
+	resetShotCounter();
+	return Projectile(projectilePhysics, 0);
+}
+
+
+// ========================================================================
+// SpaceShip Implementation
+// ========================================================================
+SpaceShip::SpaceShip(ObjectType type, Real mass, Vector3 position) : 
+	GameObject(SphereCollisionObject(type, 150, mass, position), 100, 100), mp_weapons()
+{
+}
+
+SpaceShip::SpaceShip(ObjectType type, Real mass) :
+	GameObject(SphereCollisionObject(type, 150, mass), 100, 100), mp_weapons()
+{
+}
+
+SpaceShip::SpaceShip(const SpaceShip& copy) :
+	GameObject(copy), mp_weapons(copy.mp_weapons)
+{
+}
+
+PlasmaCannon * SpaceShip::addPlasmaCannon(const PlasmaCannon& weapon)
+{
+	PlasmaCannon * newCannon = new PlasmaCannon(weapon);
+	mp_weapons.push_back(newCannon);
+	return newCannon;
+}
+
+AnchorLauncher * SpaceShip::addAnchorLauncher(const AnchorLauncher& weapon)
+{
+	AnchorLauncher * newLauncher = new AnchorLauncher(weapon);
+	mp_weapons.push_back(newLauncher);
+	return newLauncher;
+}
+
+Projectile * SpaceShip::fireWeapon(GameArena& arena, int weaponIndex)
+{
+	if(weaponIndex < 0 || weaponIndex >= mp_weapons.size()) {
+		return NULL;
+	}
+
+	if(mp_weapons[weaponIndex]->canShoot()) {
+		return arena.addProjectile(mp_weapons[weaponIndex]->generateProjectile(*getPhysicsModel()));
+	}
+}
+
+void SpaceShip::updatePhysics(Real timeElapsed) 
+{
+	getPhysicsModel()->updatePhysics(timeElapsed);
+	for(std::vector<Weapon * >::iterator weaponIter = mp_weapons.begin(); 
+		weaponIter != mp_weapons.end();
+		weaponIter++)
+	{
+		(*weaponIter)->updatePhysics(timeElapsed);
 	}
 }
 
@@ -315,10 +403,9 @@ SpaceShip * GameArena::getPlayerShip()
 	return m_playerShip;
 }
 
-Projectile * GameArena::fireProjectileFromShip(SpaceShip * ship)
+Projectile * GameArena::fireProjectileFromShip(SpaceShip * ship, int weaponIndex)
 {
-	Projectile projectile = ship->generateProjectile();
-	return addProjectile(projectile);
+	return ship->fireWeapon(*this, weaponIndex);
 }
 
 std::vector<Projectile *> * GameArena::getProjectiles() {

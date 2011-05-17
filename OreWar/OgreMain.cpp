@@ -26,6 +26,8 @@ public:
 
 		// Generate the keyboard testing entity and attach it to the listener's scene node
 		SpaceShip playerShip = SpaceShip(ObjectType::SHIP, 1, Vector3(0, -2000, 0));
+		playerShip.addPlasmaCannon(PlasmaCannon());
+		playerShip.addAnchorLauncher(AnchorLauncher());
 		SpaceShip * p_playerShip = m_arena.setPlayerShip(playerShip);
 
 		// Generate GUI elements
@@ -149,35 +151,56 @@ public:
 		}
 
 		// Generate projectile if required
-		if(m_Keyboard->isKeyDown(OIS::KC_SPACE) || m_mouse->getMouseState().buttonDown(OIS::MB_Left)) {
-			if(playerShip->canShoot()) {
-				m_arena.fireProjectileFromShip(playerShip);
-			}
+		if(m_mouse->getMouseState().buttonDown(OIS::MB_Left)) {
+			m_arena.fireProjectileFromShip(playerShip, 0);
+		}
+
+		if(m_mouse->getMouseState().buttonDown(OIS::MB_Right)) {
+			m_arena.fireProjectileFromShip(playerShip, 1);
 		}
 
 		// Generate constraint - TESTING
-		if(m_Keyboard->isKeyDown(OIS::KC_RCONTROL) || m_mouse->getMouseState().buttonDown(OIS::MB_Right))
+		if(m_Keyboard->isKeyDown(OIS::KC_RCONTROL) || m_Keyboard->isKeyDown(OIS::KC_SPACE))
 		{
 			if(m_con == NULL) 
 			{
-				SpaceShip * closestShip = m_arena.getNpcShips()->front();
-				for(std::vector<SpaceShip * >::iterator shipIter = m_arena.getNpcShips()->begin(); 
-					shipIter != m_arena.getNpcShips()->end();
-					shipIter++) 
+				Projectile * closestAnchor = NULL;
+				for(std::vector<Projectile * >::iterator projIter = m_arena.getProjectiles()->begin(); 
+					projIter != m_arena.getProjectiles()->end();
+					projIter++) 
 				{
-					if(playerShipPhys->getPosition().squaredDistance((*shipIter)->getPhysicsModel()->getPosition()) <
-						playerShipPhys->getPosition().squaredDistance(closestShip->getPhysicsModel()->getPosition())) 
+					if((*projIter)->getType() != ANCHOR_PROJECTILE) {
+						continue;
+					}
+
+					if(closestAnchor == NULL ||
+						(playerShipPhys->getPosition().squaredDistance((*projIter)->getPhysicsModel()->getPosition()) <
+						playerShipPhys->getPosition().squaredDistance(closestAnchor->getPhysicsModel()->getPosition()))) 
 					{
-						closestShip = *shipIter;
+						closestAnchor = *projIter;
 					}
 				}
-				m_con = m_arena.addConstraint(Constraint(playerShip->getPhysicsModel(), 
-					closestShip->getPhysicsModel(), 
-					playerShipPhys->getOffset(*(closestShip->getPhysicsModel())).length()));
+
+				if(closestAnchor != NULL) {
+					closestAnchor->getPhysicsModel()->setVelocity(Vector3(0, 0, 0));
+					m_con = m_arena.addConstraint(Constraint(playerShip->getPhysicsModel(), 
+					closestAnchor->getPhysicsModel(), 
+					playerShipPhys->getOffset(*(closestAnchor->getPhysicsModel())).length()));
+				}
 			}
 		} else {
 			if(m_con != NULL) {
+				PhysicsObject * deadAnchor = m_con->getEndObject();
 				m_arena.destroyConstraint(m_con);
+				for(std::vector<Projectile * >::iterator projIter = m_arena.getProjectiles()->begin(); 
+					projIter != m_arena.getProjectiles()->end();
+					projIter++) 
+				{
+					if((*projIter)->getPhysicsModel() == deadAnchor) {
+						m_arena.destroyProjectile(*projIter);
+						break;
+					}
+				}
 				m_con = NULL;
 			}
 		}

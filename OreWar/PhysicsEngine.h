@@ -11,7 +11,7 @@ using namespace Ogre;
  * Enumeration used for differentiating between different types of PhysicsObjects
  * TODO: This should probably be handled through subclassing
  */
-enum ObjectType { SHIP, NPC_SHIP, PROJECTILE };
+enum ObjectType { SHIP, NPC_SHIP, PROJECTILE, ANCHOR_PROJECTILE };
 
 
 /**

@@ -302,14 +302,20 @@ void ProjectileRO::buildNode()
 	mp_pointLight = getSceneManager()->createLight(oss.str());
 	mp_pointLight->setType(Ogre::Light::LT_POINT);
 	mp_pointLight->setPosition(Ogre::Vector3(0, 60, 0));
-	mp_pointLight->setDiffuseColour(0.0, 1, 0.0);
-	mp_pointLight->setSpecularColour(0.2, 0.7, 0.2);
 	mp_pointLight->setAttenuation(3250, 1.0, 0.0014, 0.000007);
 	mp_pointLight->setCastShadows(false);
 	mp_projNode->attachObject(mp_pointLight);
 
 	oss << "P";
-	mp_particle = getSceneManager()->createParticleSystem(oss.str(), "Orewar/PlasmaStream");
+	if(mp_projectile->getType() == ObjectType::PROJECTILE) {
+		mp_particle = getSceneManager()->createParticleSystem(oss.str(), "Orewar/PlasmaStream");
+		mp_pointLight->setDiffuseColour(0.0, 1, 0.0);
+		mp_pointLight->setSpecularColour(0.2, 0.7, 0.2);
+	} else if (mp_projectile->getType() == ObjectType::ANCHOR_PROJECTILE) {
+		mp_particle = getSceneManager()->createParticleSystem(oss.str(), "Orewar/Anchor");
+		mp_pointLight->setDiffuseColour(1, 0.0, 0.0);
+		mp_pointLight->setSpecularColour(0.7, 0.2, 0.2);
+	}
 	mp_particle->setEmitting(true);
 	mp_projNode->attachObject(mp_particle);
 }
@@ -357,7 +363,9 @@ void RenderModel::newGameObject(GameObject * object)
 		p_renderObj = new ShipRO((SpaceShip*)object, mp_mgr);
 	} else if (object->getType() == ObjectType::NPC_SHIP) {
 		p_renderObj = new NpcShipRO((SpaceShip*)object, mp_mgr);
-	} else if (object->getType() == ObjectType::PROJECTILE) {
+	} else if (object->getType() == ObjectType::PROJECTILE
+		|| object->getType() == ObjectType::ANCHOR_PROJECTILE) 
+	{
 		p_renderObj = new ProjectileRO((Projectile*)object, mp_mgr);
 	}
 

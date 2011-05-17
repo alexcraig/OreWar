@@ -9,6 +9,10 @@
 
 using namespace Ogre;
 
+
+class GameArena;
+
+
 class GameObject
 {
 private:
@@ -44,6 +48,7 @@ public:
 	void setShields(Real shields);
 };
 
+
 class Projectile : public GameObject
 {
 private:
@@ -58,14 +63,10 @@ public:
 };
 
 
-/**
- * Represents a human or NPC controllable space ship which
- * can generate projectiles.
- */
-class SpaceShip : public GameObject
+class Weapon
 {
 private:
-	/** The time which should elapsed between projectile generations */
+	/** The time which should elapse between projectile generations */
 	Real m_reloadTime;
 
 	/** The time which has elapsed since the last projectile generation */
@@ -74,8 +75,61 @@ private:
 	/** Flag determining if the ship's weapons are currently loaded */
 	bool m_canShoot;
 
-	/** True if the left weapon should be used next, false if the right should be used */
+public:
+	/** Generates a new (loaded) weapon with the specified reload time */
+	Weapon(Real reloadTime);
+
+	Weapon(const Weapon& copy);
+	
+	virtual ~Weapon();
+
+	/** @return True if the weapon is loaded (reload time has expired since last shot) */
+	bool canShoot() const;
+
+	void resetShotCounter();
+
+	/** Generates a projectile PhysicsObject, and resets the weapons's reload counter*/
+	virtual Projectile generateProjectile(PhysicsObject& origin) = 0;
+
+	void updatePhysics(Real timeElapsed);
+};
+
+
+class PlasmaCannon : public Weapon
+{
+private:
+	/** Flag determing which side the next projectile should be fired from (true if left) */
 	bool m_shootLeft;
+
+public:
+	PlasmaCannon();
+
+	PlasmaCannon(const PlasmaCannon& copy);
+
+	virtual Projectile generateProjectile(PhysicsObject& origin);
+};
+
+
+class AnchorLauncher : public Weapon
+{
+public:
+	AnchorLauncher();
+
+	AnchorLauncher(const AnchorLauncher& copy);
+
+	virtual Projectile generateProjectile(PhysicsObject& origin);
+};
+
+
+/**
+ * Represents a human or NPC controllable space ship which
+ * can generate projectiles.
+ */
+class SpaceShip : public GameObject
+{
+private:
+	/** A list of all weapons currently equipped on the ship */
+	std::vector<Weapon *> mp_weapons;
 
 public:
 	/** Construct a SpaceShip with the specified mass and size at the specified position */
@@ -87,11 +141,11 @@ public:
 	/** Copy constructor */
 	SpaceShip(const SpaceShip& copy);
 
-	/** @return True if the ship has a loaded weapon */
-	bool canShoot() const;
+	PlasmaCannon * addPlasmaCannon(const PlasmaCannon& weapon);
 
-	/** Generates a projectile PhysicsObject, and resets the ship's reload counter*/
-	Projectile generateProjectile();
+	AnchorLauncher * addAnchorLauncher(const AnchorLauncher& weapon);
+
+	Projectile * fireWeapon(GameArena& arena, int weaponIndex);
 
 	/** Updates the ship's position and reload status */
 	void updatePhysics(Real timeElapsed);
@@ -204,7 +258,7 @@ public:
 	 * @return A pointer to the PhysicsObject produced by generating a projectile from the passed ship 
 	 * and stored in dynamic memory.
 	 */
-	Projectile * fireProjectileFromShip(SpaceShip * ship);
+	Projectile * fireProjectileFromShip(SpaceShip * ship, int weaponIndex);
 
 	/** Updates the physics of all ships and projectiles in the arena */
 	void updatePhysics(Real timeElapsed);
