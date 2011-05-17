@@ -121,19 +121,24 @@ public:
 		playerShipPhys->yaw(Radian(m_mouse->getMouseState().X.rel * -0.25 * evt.timeSinceLastFrame));
 		
 		// Clear all existing forces, and add keyboard forces
+		Real energyDrain = 10;
 		if(m_Keyboard->isKeyDown(OIS::KC_W)) {
 			playerShipPhys->applyTempForce(playerShipPhys->getHeading() * Real(2000));
+			playerShip->drainEnergy(energyDrain * evt.timeSinceLastFrame);
 		}
 		if(m_Keyboard->isKeyDown(OIS::KC_S)) {
 			playerShipPhys->applyTempForce(playerShipPhys->getHeading() * Real(-2000));
+			playerShip->drainEnergy(energyDrain * evt.timeSinceLastFrame);
 		}
 		if(m_Keyboard->isKeyDown(OIS::KC_A)) {
 			playerShipPhys->applyTempForce((playerShipPhys->getOrientation() * Quaternion(Degree(90), Vector3::UNIT_Y)) 
 				* Vector3(0, 0, -1500));
+			playerShip->drainEnergy(energyDrain * evt.timeSinceLastFrame);
 		}
 		if(m_Keyboard->isKeyDown(OIS::KC_D)) {
 			playerShipPhys->applyTempForce((playerShipPhys->getOrientation() * Quaternion(Degree(-90), Vector3::UNIT_Y)) 
 				* Vector3(0, 0, -1500));
+			playerShip->drainEnergy(energyDrain * evt.timeSinceLastFrame);
 		}
 
 		if(m_Keyboard->isKeyDown(OIS::KC_Q)) {
@@ -145,6 +150,7 @@ public:
 
 		if(m_Keyboard->isKeyDown(OIS::KC_LCONTROL)) {
 			playerShipPhys->applyTempForce(playerShipPhys->getVelocity().normalisedCopy() * (-1) * Vector3(2000, 2000, 2000));
+			playerShip->drainEnergy(energyDrain * evt.timeSinceLastFrame);
 		}
 
 		if(m_Keyboard->isKeyDown(OIS::KC_C)) {
