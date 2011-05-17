@@ -25,7 +25,7 @@ public:
 		m_cam->setFarClipDistance(0);
 
 		// Generate the keyboard testing entity and attach it to the listener's scene node
-		SpaceShip playerShip = SpaceShip(ObjectType::SHIP, 1, Vector3(0, -2000, 0));
+		SpaceShip playerShip = SpaceShip(ObjectType::SHIP, 1, Vector3(0, -2000, 0), 15);
 		playerShip.addPlasmaCannon(PlasmaCannon());
 		playerShip.addAnchorLauncher(AnchorLauncher());
 		SpaceShip * p_playerShip = m_arena.setPlayerShip(playerShip);
@@ -82,11 +82,12 @@ public:
 		// Add random NPC ships to shoot
 		for(int i = 0; i < m_arena.getNpcShips()->size() - 6; i++) {
 			// Add some NPC ships
-			SpaceShip npcShip = SpaceShip(ObjectType::NPC_SHIP, 1);
-			SphereCollisionObject * npcShipPhysics = npcShip.getPhysicsModel();
-			npcShipPhysics->setPosition(Vector3(Math::RangeRandom(0, m_arena.getSize()),
+			SpaceShip npcShip = SpaceShip(ObjectType::NPC_SHIP, 1, 
+				Vector3(Math::RangeRandom(0, m_arena.getSize()),
 				Math::RangeRandom(0, m_arena.getSize()),
-				Math::RangeRandom(0, m_arena.getSize())));
+				Math::RangeRandom(0, m_arena.getSize())),
+				5);
+			SphereCollisionObject * npcShipPhysics = npcShip.getPhysicsModel();
 			// npcShip.setVelocity(Vector3(0, 0, 0));
 			npcShipPhysics->setVelocity(Vector3(Math::RangeRandom(0, 2000),
 				Math::RangeRandom(0, 2000),
@@ -219,7 +220,7 @@ public:
 
 		// Update UI
 		mp_healthBar->width((mp_vp->getActualWidth() * 0.25) * (playerShip->getHealth() / playerShip->getMaxHealth()));
-		mp_energyBar->width((mp_vp->getActualWidth() * 0.25) * (playerShip->getShields() / playerShip->getMaxShields()));
+		mp_energyBar->width((mp_vp->getActualWidth() * 0.25) * (playerShip->getEnergy() / playerShip->getMaxEnergy()));
 		mp_speedBar->width((mp_vp->getActualWidth() * 0.25) * (playerShipPhys->getVelocity().length() / Real(6000)));
 
 		// Update the position of the physics object and move the scene node

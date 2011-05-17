@@ -25,12 +25,18 @@ private:
 
 	Real m_health;
 
-	Real m_maxShields;
+	Real m_maxEnergy;
 
-	Real m_shields;
+	Real m_energy;
+
+	// Note: Not implemented in this class, should be used in subclasses
+	// implementation of updatePhysics
+	Real m_energyRechargeRate;
 
 public: 
-	GameObject(const SphereCollisionObject& object, Real maxHealth, Real maxShields);
+	GameObject(const SphereCollisionObject& object, Real maxHealth, 
+		Real maxEnergy, Real energyRechargeRate);
+
 	GameObject(const GameObject& copy);
 	~GameObject();
 
@@ -40,12 +46,17 @@ public:
 
 	Real getHealth() const;
 	Real getMaxHealth() const;
-	Real getShields() const;
-	Real getMaxShields() const;
+	Real getEnergy() const;
+	Real getMaxEnergy() const;
+	Real getEnergyRechargeRate() const;
 
 	virtual void updatePhysics(Real timeElapsed) = 0;
 	void setHealth(Real health);
-	void setShields(Real shields);
+	void setEnergy(Real energy);
+
+	void inflictDamage(Real damage);
+	void addEnergy(Real energy);
+	void drainEnergy(Real Energy);
 };
 
 
@@ -75,9 +86,11 @@ private:
 	/** Flag determining if the ship's weapons are currently loaded */
 	bool m_canShoot;
 
+	Real m_energyCost;
+
 public:
 	/** Generates a new (loaded) weapon with the specified reload time */
-	Weapon(Real reloadTime);
+	Weapon(Real reloadTime, Real m_energyCost);
 
 	Weapon(const Weapon& copy);
 	
@@ -87,6 +100,8 @@ public:
 	bool canShoot() const;
 
 	void resetShotCounter();
+
+	Real getEnergyCost();
 
 	/** Generates a projectile PhysicsObject, and resets the weapons's reload counter*/
 	virtual Projectile generateProjectile(PhysicsObject& origin) = 0;
@@ -132,6 +147,9 @@ private:
 	std::vector<Weapon *> mp_weapons;
 
 public:
+	/** Construct a SpaceShip with the specified mass and size at the specified position */
+	SpaceShip(ObjectType type, Real mass, Vector3 position, Real energyRecharge);
+
 	/** Construct a SpaceShip with the specified mass and size at the specified position */
 	SpaceShip(ObjectType type, Real mass, Vector3 position);
 

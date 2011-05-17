@@ -198,7 +198,7 @@ void NpcShipRO::updateNode(Real elapsedTime, Quaternion camOrientation)
 	mp_frameNode->setOrientation(camOrientation);
 
 	mp_healthBar->width((getSpaceShip()->getHealth() / getSpaceShip()->getMaxHealth()) * 25000);
-	mp_energyBar->width((getSpaceShip()->getShields() / getSpaceShip()->getMaxShields()) * 25000);
+	mp_energyBar->width((getSpaceShip()->getEnergy() / getSpaceShip()->getMaxEnergy()) * 25000);
 }
 
 
