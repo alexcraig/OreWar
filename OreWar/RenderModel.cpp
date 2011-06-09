@@ -7,12 +7,12 @@ using namespace Ogre;
 // ========================================================================
 // RenderObject Implementation
 // ========================================================================
-int RenderObject::m_nextRenderIndex = 1;
+int RenderObject::m_nextRenderId = 1;
 
 RenderObject::RenderObject(SceneManager * mgr)
-	: mp_mgr(mgr), m_renderIndex(m_nextRenderIndex)
+	: mp_mgr(mgr), m_renderId(m_nextRenderId)
 {
-	m_nextRenderIndex++;
+	m_nextRenderId++;
 }
 
 SceneManager * RenderObject::getSceneManager()
@@ -20,14 +20,14 @@ SceneManager * RenderObject::getSceneManager()
 	return mp_mgr;
 }
 
-int RenderObject::getRenderIndex()
+int RenderObject::renderId() const
 {
-	return m_renderIndex;
+	return m_renderId;
 }
 
 bool RenderObject::operator==(const RenderObject &other) const
 {
-	return (m_renderIndex == other.m_renderIndex);
+	return (m_renderId == other.m_renderId);
 }
 
 
@@ -46,10 +46,10 @@ Constraint * ConstraintRenderObject::getConstraint()
 	return mp_constraint;
 }
 
-void ConstraintRenderObject::updateNode(Real elapsedTime, Quaternion camOrientation)
+void ConstraintRenderObject::updateEffects(Real elapsedTime, Quaternion camOrientation)
 {
-	Vector3 offset = mp_constraint->getEndObject()->getPosition() - mp_constraint->getStartObject()->getPosition();
-	mp_node->setPosition(mp_constraint->getStartObject()->getPosition() + (offset * Real(0.5)));
+	Vector3 offset = mp_constraint->getTarget()->position() - mp_constraint->getOrigin()->position();
+	mp_node->setPosition(mp_constraint->getOrigin()->position() + (offset * Real(0.5)));
 	mp_node->setOrientation(Vector3(0, 0, -1).getRotationTo(offset));
 
 	// Note: This relies on a single Cylinder emitter being present in the Orewar/ConstraintStream script
@@ -60,18 +60,18 @@ void ConstraintRenderObject::loadSceneResources()
 {
 }
  
-void ConstraintRenderObject::buildNode()
+void ConstraintRenderObject::createEffects()
 {
 	mp_node = getSceneManager()->getRootSceneNode()->createChildSceneNode();
 
 	std::stringstream oss;
-	oss << "Constraint" << getRenderIndex();
+	oss << "Constraint" << renderId();
 	mp_particle = getSceneManager()->createParticleSystem(oss.str(), "Orewar/ConstraintStream");
 	mp_particle->setEmitting(true);
 	mp_node->attachObject(mp_particle);
 }
 
-void ConstraintRenderObject::destroyNode()
+void ConstraintRenderObject::destroyEffects()
 {
 	mp_node->detachAllObjects();
 	mp_node->removeAllChildren();
@@ -98,21 +98,21 @@ SphereCollisionObject * PhysicsRenderObject::getObject() {
 bool ShipRO::m_resourcesLoaded = false;
 
 ShipRO::ShipRO(SpaceShip * ship, SceneManager * mgr)
-	: PhysicsRenderObject(ship->getPhysicsModel(), mgr), mp_spaceShip(ship), mp_shipNode(NULL), mp_shipRotateNode(NULL), mp_shipEntity(NULL),
+	: PhysicsRenderObject(ship->phys(), mgr), mp_spaceShip(ship), mp_shipNode(NULL), mp_shipRotateNode(NULL), mp_shipEntity(NULL),
 	mp_spotLight(NULL), mp_pointLight(NULL), mp_engineParticles(NULL)
 {
 }
 
-SpaceShip * ShipRO::getSpaceShip() const
+SpaceShip * ShipRO::ship() const
 {
 	return mp_spaceShip;
 }
 
 /** Updates the node based on passed time and camera orientation (useful for sprites) */
-void ShipRO::updateNode(Real elapsedTime, Quaternion camOrientation)
+void ShipRO::updateEffects(Real elapsedTime, Quaternion camOrientation)
 {
-	mp_shipNode->setPosition(getObject()->getPosition());
-	mp_shipNode->setOrientation(getObject()->getOrientation());
+	mp_shipNode->setPosition(getObject()->position());
+	mp_shipNode->setOrientation(getObject()->orientation());
 }
 
 void ShipRO::loadSceneResources() 
@@ -122,11 +122,11 @@ void ShipRO::loadSceneResources()
 	}
 }
 
-void ShipRO::buildNode()
+void ShipRO::createEffects()
 {
 	mp_shipNode = getSceneManager()->getRootSceneNode()->createChildSceneNode();
 	std::stringstream oss;
-	oss << "Ship" << getRenderIndex();
+	oss << "Ship" << renderId();
 	mp_shipEntity = getSceneManager()->createEntity(oss.str(), "RZR-002.mesh");
 	mp_shipEntity->setCastShadows(true);
 	mp_shipNode->setScale(10, 10, 10);
@@ -150,7 +150,7 @@ void ShipRO::buildNode()
 	mp_pointLight = getSceneManager()->createLight(oss.str());
 	mp_pointLight->setType(Ogre::Light::LT_POINT);
 	mp_pointLight->setPosition(Ogre::Vector3(0, 30, 0));
-	if (getObject()->getType() == ObjectType::SHIP) {
+	if (getObject()->type() == ObjectType::SHIP) {
 		mp_pointLight->setDiffuseColour(0.4, 0.1, 0.1);
 		mp_pointLight->setSpecularColour(0.4, 0.4, 0.4);
 	} else {
@@ -166,7 +166,7 @@ void ShipRO::buildNode()
 	mp_shipNode->attachObject(mp_engineParticles);
 }
 
-void ShipRO::destroyNode()
+void ShipRO::destroyEffects()
 {
 	mp_shipNode->removeAllChildren();
 	mp_shipNode->detachAllObjects();
@@ -191,14 +191,14 @@ NpcShipRO::NpcShipRO(SpaceShip * ship, SceneManager * mgr)
 {
 }
 
-void NpcShipRO::updateNode(Real elapsedTime, Quaternion camOrientation)
+void NpcShipRO::updateEffects(Real elapsedTime, Quaternion camOrientation)
 {
-	ShipRO::updateNode(elapsedTime, camOrientation);
-	mp_frameNode->setPosition(getObject()->getPosition());
+	ShipRO::updateEffects(elapsedTime, camOrientation);
+	mp_frameNode->setPosition(getObject()->position());
 	mp_frameNode->setOrientation(camOrientation);
 
-	mp_healthBar->width((getSpaceShip()->getHealth() / getSpaceShip()->getMaxHealth()) * 25000);
-	mp_energyBar->width((getSpaceShip()->getEnergy() / getSpaceShip()->getMaxEnergy()) * 25000);
+	mp_healthBar->width((ship()->health() / ship()->maxHealth()) * 25000);
+	mp_energyBar->width((ship()->energy() / ship()->maxEnergy()) * 25000);
 }
 
 
@@ -212,13 +212,13 @@ void NpcShipRO::loadSceneResources()
 	}
 }
 
-void NpcShipRO::buildNode()
+void NpcShipRO::createEffects()
 {
-	ShipRO::buildNode();
+	ShipRO::createEffects();
 	mp_frameNode = getSceneManager()->getRootSceneNode()->createChildSceneNode();
 
 	std::stringstream oss;
-	oss << "TargetFrame" << getRenderIndex();
+	oss << "TargetFrame" << renderId();
 	mp_frameSprite = getSceneManager()->createEntity(oss.str(), "targetFrameSprite");
 	mp_frameSprite->setMaterialName("Orewar/TargetFrame");
 	mp_frameSprite->setCastShadows(false);
@@ -251,9 +251,9 @@ void NpcShipRO::buildNode()
 	energyBarBorder->border_width(200);
 }
 
-void NpcShipRO::destroyNode()
+void NpcShipRO::destroyEffects()
 {
-	ShipRO::destroyNode();
+	ShipRO::destroyEffects();
 	mp_frameNode->detachAllObjects();
 	mp_frameNode->removeAllChildren();
 	getSceneManager()->destroyMovableObject(mp_frameSprite);
@@ -267,7 +267,7 @@ void NpcShipRO::destroyNode()
 bool ProjectileRO::m_resourcesLoaded = false;
 
 ProjectileRO::ProjectileRO(Projectile * proj, SceneManager * mgr)
-	: PhysicsRenderObject(proj->getPhysicsModel(), mgr), mp_projectile(proj), mp_projNode(NULL), 
+	: PhysicsRenderObject(proj->phys(), mgr), mp_projectile(proj), mp_projNode(NULL), 
 	mp_pointLight(NULL), mp_particle(NULL)
 {
 }
@@ -277,9 +277,9 @@ Projectile * ProjectileRO::getProjectile() const
 	return mp_projectile;
 }
 
-void ProjectileRO::updateNode(Real elapsedTime, Quaternion camOrientation)
+void ProjectileRO::updateEffects(Real elapsedTime, Quaternion camOrientation)
 {
-	mp_projNode->setPosition(getObject()->getPosition());
+	mp_projNode->setPosition(getObject()->position());
 	mp_projNode->setOrientation(Vector3(0, 0, -1).getRotationTo(getObject()->getVelocity()));
 }
 
@@ -291,12 +291,12 @@ void ProjectileRO::loadSceneResources()
 	}
 }
 
-void ProjectileRO::buildNode()
+void ProjectileRO::createEffects()
 {
 	mp_projNode = getSceneManager()->getRootSceneNode()->createChildSceneNode();
 
 	std::stringstream oss;
-	oss << "Projectile" << getRenderIndex();
+	oss << "Projectile" << renderId();
 
 	// Dynamic point lights on projectiles
 	mp_pointLight = getSceneManager()->createLight(oss.str());
@@ -307,11 +307,11 @@ void ProjectileRO::buildNode()
 	mp_projNode->attachObject(mp_pointLight);
 
 	oss << "P";
-	if(mp_projectile->getType() == ObjectType::PROJECTILE) {
+	if(mp_projectile->type() == ObjectType::PROJECTILE) {
 		mp_particle = getSceneManager()->createParticleSystem(oss.str(), "Orewar/PlasmaStream");
 		mp_pointLight->setDiffuseColour(0.0, 1, 0.0);
 		mp_pointLight->setSpecularColour(0.2, 0.7, 0.2);
-	} else if (mp_projectile->getType() == ObjectType::ANCHOR_PROJECTILE) {
+	} else if (mp_projectile->type() == ObjectType::ANCHOR_PROJECTILE) {
 		mp_particle = getSceneManager()->createParticleSystem(oss.str(), "Orewar/Anchor");
 		mp_pointLight->setDiffuseColour(1, 0.0, 0.0);
 		mp_pointLight->setSpecularColour(0.7, 0.2, 0.2);
@@ -320,7 +320,7 @@ void ProjectileRO::buildNode()
 	mp_projNode->attachObject(mp_particle);
 }
 
-void ProjectileRO::destroyNode()
+void ProjectileRO::destroyEffects()
 {
 	mp_projNode->detachAllObjects();
 	mp_projNode->removeAllChildren();
@@ -345,32 +345,32 @@ void RenderModel::updateRenderList(Real elapsedTime, Quaternion camOrientation)
 		physIter != m_physicsRenderList.end();
 		physIter++) 
 	{
-		(*(*physIter)).updateNode(elapsedTime, camOrientation);
+		(*(*physIter)).updateEffects(elapsedTime, camOrientation);
 	}
 
 	for(std::vector<ConstraintRenderObject *>::iterator conIter = m_constraintRenderList.begin();
 		conIter != m_constraintRenderList.end();
 		conIter++) 
 	{
-		(*(*conIter)).updateNode(elapsedTime, camOrientation);
+		(*(*conIter)).updateEffects(elapsedTime, camOrientation);
 	}
 }
 
 void RenderModel::newGameObject(GameObject * object)
 {
 	PhysicsRenderObject * p_renderObj = NULL;
-	if(object->getType() == ObjectType::SHIP) {
+	if(object->type() == ObjectType::SHIP) {
 		p_renderObj = new ShipRO((SpaceShip*)object, mp_mgr);
-	} else if (object->getType() == ObjectType::NPC_SHIP) {
+	} else if (object->type() == ObjectType::NPC_SHIP) {
 		p_renderObj = new NpcShipRO((SpaceShip*)object, mp_mgr);
-	} else if (object->getType() == ObjectType::PROJECTILE
-		|| object->getType() == ObjectType::ANCHOR_PROJECTILE) 
+	} else if (object->type() == ObjectType::PROJECTILE
+		|| object->type() == ObjectType::ANCHOR_PROJECTILE) 
 	{
 		p_renderObj = new ProjectileRO((Projectile*)object, mp_mgr);
 	}
 
 	p_renderObj->loadSceneResources();
-	p_renderObj->buildNode();
+	p_renderObj->createEffects();
 	m_physicsRenderList.push_back(p_renderObj);
 }
 
@@ -380,8 +380,8 @@ void RenderModel::destroyedGameObject(GameObject * object)
 		renderIter != m_physicsRenderList.end();
 		renderIter++) {
 
-			if((*(*renderIter)).getObject() == object->getPhysicsModel()) {
-			(*(*renderIter)).destroyNode();
+			if((*(*renderIter)).getObject() == object->phys()) {
+			(*(*renderIter)).destroyEffects();
 			delete (*renderIter);
 			m_physicsRenderList.erase(std::remove(m_physicsRenderList.begin(), 
 				m_physicsRenderList.end(), (*renderIter)), m_physicsRenderList.end());
@@ -395,7 +395,7 @@ void RenderModel::newConstraint(Constraint * constraint)
 	ConstraintRenderObject * p_renderObj = new ConstraintRenderObject(constraint, mp_mgr);
 
 	p_renderObj->loadSceneResources();
-	p_renderObj->buildNode();
+	p_renderObj->createEffects();
 	m_constraintRenderList.push_back(p_renderObj);
 }
 
@@ -406,7 +406,7 @@ void RenderModel::destroyedConstraint(Constraint * constraint)
 		renderIter++) {
 
 		if((*(*renderIter)).getConstraint() == constraint) {
-			(*(*renderIter)).destroyNode();
+			(*(*renderIter)).destroyEffects();
 			delete (*renderIter);
 			m_constraintRenderList.erase(std::remove(m_constraintRenderList.begin(), 
 				m_constraintRenderList.end(), (*renderIter)), m_constraintRenderList.end());

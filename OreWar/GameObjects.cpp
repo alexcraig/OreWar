@@ -16,7 +16,7 @@ GameObject::GameObject(const GameObject& copy)
 	: mp_physModel(NULL), m_maxHealth(copy.m_maxHealth), m_health(copy.m_maxHealth), 
 	m_maxEnergy(copy.m_maxEnergy), m_energy(copy.m_maxEnergy), m_energyRechargeRate(copy.m_energyRechargeRate)
 {
-	mp_physModel = new SphereCollisionObject(*copy.getPhysicsModel());
+	mp_physModel = new SphereCollisionObject(*copy.phys());
 }
 
 
@@ -25,47 +25,47 @@ GameObject::~GameObject()
 	delete mp_physModel;
 }
 
-SphereCollisionObject * GameObject::getPhysicsModel() const
+SphereCollisionObject * GameObject::phys() const
 {
 	return mp_physModel;
 }
 
-ObjectType GameObject::getType() const
+ObjectType GameObject::type() const
 {
-	return mp_physModel->getType();
+	return mp_physModel->type();
 }
 
-Real GameObject::getHealth() const
+Real GameObject::health() const
 {
 	return m_health;
 }
 
-Real GameObject::getMaxHealth() const
+Real GameObject::maxHealth() const
 {
 	return m_maxHealth;
 }
 
-Real GameObject:: getEnergy() const
+Real GameObject:: energy() const
 {
 	return m_energy;
 }
 
-Real GameObject::getMaxEnergy() const
+Real GameObject::maxEnergy() const
 {
 	return m_maxEnergy;
 }
 
-Real GameObject::getEnergyRechargeRate() const
+Real GameObject::energyRecharge() const
 {
 	return m_energyRechargeRate;
 }
 
-void GameObject::setHealth(Real health)
+void GameObject::health(Real health)
 {
 	m_health = health > m_maxHealth ? m_maxHealth : health;
 }
 
-void GameObject::setEnergy(Real energy)
+void GameObject::energy(Real energy)
 {
 	m_energy = energy > m_maxEnergy ? m_maxEnergy : energy;
 }
@@ -108,10 +108,10 @@ Projectile::Projectile(const SphereCollisionObject& physModel, Real damage)
 
 void Projectile::updatePhysics(Real timeElapsed)
 {
-	getPhysicsModel()->updatePhysics(timeElapsed);
+	phys()->updatePhysics(timeElapsed);
 }
 
-Real Projectile::getDamage()
+Real Projectile::damage()
 {
 	return m_damage;
 }
@@ -146,7 +146,7 @@ void Weapon::resetShotCounter()
 	m_canShoot = false;
 }
 
-Real Weapon::getEnergyCost()
+Real Weapon::energyCost()
 {
 	return m_energyCost;
 }
@@ -172,19 +172,19 @@ PlasmaCannon::PlasmaCannon(const PlasmaCannon& copy) : Weapon(copy), m_shootLeft
 {
 }
 
-Projectile PlasmaCannon::generateProjectile(PhysicsObject& origin)
+Projectile PlasmaCannon::fireWeapon(PhysicsObject& origin)
 {
-	SphereCollisionObject projectilePhysics = SphereCollisionObject(ObjectType::PROJECTILE, 75, 1, origin.getPosition());
-	projectilePhysics.setVelocity(origin.getVelocity() + origin.getHeading() * 4000);
-	projectilePhysics.applyForce(origin.getHeading() * 4000);
-	projectilePhysics.setOrientation(origin.getOrientation());
+	SphereCollisionObject projectilePhysics = SphereCollisionObject(ObjectType::PROJECTILE, 75, 1, origin.position());
+	projectilePhysics.velocity(origin.getVelocity() + origin.heading() * 4000);
+	projectilePhysics.applyForce(origin.heading() * 4000);
+	projectilePhysics.orientation(origin.orientation());
 
 	if(m_shootLeft) {
-		projectilePhysics.setPosition(origin.getPosition() + 
-			(origin.getOrientation() * Vector3(40, -30, -30)));
+		projectilePhysics.position(origin.position() + 
+			(origin.orientation() * Vector3(40, -30, -30)));
 	} else {
-		projectilePhysics.setPosition(origin.getPosition() + 
-			(origin.getOrientation() * Vector3(-40, -30, -30)));
+		projectilePhysics.position(origin.position() + 
+			(origin.orientation() * Vector3(-40, -30, -30)));
 	}
 
 	m_shootLeft = !m_shootLeft;
@@ -204,11 +204,11 @@ AnchorLauncher::AnchorLauncher(const AnchorLauncher& copy) : Weapon(copy)
 {
 }
 
-Projectile AnchorLauncher::generateProjectile(PhysicsObject& origin)
+Projectile AnchorLauncher::fireWeapon(PhysicsObject& origin)
 {
-	SphereCollisionObject projectilePhysics = SphereCollisionObject(ObjectType::ANCHOR_PROJECTILE, 75, 1, origin.getPosition());
-	projectilePhysics.setVelocity(origin.getVelocity() + origin.getHeading() * 4000);
-	projectilePhysics.setOrientation(origin.getOrientation());
+	SphereCollisionObject projectilePhysics = SphereCollisionObject(ObjectType::ANCHOR_PROJECTILE, 75, 1, origin.position());
+	projectilePhysics.velocity(origin.getVelocity() + origin.heading() * 4000);
+	projectilePhysics.orientation(origin.orientation());
 
 	resetShotCounter();
 	return Projectile(projectilePhysics, 0);
@@ -258,15 +258,15 @@ Projectile * SpaceShip::fireWeapon(GameArena& arena, int weaponIndex)
 		return NULL;
 	}
 
-	if(mp_weapons[weaponIndex]->canShoot() && getEnergy() > mp_weapons[weaponIndex]->getEnergyCost()) {
-		drainEnergy(mp_weapons[weaponIndex]->getEnergyCost());
-		return arena.addProjectile(mp_weapons[weaponIndex]->generateProjectile(*getPhysicsModel()));
+	if(mp_weapons[weaponIndex]->canShoot() && energy() > mp_weapons[weaponIndex]->energyCost()) {
+		drainEnergy(mp_weapons[weaponIndex]->energyCost());
+		return arena.addProjectile(mp_weapons[weaponIndex]->fireWeapon(*phys()));
 	}
 }
 
 void SpaceShip::updatePhysics(Real timeElapsed) 
 {
-	getPhysicsModel()->updatePhysics(timeElapsed);
+	phys()->updatePhysics(timeElapsed);
 	for(std::vector<Weapon * >::iterator weaponIter = mp_weapons.begin(); 
 		weaponIter != mp_weapons.end();
 		weaponIter++)
@@ -333,7 +333,7 @@ void GameArena::removeGameArenaListener(GameArenaListener * listener)
 	m_listeners.erase(std::remove(m_listeners.begin(), m_listeners.end(), listener), m_listeners.end());
 }
 
-Real GameArena::getSize() const {
+Real GameArena::size() const {
 	return m_arenaSize;
 }
 
@@ -422,8 +422,8 @@ std::vector<SpaceShip * >::iterator GameArena::destroyNpcShip(SpaceShip * npcShi
 			for(std::vector<Constraint * >::iterator conIter =  m_constraints.begin(); 
 				conIter != m_constraints.end();)
 			{
-				SphereCollisionObject * shipPhys = npcShip->getPhysicsModel();
-				if((*conIter)->getEndObject() == shipPhys || (*conIter)->getStartObject() == shipPhys)
+				SphereCollisionObject * shipPhys = npcShip->phys();
+				if((*conIter)->getTarget() == shipPhys || (*conIter)->getOrigin() == shipPhys)
 				{
 					conIter = destroyConstraint(*conIter);
 				} else {
@@ -440,7 +440,7 @@ std::vector<SpaceShip * >::iterator GameArena::destroyNpcShip(SpaceShip * npcShi
 	return m_npcShips.end();
 }
 
-SpaceShip * GameArena::getPlayerShip()
+SpaceShip * GameArena::playerShip()
 {
 	return m_playerShip;
 }
@@ -450,11 +450,11 @@ Projectile * GameArena::fireProjectileFromShip(SpaceShip * ship, int weaponIndex
 	return ship->fireWeapon(*this, weaponIndex);
 }
 
-std::vector<Projectile *> * GameArena::getProjectiles() {
+std::vector<Projectile *> * GameArena::projectiles() {
 	return & m_projectiles;
 }
 
-std::vector<SpaceShip *> * GameArena::getNpcShips() {
+std::vector<SpaceShip *> * GameArena::npcShips() {
 	return & m_npcShips;
 }
 
@@ -472,15 +472,15 @@ void GameArena::updatePhysics(Real timeElapsed)
 	if(m_playerShip != NULL) 
 	{
 		m_playerShip->updatePhysics(timeElapsed);
-		m_playerShip->addEnergy(m_playerShip->getEnergyRechargeRate() * timeElapsed);
-		SphereCollisionObject * playerShipPhys = m_playerShip->getPhysicsModel();
+		m_playerShip->addEnergy(m_playerShip->energyRecharge() * timeElapsed);
+		SphereCollisionObject * playerShipPhys = m_playerShip->phys();
 
-		if(playerShipPhys->getPosition().x > m_arenaSize || playerShipPhys->getPosition().x < - m_arenaSize
-			|| playerShipPhys->getPosition().y > m_arenaSize || playerShipPhys->getPosition().y < - m_arenaSize
-			|| playerShipPhys->getPosition().z > m_arenaSize || playerShipPhys->getPosition().z < - m_arenaSize) 
+		if(playerShipPhys->position().x > m_arenaSize || playerShipPhys->position().x < - m_arenaSize
+			|| playerShipPhys->position().y > m_arenaSize || playerShipPhys->position().y < - m_arenaSize
+			|| playerShipPhys->position().z > m_arenaSize || playerShipPhys->position().z < - m_arenaSize) 
 		{
-			// playerShipPhys->setVelocity(playerShipPhys->getVelocity() * Vector3(-1, -1, -1));
-			m_playerShip->setHealth(m_playerShip->getHealth() - (timeElapsed * 5));
+			// playerShipPhys->velocity(playerShipPhys->getVelocity() * Vector3(-1, -1, -1));
+			m_playerShip->health(m_playerShip->health() - (timeElapsed * 5));
 		}
 	}
 
@@ -490,16 +490,16 @@ void GameArena::updatePhysics(Real timeElapsed)
 		shipIter++) 
 	{
 		(*shipIter)->updatePhysics(timeElapsed);
-		(*shipIter)->addEnergy((*shipIter)->getEnergyRechargeRate() * timeElapsed);
-		SphereCollisionObject * shipPhys = (*shipIter)->getPhysicsModel();
+		(*shipIter)->addEnergy((*shipIter)->energyRecharge() * timeElapsed);
+		SphereCollisionObject * shipPhys = (*shipIter)->phys();
 
-		if(shipPhys->getPosition().x > m_arenaSize || shipPhys->getPosition().x < - m_arenaSize
-			|| shipPhys->getPosition().y > m_arenaSize || shipPhys->getPosition().y < - m_arenaSize
-			|| shipPhys->getPosition().z > m_arenaSize || shipPhys->getPosition().z < - m_arenaSize) 
+		if(shipPhys->position().x > m_arenaSize || shipPhys->position().x < - m_arenaSize
+			|| shipPhys->position().y > m_arenaSize || shipPhys->position().y < - m_arenaSize
+			|| shipPhys->position().z > m_arenaSize || shipPhys->position().z < - m_arenaSize) 
 		{
-			shipPhys->setVelocity(shipPhys->getVelocity() * Vector3(-1, -1, -1));
+			shipPhys->velocity(shipPhys->getVelocity() * Vector3(-1, -1, -1));
 		}
-		shipPhys->setOrientation(Vector3(0, 0, -1).getRotationTo(shipPhys->getVelocity()));
+		shipPhys->orientation(Vector3(0, 0, -1).getRotationTo(shipPhys->getVelocity()));
 	}
 
 	// Update physics for projectiles and check for collisions
@@ -507,11 +507,11 @@ void GameArena::updatePhysics(Real timeElapsed)
 		projIter != m_projectiles.end(); )
 	{
 		(*projIter)->updatePhysics(timeElapsed);
-		SphereCollisionObject * projPhys = (*projIter)->getPhysicsModel();
+		SphereCollisionObject * projPhys = (*projIter)->phys();
 
-		if(projPhys->getPosition().x > m_arenaSize || projPhys->getPosition().x < - m_arenaSize
-			|| projPhys->getPosition().y > m_arenaSize || projPhys->getPosition().y < - m_arenaSize
-			|| projPhys->getPosition().z > m_arenaSize || projPhys->getPosition().z < - m_arenaSize) 
+		if(projPhys->position().x > m_arenaSize || projPhys->position().x < - m_arenaSize
+			|| projPhys->position().y > m_arenaSize || projPhys->position().y < - m_arenaSize
+			|| projPhys->position().z > m_arenaSize || projPhys->position().z < - m_arenaSize) 
 		{
 			projIter = destroyProjectile((*projIter));
 			continue;
@@ -522,9 +522,9 @@ void GameArena::updatePhysics(Real timeElapsed)
 			shipIter != m_npcShips.end();
 			shipIter++) 
 		{
-			if(projPhys->checkCollision(*(*shipIter)->getPhysicsModel())) 
+			if(projPhys->checkCollision(*(*shipIter)->phys())) 
 			{
-				(*shipIter)->inflictDamage((*projIter)->getDamage());
+				(*shipIter)->inflictDamage((*projIter)->damage());
 				projIter = destroyProjectile(*projIter);
 				projDestroyed = true;
 				break;
@@ -541,7 +541,7 @@ void GameArena::updatePhysics(Real timeElapsed)
 	for(std::vector<SpaceShip * >::iterator shipIter =  m_npcShips.begin(); 
 		shipIter != m_npcShips.end();) 
 	{
-			if ((*shipIter)->getHealth() <= 0)
+			if ((*shipIter)->health() <= 0)
 			{
 				shipIter = destroyNpcShip((*shipIter));
 			}
@@ -552,9 +552,9 @@ void GameArena::updatePhysics(Real timeElapsed)
 	}
 
 	// Reset the player ship if they "die"
-	if(m_playerShip->getHealth() <= 0) {
-		m_playerShip->setHealth(m_playerShip->getMaxHealth());
-		m_playerShip->getPhysicsModel()->setVelocity(Vector3(0, 0, 0));
-		m_playerShip->getPhysicsModel()->setPosition(Vector3(0, 0, 0));
+	if(m_playerShip->health() <= 0) {
+		m_playerShip->health(m_playerShip->maxHealth());
+		m_playerShip->phys()->velocity(Vector3(0, 0, 0));
+		m_playerShip->phys()->position(Vector3(0, 0, 0));
 	}
 }

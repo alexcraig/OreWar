@@ -18,7 +18,6 @@ class GameObject
 private:
 	// TODO: The object type should probably move into this class and out
 	//	     of the physics subsystem.
-
 	SphereCollisionObject * mp_physModel;
 
 	Real m_maxHealth;
@@ -32,7 +31,6 @@ private:
 	// Note: Not implemented in this class, should be used in subclasses
 	// implementation of updatePhysics
 	Real m_energyRechargeRate;
-
 public: 
 	GameObject(const SphereCollisionObject& object, Real maxHealth, 
 		Real maxEnergy, Real energyRechargeRate);
@@ -40,19 +38,20 @@ public:
 	GameObject(const GameObject& copy);
 	~GameObject();
 
-	SphereCollisionObject * getPhysicsModel() const;
+	/** @return The collision object which encapsulates all physics data for this object */
+	SphereCollisionObject * phys() const;
 
-	ObjectType getType() const;
+	ObjectType type() const;
 
-	Real getHealth() const;
-	Real getMaxHealth() const;
-	Real getEnergy() const;
-	Real getMaxEnergy() const;
-	Real getEnergyRechargeRate() const;
+	Real health() const;
+	Real maxHealth() const;
+	Real energy() const;
+	Real maxEnergy() const;
+	Real energyRecharge() const;
 
 	virtual void updatePhysics(Real timeElapsed) = 0;
-	void setHealth(Real health);
-	void setEnergy(Real energy);
+	void health(Real health);
+	void energy(Real energy);
 
 	void inflictDamage(Real damage);
 	void addEnergy(Real energy);
@@ -70,7 +69,7 @@ public:
 
 	void updatePhysics(Real timeElapsed);
 
-	Real getDamage();
+	Real damage();
 };
 
 
@@ -101,10 +100,10 @@ public:
 
 	void resetShotCounter();
 
-	Real getEnergyCost();
+	Real energyCost();
 
 	/** Generates a projectile PhysicsObject, and resets the weapons's reload counter*/
-	virtual Projectile generateProjectile(PhysicsObject& origin) = 0;
+	virtual Projectile fireWeapon(PhysicsObject& origin) = 0;
 
 	void updatePhysics(Real timeElapsed);
 };
@@ -121,7 +120,7 @@ public:
 
 	PlasmaCannon(const PlasmaCannon& copy);
 
-	virtual Projectile generateProjectile(PhysicsObject& origin);
+	virtual Projectile fireWeapon(PhysicsObject& origin);
 };
 
 
@@ -132,7 +131,7 @@ public:
 
 	AnchorLauncher(const AnchorLauncher& copy);
 
-	virtual Projectile generateProjectile(PhysicsObject& origin);
+	virtual Projectile fireWeapon(PhysicsObject& origin);
 };
 
 
@@ -235,7 +234,7 @@ public:
 	/** Unregisters a GameArenaListener from the GameArena */
 	void removeGameArenaListener(GameArenaListener * listener);
 
-	Real getSize() const;
+	Real size() const;
 
 	/**
 	 * Adds a SpaceShip to the GameArena.
@@ -264,13 +263,14 @@ public:
 
 	std::vector<SpaceShip * >::iterator destroyNpcShip(SpaceShip * npcShip);
 
-	SpaceShip * getPlayerShip();
+	/** @return A pointer to the player's ship */
+	SpaceShip * playerShip();
 
 	/** @return The list of pointers to all active projectiles */
-	std::vector<Projectile *> * getProjectiles();
+	std::vector<Projectile *> * projectiles();
 
 	/** @return The list of pointers to all active ships */
-	std::vector<SpaceShip *> * getNpcShips();
+	std::vector<SpaceShip *> * npcShips();
 
 	/** 
 	 * @return A pointer to the PhysicsObject produced by generating a projectile from the passed ship 

@@ -10,43 +10,65 @@
 
 using namespace Ogre;
 
+/**
+ * The RenderObject class represents any entity in the game world which
+ * will be rendered through the OgreScene manager (typically attached to
+ * SceneNodes)
+ */
 class RenderObject
 {
 private:
+	/** The lowest integer value that is guaranteed to be unused as a render index */
+	static int m_nextRenderId;
+
+	/** The SceneManager that should be used to manage OGRE resources */
 	SceneManager * mp_mgr;
 
-	static int m_nextRenderIndex;
-
-	int m_renderIndex;
+	/** An integer identifier which is unique to this instance of RenderObject */
+	int m_renderId;
 
 public:
+	/** Constructs a new RenderObject which uses the specified SceneManager */
 	RenderObject(SceneManager * mgr);
 
+	/** @return The OGRE scene manager used to manage resources for this object */
 	SceneManager * getSceneManager();
 
-	int getRenderIndex();
+	/** @return The unique render identifier of this RenderObject */
+	int renderId() const;
 
-	/** Updates the node based on passed time and camera orientation (useful for sprites) */
-	virtual void updateNode(Real elapsedTime, Quaternion camOrientation) = 0;
+	/** Updates the entities effects based on passed time and camera orientation (useful for sprites) */
+	virtual void updateEffects(Real elapsedTime, Quaternion camOrientation) = 0;
 
+	/**  Loads any resources (sprites, particles, etc) that will be neccesary to render the entity. */
 	virtual void loadSceneResources() = 0;
 
-	virtual void buildNode() = 0;
+	/** Performs first time creation of required OGRE effects */
+	virtual void createEffects() = 0;
 
-	virtual void destroyNode() = 0;
+	/** Performs destruction of all generated OGRE effects */
+	virtual void destroyEffects() = 0;
 
+	/** @return True if the passed RenderObject has the same render id */
 	bool operator==(const RenderObject &other) const;
 };
 
-
+/**
+ * The ConstraintRenderObject represents the graphical representation
+ * of a Constraint physics object */
 class ConstraintRenderObject : public RenderObject
 {
 private:
+	/** The constraint object to render */
 	Constraint * mp_constraint;
-
+	
+	/** SceneNode to anchor effects to */
 	SceneNode * mp_node;
+
+	/** Particle system for rope effect */
 	ParticleSystem * mp_particle;
 
+	/** Static flag to ensure resources are loaded only once */
 	static bool m_resourcesLoaded;
 public:
 	/** Constructs a new PhysicsRenderObject */
@@ -55,14 +77,17 @@ public:
 	/** @return A pointer to the model object */
 	Constraint * getConstraint();
 
-	/** Updates the node based on passed time and camera orientation (useful for sprites) */
-	virtual void updateNode(Real elapsedTime, Quaternion camOrientation);
+	/** #see RenderObject::updateEffects() */
+	virtual void updateEffects(Real elapsedTime, Quaternion camOrientation);
 
+	/** @see RenderObject::loadSceneResources() */ 
 	virtual void loadSceneResources();
 
-	virtual void buildNode();
+	/** @see RenderObject::createEffects() */ 
+	virtual void createEffects();
 
-	virtual void destroyNode();
+	/** @see RenderObject::destroyEffects() */ 
+	virtual void destroyEffects();
 };
 
 
@@ -84,24 +109,39 @@ public:
 	SphereCollisionObject * getObject();
 
 	/** Updates the node based on passed time and camera orientation (useful for sprites) */
-	virtual void updateNode(Real elapsedTime, Quaternion camOrientation) = 0;
+	virtual void updateEffects(Real elapsedTime, Quaternion camOrientation) = 0;
 
+	/** @see RenderObject::loadSceneResources() */ 
 	virtual void loadSceneResources() = 0;
 
-	virtual void buildNode() = 0;
+	/** @see RenderObject::createEffects() */ 
+	virtual void createEffects() = 0;
 
-	virtual void destroyNode() = 0;
+	/** @see RenderObject::destroyEffects() */ 
+	virtual void destroyEffects() = 0;
 
+	/** @see RenderObject::operator==() */
 	bool operator==(const RenderObject &other) const;
 };
 
 
+/**
+ * The ShipRO (ShipRenderObject) class manages the graphical representation
+ * of any instance of a SpaceShip (human or player controlled)
+ */
 class ShipRO : public PhysicsRenderObject
 {
 private:
+	/** The game object represented by this render object */
 	SpaceShip * mp_spaceShip;
 
+	/** The scene node to anchor effects onto */
 	SceneNode * mp_shipNode;
+
+	/** 
+	 * The scene node which rotates to face the same direction as the
+	 * represented game object.
+	 */
 	SceneNode * mp_shipRotateNode;
 	Entity * mp_shipEntity;
 	Light * mp_spotLight;
@@ -112,16 +152,20 @@ private:
 public:
 	ShipRO(SpaceShip * ship, SceneManager * mgr);
 
-	SpaceShip * getSpaceShip() const;
+	/** @return The SpaceShip game object represented by this entity */
+	SpaceShip * ship() const;
 
 	/** Updates the node based on passed time and camera orientation (useful for sprites) */
-	virtual void updateNode(Real elapsedTime, Quaternion camOrientation);
+	virtual void updateEffects(Real elapsedTime, Quaternion camOrientation);
 
+	/** @see RenderObject::loadSceneResources() */ 
 	virtual void loadSceneResources();
 
-	virtual void buildNode();
+	/** @see RenderObject::createEffects() */ 
+	virtual void createEffects();
 
-	virtual void destroyNode();
+	/** @see RenderObject::destroyEffects() */ 
+	virtual void destroyEffects();
 };
 
 
@@ -139,13 +183,16 @@ public:
 	NpcShipRO(SpaceShip * ship, SceneManager * mgr);
 
 	/** Updates the node based on passed time and camera orientation (useful for sprites) */
-	virtual void updateNode(Real elapsedTime, Quaternion camOrientation);
+	virtual void updateEffects(Real elapsedTime, Quaternion camOrientation);
 
+	/** @see RenderObject::loadSceneResources() */ 
 	virtual void loadSceneResources();
 
-	virtual void buildNode();
+	/** @see RenderObject::createEffects() */ 
+	virtual void createEffects();
 
-	virtual void destroyNode();
+	/** @see RenderObject::destroyEffects() */ 
+	virtual void destroyEffects();
 };
 
 
@@ -167,13 +214,13 @@ public:
 	Projectile * getProjectile() const;
 
 	/** Updates the node based on passed time and camera orientation (useful for sprites) */
-	virtual void updateNode(Real elapsedTime, Quaternion camOrientation);
+	virtual void updateEffects(Real elapsedTime, Quaternion camOrientation);
 
 	virtual void loadSceneResources();
 
-	virtual void buildNode();
+	virtual void createEffects();
 
-	virtual void destroyNode();
+	virtual void destroyEffects();
 };
 
 
@@ -202,7 +249,7 @@ public:
 	 */
 	RenderModel(GameArena& model, SceneManager * mgr);
 
-	/** Calls the updateNode() method of all RenderObjects stored in the RenderModel's render list */
+	/** Calls the updateEffects() method of all RenderObjects stored in the RenderModel's render list */
 	void updateRenderList(Real elapsedTime, Quaternion camOrientation);
 
 	/** Called whenever a new GameObject is created by the observed GameArena */

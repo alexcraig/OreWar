@@ -76,24 +76,24 @@ public:
     {
 		// Capture the keyboard input
         m_Keyboard->capture();
-		SpaceShip * playerShip = m_arena.getPlayerShip();
-		SphereCollisionObject * playerShipPhys = playerShip->getPhysicsModel();
+		SpaceShip * playerShip = m_arena.playerShip();
+		SphereCollisionObject * playerShipPhys = playerShip->phys();
 
 		// Add random NPC ships to shoot
-		for(int i = 0; i < m_arena.getNpcShips()->size() - 6; i++) {
+		for(int i = 0; i < m_arena.npcShips()->size() - 6; i++) {
 			// Add some NPC ships
 			SpaceShip npcShip = SpaceShip(ObjectType::NPC_SHIP, 1, 
-				Vector3(Math::RangeRandom(0, m_arena.getSize()),
-				Math::RangeRandom(0, m_arena.getSize()),
-				Math::RangeRandom(0, m_arena.getSize())),
+				Vector3(Math::RangeRandom(0, m_arena.size()),
+				Math::RangeRandom(0, m_arena.size()),
+				Math::RangeRandom(0, m_arena.size())),
 				5);
-			SphereCollisionObject * npcShipPhysics = npcShip.getPhysicsModel();
-			// npcShip.setVelocity(Vector3(0, 0, 0));
-			npcShipPhysics->setVelocity(Vector3(Math::RangeRandom(0, 2000),
+			SphereCollisionObject * npcShipPhysics = npcShip.phys();
+			// npcShip.velocity(Vector3(0, 0, 0));
+			npcShipPhysics->velocity(Vector3(Math::RangeRandom(0, 2000),
 				Math::RangeRandom(0, 2000),
 				Math::RangeRandom(0, 2000)));
 
-			npcShipPhysics->setOrientation(Vector3(0, 0, -1).getRotationTo(npcShipPhysics->getVelocity()));
+			npcShipPhysics->orientation(Vector3(0, 0, -1).getRotationTo(npcShipPhysics->getVelocity()));
 			m_arena.addNpcShip(npcShip);
 		}
 
@@ -123,20 +123,20 @@ public:
 		// Clear all existing forces, and add keyboard forces
 		Real energyDrain = 10;
 		if(m_Keyboard->isKeyDown(OIS::KC_W)) {
-			playerShipPhys->applyTempForce(playerShipPhys->getHeading() * Real(2000));
+			playerShipPhys->applyTempForce(playerShipPhys->heading() * Real(2000));
 			playerShip->drainEnergy(energyDrain * evt.timeSinceLastFrame);
 		}
 		if(m_Keyboard->isKeyDown(OIS::KC_S)) {
-			playerShipPhys->applyTempForce(playerShipPhys->getHeading() * Real(-2000));
+			playerShipPhys->applyTempForce(playerShipPhys->heading() * Real(-2000));
 			playerShip->drainEnergy(energyDrain * evt.timeSinceLastFrame);
 		}
 		if(m_Keyboard->isKeyDown(OIS::KC_A)) {
-			playerShipPhys->applyTempForce((playerShipPhys->getOrientation() * Quaternion(Degree(90), Vector3::UNIT_Y)) 
+			playerShipPhys->applyTempForce((playerShipPhys->orientation() * Quaternion(Degree(90), Vector3::UNIT_Y)) 
 				* Vector3(0, 0, -1500));
 			playerShip->drainEnergy(energyDrain * evt.timeSinceLastFrame);
 		}
 		if(m_Keyboard->isKeyDown(OIS::KC_D)) {
-			playerShipPhys->applyTempForce((playerShipPhys->getOrientation() * Quaternion(Degree(-90), Vector3::UNIT_Y)) 
+			playerShipPhys->applyTempForce((playerShipPhys->orientation() * Quaternion(Degree(-90), Vector3::UNIT_Y)) 
 				* Vector3(0, 0, -1500));
 			playerShip->drainEnergy(energyDrain * evt.timeSinceLastFrame);
 		}
@@ -172,38 +172,37 @@ public:
 			if(m_con == NULL) 
 			{
 				Projectile * closestAnchor = NULL;
-				for(std::vector<Projectile * >::iterator projIter = m_arena.getProjectiles()->begin(); 
-					projIter != m_arena.getProjectiles()->end();
+				for(std::vector<Projectile * >::iterator projIter = m_arena.projectiles()->begin(); 
+					projIter != m_arena.projectiles()->end();
 					projIter++) 
 				{
-					if((*projIter)->getType() != ANCHOR_PROJECTILE) {
+					if((*projIter)->type() != ANCHOR_PROJECTILE) {
 						continue;
 					}
 
 					if(closestAnchor == NULL ||
-						(playerShipPhys->getPosition().squaredDistance((*projIter)->getPhysicsModel()->getPosition()) <
-						playerShipPhys->getPosition().squaredDistance(closestAnchor->getPhysicsModel()->getPosition()))) 
+						(playerShipPhys->position().squaredDistance((*projIter)->phys()->position()) <
+						playerShipPhys->position().squaredDistance(closestAnchor->phys()->position()))) 
 					{
 						closestAnchor = *projIter;
 					}
 				}
 
 				if(closestAnchor != NULL) {
-					closestAnchor->getPhysicsModel()->setVelocity(Vector3(0, 0, 0));
-					m_con = m_arena.addConstraint(Constraint(playerShip->getPhysicsModel(), 
-					closestAnchor->getPhysicsModel(), 
-					playerShipPhys->getOffset(*(closestAnchor->getPhysicsModel())).length()));
+					closestAnchor->phys()->velocity(Vector3(0, 0, 0));
+					m_con = m_arena.addConstraint(Constraint(playerShip->phys(), 
+						closestAnchor->phys()));
 				}
 			}
 		} else {
 			if(m_con != NULL) {
-				PhysicsObject * deadAnchor = m_con->getEndObject();
+				PhysicsObject * deadAnchor = m_con->getTarget();
 				m_arena.destroyConstraint(m_con);
-				for(std::vector<Projectile * >::iterator projIter = m_arena.getProjectiles()->begin(); 
-					projIter != m_arena.getProjectiles()->end();
+				for(std::vector<Projectile * >::iterator projIter = m_arena.projectiles()->begin(); 
+					projIter != m_arena.projectiles()->end();
 					projIter++) 
 				{
-					if((*projIter)->getPhysicsModel() == deadAnchor) {
+					if((*projIter)->phys() == deadAnchor) {
 						m_arena.destroyProjectile(*projIter);
 						break;
 					}
@@ -219,14 +218,14 @@ public:
 			m_timer = 0;
 			mp_fps->text("FPS: " + Ogre::StringConverter::toString(mp_renderWindow->getLastFPS())
 				+ " - RenderObjects: " + Ogre::StringConverter::toString(m_renderModel.getNumObjects())
-				+ " - Health: " + Ogre::StringConverter::toString(playerShip->getHealth())
+				+ " - Health: " + Ogre::StringConverter::toString(playerShip->health())
 				+ " - Speed: " + Ogre::StringConverter::toString(playerShipPhys->getVelocity().length())
-				+ " - Force: " + Ogre::StringConverter::toString((playerShipPhys->getForce() + playerShipPhys->getTempForce()).length()));
+				+ " - Force: " + Ogre::StringConverter::toString((playerShipPhys->sumForces() + playerShipPhys->sumTempForces()).length()));
 		}
 
 		// Update UI
-		mp_healthBar->width((mp_vp->getActualWidth() * 0.25) * (playerShip->getHealth() / playerShip->getMaxHealth()));
-		mp_energyBar->width((mp_vp->getActualWidth() * 0.25) * (playerShip->getEnergy() / playerShip->getMaxEnergy()));
+		mp_healthBar->width((mp_vp->getActualWidth() * 0.25) * (playerShip->health() / playerShip->maxHealth()));
+		mp_energyBar->width((mp_vp->getActualWidth() * 0.25) * (playerShip->energy() / playerShip->maxEnergy()));
 		mp_speedBar->width((mp_vp->getActualWidth() * 0.25) * (playerShipPhys->getVelocity().length() / Real(6000)));
 
 		// Update the position of the physics object and move the scene node
@@ -235,11 +234,11 @@ public:
 
 		// Move the camera
 		if(m_thirdPersonCam) {
-			m_camNode->setPosition(playerShipPhys->getPosition() + Vector3(0, 1000, 1000));
-			m_camNode->lookAt(playerShipPhys->getPosition(), Node::TS_WORLD);
+			m_camNode->setPosition(playerShipPhys->position() + Vector3(0, 1000, 1000));
+			m_camNode->lookAt(playerShipPhys->position(), Node::TS_WORLD);
 		} else {
-			m_camNode->setPosition(playerShipPhys->getPosition() + playerShipPhys->getNormal() * 80 - playerShipPhys->getHeading() * 200);
-			m_camNode->setOrientation(playerShipPhys->getOrientation());
+			m_camNode->setPosition(playerShipPhys->position() + playerShipPhys->normal() * 80 - playerShipPhys->heading() * 200);
+			m_camNode->setOrientation(playerShipPhys->orientation());
 		}
 
         return !m_Keyboard->isKeyDown(OIS::KC_ESCAPE);

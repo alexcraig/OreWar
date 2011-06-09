@@ -26,51 +26,51 @@ BaseObject::BaseObject() :
 void BaseObject::yaw(Radian radians)
 {
 	Quaternion q(Radian(radians), Vector3::UNIT_Y);
-	setOrientation(m_orientation * q);
+	orientation(m_orientation * q);
 }
 
 void BaseObject::roll(Radian radians)
 {
 	Quaternion q(Radian(radians), Vector3::UNIT_Z);
-	setOrientation(m_orientation * q);
+	orientation(m_orientation * q);
 }
 
 void BaseObject::pitch(Radian radians)
 {
 	Quaternion q(Radian(radians), Vector3::UNIT_X);
-	setOrientation(m_orientation * q);
+	orientation(m_orientation * q);
 }
 
-void BaseObject::setPosition(Vector3 position)
+void BaseObject::position(Vector3 position)
 {
 	m_position = position;
 }
 
-Vector3 BaseObject::getOffset(const BaseObject& other) {
-	return other.getPosition() - getPosition();
+Vector3 BaseObject::displacement(const BaseObject& other) {
+	return other.position() - position();
 }
 
-Vector3 BaseObject::getPosition() const
+Vector3 BaseObject::position() const
 {
 	return m_position;
 }
 
-Vector3 BaseObject::getHeading() const
+Vector3 BaseObject::heading() const
 {
 	return m_orientation * Vector3(0, 0, -1);
 }
 
-Vector3 BaseObject::getNormal() const
+Vector3 BaseObject::normal() const
 {
 	return m_orientation * Vector3(0, 1, 0);
 }
 
-Quaternion BaseObject::getOrientation() const 
+Quaternion BaseObject::orientation() const 
 {
 	return m_orientation;
 }
 
-void BaseObject::setOrientation(Quaternion orientation) {
+void BaseObject::orientation(Quaternion orientation) {
 	m_orientation = orientation;
 	m_orientation.normalise();
 }
@@ -97,22 +97,22 @@ PhysicsObject::PhysicsObject(const PhysicsObject& copy) : BaseObject(copy), m_ty
 {
 }
 
-ObjectType PhysicsObject::getType() const
+ObjectType PhysicsObject::type() const
 {
 	return m_type;
 }
 
-Real PhysicsObject::getMass() const
+Real PhysicsObject::mass() const
 {
 	return m_mass;
 }
 
-void PhysicsObject::setVelocity(Vector3 velocity) 
+void PhysicsObject::velocity(Vector3 velocity) 
 {
 	m_velocity = velocity;
 }
 
-void PhysicsObject::setAcceleration(Vector3 acceleration) 
+void PhysicsObject::acceleration(Vector3 acceleration) 
 {
 	m_acceleration = acceleration;
 }
@@ -122,17 +122,17 @@ Vector3 PhysicsObject::getVelocity() const
 	return m_velocity;
 }
 
-Vector3 PhysicsObject::getAcceleration() const
+Vector3 PhysicsObject::acceleration() const
 {
 	return m_acceleration;
 }
 
-Vector3 PhysicsObject::getForce() const
+Vector3 PhysicsObject::sumForces() const
 {
 	return m_force;
 }
 
-Vector3 PhysicsObject::getTempForce() const
+Vector3 PhysicsObject::sumTempForces() const
 {
 	return m_tempForce;
 }
@@ -161,7 +161,7 @@ void PhysicsObject::updatePhysics(Real timeElapsed)
 	
 	m_acceleration = (m_force + m_tempForce) / m_mass;
 	m_velocity = m_velocity + (m_acceleration * timeElapsed);
-	setPosition(getPosition() + (m_velocity * timeElapsed));
+	position(position() + (m_velocity * timeElapsed));
 	m_tempForce = Vector3(0, 0, 0);
 }
 
@@ -169,53 +169,54 @@ void PhysicsObject::updatePhysics(Real timeElapsed)
 // ========================================================================
 // Constraint Implementation
 // ========================================================================
-Constraint::Constraint(PhysicsObject * startObject, PhysicsObject * endObject, Real distance) :
-	m_startObject(startObject), m_endObject(endObject), m_distance(distance)
+Constraint::Constraint(PhysicsObject * origin, PhysicsObject * target) :
+	m_origin(origin), m_target(target), 
+	m_distance(origin->displacement(*((BaseObject *)target)).length())
 {
 }
 
 Constraint::Constraint(const Constraint& copy) :
-	m_startObject(copy.m_startObject), m_endObject(copy.m_endObject), m_distance(copy.m_distance)
+	m_origin(copy.m_origin), m_target(copy.m_target), m_distance(copy.m_distance)
 {
 }
 
-PhysicsObject * Constraint::getStartObject()
+PhysicsObject * Constraint::getOrigin()
 {
-	return m_startObject;
+	return m_origin;
 }
 
-PhysicsObject * Constraint::getEndObject()
+PhysicsObject * Constraint::getTarget()
 {
-	return m_endObject;
+	return m_target;
 }
 
 void Constraint::applyForces(Real timeElapsed)
 {
 	// Spring based constraint
 	/*
-	Real distance = m_startObject->getOffset(*m_endObject).length();
+	Real distance = m_origin->displacement(*m_target).length();
 	Real appliedForce = Math::Pow((distance - m_distance), 2) * 1 + Math::Abs(distance - m_distance) * 3;
 	if(distance < m_distance) {
 		appliedForce = -appliedForce;
 	}
 
-	m_startObject->applyTempForce((m_startObject->getOffset(*m_endObject)).normalisedCopy()
+	m_origin->applyTempForce((m_origin->displacement(*m_target)).normalisedCopy()
 		* appliedForce);
 
-	m_endObject->applyTempForce((m_endObject->getOffset(*m_startObject)).normalisedCopy()
+	m_target->applyTempForce((m_target->displacement(*m_origin)).normalisedCopy()
 		* appliedForce);
 	*/
 
 	// Orbit constraint
-	Vector3 normalVector = m_endObject->getOffset(*m_startObject);
+	Vector3 normalVector = m_target->displacement(*m_origin);
 	if(normalVector.length() > m_distance) {
 		Plane normalPlane = Plane(normalVector, 0);
 		normalPlane.normalise();
-		Vector3 curVelocity = m_startObject->getVelocity() - m_endObject->getVelocity();
-		Vector3 desiredVelocity = normalPlane.projectVector(curVelocity) + m_endObject->getVelocity();
-		Vector3 velocityOffset = desiredVelocity - m_startObject->getVelocity();
+		Vector3 curVelocity = m_origin->getVelocity() - m_target->getVelocity();
+		Vector3 desiredVelocity = normalPlane.projectVector(curVelocity) + m_target->getVelocity();
+		Vector3 velocityOffset = desiredVelocity - m_origin->getVelocity();
 	
-		m_startObject->applyTempForce(((velocityOffset * m_startObject->getMass()) / timeElapsed));
+		m_origin->applyTempForce(((velocityOffset * m_origin->mass()) / timeElapsed));
 	}
 }
 
@@ -239,12 +240,12 @@ SphereCollisionObject::SphereCollisionObject(const SphereCollisionObject& copy)
 {
 }
 
-Real SphereCollisionObject::getRadius() const
+Real SphereCollisionObject::radius() const
 {
 	return m_radius;
 }
 
 bool SphereCollisionObject::checkCollision(const SphereCollisionObject& object) const
 { 
-	return getPosition().squaredDistance(object.getPosition()) <= Math::Pow(getRadius() + object.getRadius(), 2);
+	return position().squaredDistance(object.position()) <= Math::Pow(radius() + object.radius(), 2);
 }

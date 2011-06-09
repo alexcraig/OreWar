@@ -32,7 +32,6 @@ private:
 	Quaternion m_orientation;
 
 public:
-
 	/** Construct a new BaseObject at a specified position with default heading (<0, 0,-1>) */
 	BaseObject(Vector3 position);
 
@@ -52,24 +51,25 @@ public:
 	void pitch(Radian radians);
 
 	/** Sets the position of the object */
-	void setPosition(Vector3 position);
+	void position(Vector3 position);
 
-	Vector3 getOffset(const BaseObject& other);
+	/** Calculates the relative displacement between this object and the specified object */
+	Vector3 displacement(const BaseObject& other);
 
 	/** @return The position of the object */
-	Vector3 getPosition() const;
+	Vector3 position() const;
 
 	/** @return The heading of the object (normalised vector pointing "forward" fom it's current orientation) */
-	Vector3 getHeading() const;
+	Vector3 heading() const;
 
 	/** @return The normal vector of the object (normalised vector pointing "up" from it's current orientation) */
-	Vector3 getNormal() const;
+	Vector3 normal() const;
 
 	/** @return The orientation quaternion of the object (with <0, 0, -1> as the base heading) */
-	Quaternion getOrientation() const;
+	Quaternion orientation() const;
 
 	/** Sets the orientation of the object */
-	void setOrientation(Quaternion orientation);
+	void orientation(Quaternion orientation);
 };
 
 
@@ -95,10 +95,15 @@ private:
 	/** The acceleration of the object */
 	Vector3 m_acceleration;
 
-	/** The sum vector of all forces current applied on the object */
+	/** The sum vector of all persistent forces current applied on the object. */
 	Vector3 m_force;
 
+	/** 
+	 * The sum vector of all temporary forces currently applied on the object.
+	 * Temporary forces are cleared on each physics update.
+	 */
 	Vector3 m_tempForce;
+
 public:
 	/** 
 	 * Construct a PhysicsObject at the given position coordinates with the
@@ -116,28 +121,28 @@ public:
 	PhysicsObject(const PhysicsObject& copy);
 
 	/** @return The type of the object (see ObjectType enum) */
-	ObjectType getType() const;
+	ObjectType type() const;
 
 	/** @return The mass of the object */
-	Real getMass() const;
+	Real mass() const;
 
 	/** Sets the velocity of the object */
-	void setVelocity(Vector3 velocity);
+	void velocity(Vector3 velocity);
 
 	/** Sets the acceleration of the object */
-	void setAcceleration(Vector3 acceleration);
+	void acceleration(Vector3 acceleration);
 
 	/** @return The velocity of the object */
 	Vector3 getVelocity() const;
 
 	/** @return The acceleration of the object */
-	Vector3 getAcceleration() const;
+	Vector3 acceleration() const;
 
 	/** @return The vector sum of permanent all (not cleared on physics update) forces on the object */
-	Vector3 getForce() const;
+	Vector3 sumForces() const;
 
 	/** @return The vector sum of all temporary (cleared on physics update) forces on the object */
-	Vector3 getTempForce() const;
+	Vector3 sumTempForces() const;
 
 	/** 
 	 * Applies an addititve force on the object which will be taken into account
@@ -151,7 +156,7 @@ public:
 	 */
 	void applyTempForce(Vector3 force);
 
-	/** Cancel all force currently applied to the object */
+	/** Remove all forces (temporary and persistent) all force currently applied to the object */
 	void clearForces();
 
 	/**
@@ -162,30 +167,49 @@ public:
 	virtual void updatePhysics(Real timeElapsed);
 };
 
+/**
+ * The Constaint class represents a connection between two physics objects
+ * which should apply force based on some condition (ropes or springs for
+ * example.
+ */
 class Constraint
 {
 private:
-	PhysicsObject * m_startObject;
+	/** The originating object of the constraint */
+	PhysicsObject * m_origin;
 
-	PhysicsObject * m_endObject;
+	/** The target object of the constraint */
+	PhysicsObject * m_target;
 
+	/** The distance between the two objects at the time of creation */
 	Real m_distance;
-public:
-	Constraint(PhysicsObject * startObject, PhysicsObject * endObject, Real distance);
 
+public:
+	/** Construct a constraint between the two provided objects */
+	Constraint(PhysicsObject * origin, PhysicsObject * target);
+
+	/** Copy constructor */
 	Constraint(const Constraint& copy);
 
-	PhysicsObject * getStartObject();
+	/** @return The origin object of the constraint */
+	PhysicsObject * getOrigin();
 
-	PhysicsObject * getEndObject();
+	/** @return The target object of the constraint */
+	PhysicsObject * getTarget();
 
+	/** Applies temporary forces on one or both of the constraint objects based on the elapsed time */
 	void applyForces(Real timeElapsed);
 };
 
 
+/**
+ * The SphereCollisionObject represents a physical object whose collisions should be
+ * modelled as a sphere.
+ */
 class SphereCollisionObject : public PhysicsObject
 {
 private:
+	/** The radius of the object */
 	Real m_radius;
 public:
 	/** 
@@ -203,8 +227,10 @@ public:
 	/** Copy constructor */
 	SphereCollisionObject(const SphereCollisionObject& copy);
 
-	Real getRadius() const;
+	/** @return The radius of the object */
+	Real radius() const;
 
+	/** @return True if the passed object intersects with the sphere */
 	bool checkCollision(const SphereCollisionObject& object) const;
 };
 
