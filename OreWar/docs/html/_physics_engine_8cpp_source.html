@@ -22,154 +22,258 @@
     </ul>
   </div>
 <h1>C:/Programming/Personal/OreWar/OreWar/PhysicsEngine.cpp</h1><div class="fragment"><pre class="fragment"><a name="l00001"></a>00001 <span class="preprocessor">#include &quot;PhysicsEngine.h&quot;</span>
-<a name="l00002"></a>00002 
-<a name="l00003"></a>00003 <span class="keyword">using namespace </span>Ogre;
+<a name="l00002"></a>00002 <span class="preprocessor">#include &lt;OgreMath.h&gt;</span>
+<a name="l00003"></a>00003 <span class="preprocessor">#include &lt;OgrePlane.h&gt;</span>
 <a name="l00004"></a>00004 
-<a name="l00005"></a>00005 <span class="comment">// ========================================================================</span>
-<a name="l00006"></a>00006 <span class="comment">// BaseObject Implementation</span>
+<a name="l00005"></a>00005 <span class="keyword">using namespace </span>Ogre;
+<a name="l00006"></a>00006 
 <a name="l00007"></a>00007 <span class="comment">// ========================================================================</span>
-<a name="l00008"></a>00008 
-<a name="l00009"></a><a class="code" href="class_base_object.html#a98205a766a5691f44b47856eb7d327f7">00009</a> <a class="code" href="class_base_object.html#ac9e64a371856dc974183c1b04bfdd0c9">BaseObject::BaseObject</a>(Vector3 position) :
-<a name="l00010"></a>00010     m_position(position), m_orientation(Radian(1), Vector3(0, 0, 0))
-<a name="l00011"></a>00011 {
-<a name="l00012"></a>00012 }
-<a name="l00013"></a>00013 
-<a name="l00014"></a><a class="code" href="class_base_object.html#a2ba00a2d875a757318a0da353efc7f66">00014</a> <a class="code" href="class_base_object.html#ac9e64a371856dc974183c1b04bfdd0c9">BaseObject::BaseObject</a>(<span class="keyword">const</span> <a class="code" href="class_base_object.html">BaseObject</a>&amp; copy) : m_position(copy.m_position), 
-<a name="l00015"></a>00015     m_orientation(copy.m_orientation)
-<a name="l00016"></a>00016 {
-<a name="l00017"></a>00017 }
-<a name="l00018"></a>00018 
-<a name="l00019"></a><a class="code" href="class_base_object.html#ac9e64a371856dc974183c1b04bfdd0c9">00019</a> <a class="code" href="class_base_object.html#ac9e64a371856dc974183c1b04bfdd0c9">BaseObject::BaseObject</a>() : 
-<a name="l00020"></a>00020     m_position(0, 0, 0), m_orientation(Radian(1), Vector3(0, 0, 0))
-<a name="l00021"></a>00021 {
-<a name="l00022"></a>00022 }
-<a name="l00023"></a>00023 
-<a name="l00024"></a><a class="code" href="class_base_object.html#ab05b58df3d85a531da6ec40a3fe4c343">00024</a> <span class="keywordtype">void</span> <a class="code" href="class_base_object.html#ab05b58df3d85a531da6ec40a3fe4c343">BaseObject::yaw</a>(Radian radians)
-<a name="l00025"></a>00025 {
-<a name="l00026"></a>00026     Quaternion q(Radian(radians), Vector3::UNIT_Y);
-<a name="l00027"></a>00027     <a class="code" href="class_base_object.html#a4428a82048ff771129b169515244a0e4">setOrientation</a>(m_orientation * q);
-<a name="l00028"></a>00028 }
-<a name="l00029"></a>00029 
-<a name="l00030"></a><a class="code" href="class_base_object.html#ad4f39ea20e390d2e26cd852a1b863eb4">00030</a> <span class="keywordtype">void</span> <a class="code" href="class_base_object.html#ad4f39ea20e390d2e26cd852a1b863eb4">BaseObject::roll</a>(Radian radians)
-<a name="l00031"></a>00031 {
-<a name="l00032"></a>00032     Quaternion q(Radian(radians), Vector3::UNIT_Z);
-<a name="l00033"></a>00033     <a class="code" href="class_base_object.html#a4428a82048ff771129b169515244a0e4">setOrientation</a>(m_orientation * q);
-<a name="l00034"></a>00034 }
-<a name="l00035"></a>00035 
-<a name="l00036"></a><a class="code" href="class_base_object.html#a2f134d171dbf68e3a32cbb0ba12cb9a5">00036</a> <span class="keywordtype">void</span> <a class="code" href="class_base_object.html#a2f134d171dbf68e3a32cbb0ba12cb9a5">BaseObject::pitch</a>(Radian radians)
-<a name="l00037"></a>00037 {
-<a name="l00038"></a>00038     Quaternion q(Radian(radians), Vector3::UNIT_X);
-<a name="l00039"></a>00039     <a class="code" href="class_base_object.html#a4428a82048ff771129b169515244a0e4">setOrientation</a>(m_orientation * q);
-<a name="l00040"></a>00040 }
-<a name="l00041"></a>00041 
-<a name="l00042"></a><a class="code" href="class_base_object.html#ac8452594da304f6a6f5528f215a50be4">00042</a> <span class="keywordtype">void</span> <a class="code" href="class_base_object.html#ac8452594da304f6a6f5528f215a50be4">BaseObject::setPosition</a>(Vector3 position)
-<a name="l00043"></a>00043 {
-<a name="l00044"></a>00044     m_position = position;
-<a name="l00045"></a>00045 }
-<a name="l00046"></a>00046 
-<a name="l00047"></a><a class="code" href="class_base_object.html#a097dbe2865e33b5738642438e0a10dbe">00047</a> Vector3 <a class="code" href="class_base_object.html#a097dbe2865e33b5738642438e0a10dbe">BaseObject::getPosition</a>()<span class="keyword"> const</span>
-<a name="l00048"></a>00048 <span class="keyword"></span>{
-<a name="l00049"></a>00049     <span class="keywordflow">return</span> m_position;
-<a name="l00050"></a>00050 }
-<a name="l00051"></a>00051 
-<a name="l00052"></a><a class="code" href="class_base_object.html#a7c124ce28f101d870680672f62e69ad2">00052</a> Vector3 <a class="code" href="class_base_object.html#a7c124ce28f101d870680672f62e69ad2">BaseObject::getHeading</a>()<span class="keyword"> const</span>
-<a name="l00053"></a>00053 <span class="keyword"></span>{
-<a name="l00054"></a>00054     <span class="keywordflow">return</span> m_orientation * Vector3(0, 0, -1);
-<a name="l00055"></a>00055 }
-<a name="l00056"></a>00056 
-<a name="l00057"></a><a class="code" href="class_base_object.html#a450af981f711e79b2b72488f4383d613">00057</a> Vector3 <a class="code" href="class_base_object.html#a450af981f711e79b2b72488f4383d613">BaseObject::getNormal</a>()<span class="keyword"> const</span>
-<a name="l00058"></a>00058 <span class="keyword"></span>{
-<a name="l00059"></a>00059     <span class="keywordflow">return</span> m_orientation * Vector3(0, 1, 0);
-<a name="l00060"></a>00060 }
-<a name="l00061"></a>00061 
-<a name="l00062"></a><a class="code" href="class_base_object.html#a6983854d73e5d568eeeb29b180e04b7d">00062</a> Quaternion <a class="code" href="class_base_object.html#a6983854d73e5d568eeeb29b180e04b7d">BaseObject::getOrientation</a>()<span class="keyword"> const </span>
-<a name="l00063"></a>00063 <span class="keyword"></span>{
-<a name="l00064"></a>00064     <span class="keywordflow">return</span> m_orientation;
-<a name="l00065"></a>00065 }
-<a name="l00066"></a>00066 
-<a name="l00067"></a><a class="code" href="class_base_object.html#a4428a82048ff771129b169515244a0e4">00067</a> <span class="keywordtype">void</span> <a class="code" href="class_base_object.html#a4428a82048ff771129b169515244a0e4">BaseObject::setOrientation</a>(Quaternion orientation) {
-<a name="l00068"></a>00068     m_orientation = orientation;
-<a name="l00069"></a>00069     m_orientation.normalise();
-<a name="l00070"></a>00070 }
-<a name="l00071"></a>00071 
-<a name="l00072"></a>00072 <span class="comment">// ========================================================================</span>
-<a name="l00073"></a>00073 <span class="comment">// PhysicsObject Implementation</span>
-<a name="l00074"></a>00074 <span class="comment">// ========================================================================</span>
-<a name="l00075"></a>00075 
-<a name="l00076"></a><a class="code" href="class_physics_object.html#a04de359a8cae00bff081d2e3460b9995">00076</a> <a class="code" href="class_physics_object.html#a04de359a8cae00bff081d2e3460b9995">PhysicsObject::PhysicsObject</a>(ObjectType type, Real mass, Vector3 position) :
-<a name="l00077"></a>00077     <a class="code" href="class_base_object.html">BaseObject</a>(position), m_type(type), m_mass(mass), m_velocity(0, 0, 0),
-<a name="l00078"></a>00078     m_acceleration(0, 0, 0), m_force(0, 0, 0)
-<a name="l00079"></a>00079 {
-<a name="l00080"></a>00080 }
-<a name="l00081"></a>00081 
-<a name="l00082"></a><a class="code" href="class_physics_object.html#a4a99693545fefc85d81895afae8d7220">00082</a> <a class="code" href="class_physics_object.html#a04de359a8cae00bff081d2e3460b9995">PhysicsObject::PhysicsObject</a>(ObjectType type, Real mass) : <a class="code" href="class_base_object.html">BaseObject</a>(), m_type(type), m_mass(mass), 
-<a name="l00083"></a>00083     m_velocity(0, 0, 0), m_acceleration(0, 0, 0), m_force(Vector3(0, 0 ,0))
-<a name="l00084"></a>00084 {
-<a name="l00085"></a>00085 }
-<a name="l00086"></a>00086 
-<a name="l00087"></a><a class="code" href="class_physics_object.html#ae1869a54412255612df17578933bdde9">00087</a> <a class="code" href="class_physics_object.html#a04de359a8cae00bff081d2e3460b9995">PhysicsObject::PhysicsObject</a>(<span class="keyword">const</span> <a class="code" href="class_physics_object.html">PhysicsObject</a>&amp; copy) : <a class="code" href="class_base_object.html">BaseObject</a>(copy), m_type(copy.m_type), 
-<a name="l00088"></a>00088     m_mass(copy.m_mass), m_velocity(copy.m_velocity), m_acceleration(copy.m_acceleration),
-<a name="l00089"></a>00089     m_force(copy.m_force)
-<a name="l00090"></a>00090 {
-<a name="l00091"></a>00091 }
-<a name="l00092"></a>00092 
-<a name="l00093"></a><a class="code" href="class_physics_object.html#a693a933664bdc6d1f27fd962140ab428">00093</a> ObjectType <a class="code" href="class_physics_object.html#a693a933664bdc6d1f27fd962140ab428">PhysicsObject::getType</a>()<span class="keyword"> const</span>
-<a name="l00094"></a>00094 <span class="keyword"></span>{
-<a name="l00095"></a>00095     <span class="keywordflow">return</span> m_type;
-<a name="l00096"></a>00096 }
-<a name="l00097"></a>00097 
-<a name="l00098"></a><a class="code" href="class_physics_object.html#af8f45d759edd1fa20048e8083d8b1bbf">00098</a> Real <a class="code" href="class_physics_object.html#af8f45d759edd1fa20048e8083d8b1bbf">PhysicsObject::getMass</a>()<span class="keyword"> const</span>
-<a name="l00099"></a>00099 <span class="keyword"></span>{
-<a name="l00100"></a>00100     <span class="keywordflow">return</span> m_mass;
-<a name="l00101"></a>00101 }
-<a name="l00102"></a>00102 
-<a name="l00103"></a><a class="code" href="class_physics_object.html#a460a5dbc919731ca2e812384ab3e132a">00103</a> <span class="keywordtype">void</span> <a class="code" href="class_physics_object.html#a460a5dbc919731ca2e812384ab3e132a">PhysicsObject::setVelocity</a>(Vector3 velocity) 
-<a name="l00104"></a>00104 {
-<a name="l00105"></a>00105     m_velocity = velocity;
-<a name="l00106"></a>00106 }
-<a name="l00107"></a>00107 
-<a name="l00108"></a><a class="code" href="class_physics_object.html#ab5abb0ecf0c98f68cd5d4317fcce155c">00108</a> <span class="keywordtype">void</span> <a class="code" href="class_physics_object.html#ab5abb0ecf0c98f68cd5d4317fcce155c">PhysicsObject::setAcceleration</a>(Vector3 acceleration) 
-<a name="l00109"></a>00109 {
-<a name="l00110"></a>00110     m_acceleration = acceleration;
-<a name="l00111"></a>00111 }
-<a name="l00112"></a>00112 
-<a name="l00113"></a><a class="code" href="class_physics_object.html#aa1ee2925ae45f6e8b852e75bee8d7837">00113</a> Vector3 <a class="code" href="class_physics_object.html#aa1ee2925ae45f6e8b852e75bee8d7837">PhysicsObject::getVelocity</a>()<span class="keyword"> const</span>
-<a name="l00114"></a>00114 <span class="keyword"></span>{
-<a name="l00115"></a>00115     <span class="keywordflow">return</span> m_velocity;
-<a name="l00116"></a>00116 }
-<a name="l00117"></a>00117 
-<a name="l00118"></a><a class="code" href="class_physics_object.html#a98673969c4d905e54c70ff0fc0454c70">00118</a> Vector3 <a class="code" href="class_physics_object.html#a98673969c4d905e54c70ff0fc0454c70">PhysicsObject::getAcceleration</a>()<span class="keyword"> const</span>
-<a name="l00119"></a>00119 <span class="keyword"></span>{
-<a name="l00120"></a>00120     <span class="keywordflow">return</span> m_acceleration;
-<a name="l00121"></a>00121 }
-<a name="l00122"></a>00122 
-<a name="l00123"></a><a class="code" href="class_physics_object.html#a057524083dc600fccb62b44dc142cda8">00123</a> Vector3 <a class="code" href="class_physics_object.html#a057524083dc600fccb62b44dc142cda8">PhysicsObject::getSumForce</a>()<span class="keyword"> const</span>
-<a name="l00124"></a>00124 <span class="keyword"></span>{
-<a name="l00125"></a>00125     <span class="keywordflow">return</span> m_force;
-<a name="l00126"></a>00126 }
-<a name="l00127"></a>00127 
-<a name="l00128"></a><a class="code" href="class_physics_object.html#a493315150370fed69d477ff50b322663">00128</a> <span class="keywordtype">void</span> <a class="code" href="class_physics_object.html#a493315150370fed69d477ff50b322663">PhysicsObject::applyForce</a>(Vector3 force) 
-<a name="l00129"></a>00129 {
-<a name="l00130"></a>00130     m_force = m_force + force;
-<a name="l00131"></a>00131 }
-<a name="l00132"></a>00132 
-<a name="l00133"></a><a class="code" href="class_physics_object.html#a52671125aa47139b52d5c56debccb7b6">00133</a> <span class="keywordtype">void</span> <a class="code" href="class_physics_object.html#a52671125aa47139b52d5c56debccb7b6">PhysicsObject::clearForces</a>() 
-<a name="l00134"></a>00134 {
-<a name="l00135"></a>00135     m_force = Vector3(0, 0, 0);
-<a name="l00136"></a>00136 }
-<a name="l00137"></a>00137 
-<a name="l00138"></a><a class="code" href="class_physics_object.html#a4d5740f84fd3df4ba4b5becaebf1038f">00138</a> <span class="keywordtype">void</span> <a class="code" href="class_physics_object.html#a4d5740f84fd3df4ba4b5becaebf1038f">PhysicsObject::updatePhysics</a>(Real timeElapsed) 
-<a name="l00139"></a>00139 {
-<a name="l00140"></a>00140     <span class="comment">// if(m_mass == 0) {</span>
-<a name="l00141"></a>00141     <span class="comment">// TODO: Throw exception</span>
-<a name="l00142"></a>00142     <span class="comment">// }</span>
-<a name="l00143"></a>00143     
-<a name="l00144"></a>00144     m_acceleration = m_force / m_mass;
-<a name="l00145"></a>00145     m_velocity = m_velocity + (m_acceleration * timeElapsed);
-<a name="l00146"></a>00146     <a class="code" href="class_base_object.html#ac8452594da304f6a6f5528f215a50be4">setPosition</a>(<a class="code" href="class_base_object.html#a097dbe2865e33b5738642438e0a10dbe">getPosition</a>() + (m_velocity * timeElapsed));
-<a name="l00147"></a>00147 }
+<a name="l00008"></a>00008 <span class="comment">// BaseObject Implementation</span>
+<a name="l00009"></a>00009 <span class="comment">// ========================================================================</span>
+<a name="l00010"></a>00010 
+<a name="l00011"></a><a class="code" href="class_base_object.html#a98205a766a5691f44b47856eb7d327f7">00011</a> <a class="code" href="class_base_object.html#ac9e64a371856dc974183c1b04bfdd0c9">BaseObject::BaseObject</a>(Vector3 position) :
+<a name="l00012"></a>00012     m_position(position), m_orientation(Quaternion::IDENTITY)
+<a name="l00013"></a>00013 {
+<a name="l00014"></a>00014 }
+<a name="l00015"></a>00015 
+<a name="l00016"></a><a class="code" href="class_base_object.html#a2ba00a2d875a757318a0da353efc7f66">00016</a> <a class="code" href="class_base_object.html#ac9e64a371856dc974183c1b04bfdd0c9">BaseObject::BaseObject</a>(<span class="keyword">const</span> <a class="code" href="class_base_object.html">BaseObject</a>&amp; copy) : m_position(copy.m_position), 
+<a name="l00017"></a>00017     m_orientation(copy.m_orientation)
+<a name="l00018"></a>00018 {
+<a name="l00019"></a>00019 }
+<a name="l00020"></a>00020 
+<a name="l00021"></a><a class="code" href="class_base_object.html#ac9e64a371856dc974183c1b04bfdd0c9">00021</a> <a class="code" href="class_base_object.html#ac9e64a371856dc974183c1b04bfdd0c9">BaseObject::BaseObject</a>() : 
+<a name="l00022"></a>00022     m_position(0, 0, 0), m_orientation(Radian(1), Vector3(0, 0, 0))
+<a name="l00023"></a>00023 {
+<a name="l00024"></a>00024 }
+<a name="l00025"></a>00025 
+<a name="l00026"></a><a class="code" href="class_base_object.html#ab05b58df3d85a531da6ec40a3fe4c343">00026</a> <span class="keywordtype">void</span> <a class="code" href="class_base_object.html#ab05b58df3d85a531da6ec40a3fe4c343">BaseObject::yaw</a>(Radian radians)
+<a name="l00027"></a>00027 {
+<a name="l00028"></a>00028     Quaternion q(Radian(radians), Vector3::UNIT_Y);
+<a name="l00029"></a>00029     <a class="code" href="class_base_object.html#a90e7522833181ec5598dc6bf7cca9422">orientation</a>(m_orientation * q);
+<a name="l00030"></a>00030 }
+<a name="l00031"></a>00031 
+<a name="l00032"></a><a class="code" href="class_base_object.html#ad4f39ea20e390d2e26cd852a1b863eb4">00032</a> <span class="keywordtype">void</span> <a class="code" href="class_base_object.html#ad4f39ea20e390d2e26cd852a1b863eb4">BaseObject::roll</a>(Radian radians)
+<a name="l00033"></a>00033 {
+<a name="l00034"></a>00034     Quaternion q(Radian(radians), Vector3::UNIT_Z);
+<a name="l00035"></a>00035     <a class="code" href="class_base_object.html#a90e7522833181ec5598dc6bf7cca9422">orientation</a>(m_orientation * q);
+<a name="l00036"></a>00036 }
+<a name="l00037"></a>00037 
+<a name="l00038"></a><a class="code" href="class_base_object.html#a2f134d171dbf68e3a32cbb0ba12cb9a5">00038</a> <span class="keywordtype">void</span> <a class="code" href="class_base_object.html#a2f134d171dbf68e3a32cbb0ba12cb9a5">BaseObject::pitch</a>(Radian radians)
+<a name="l00039"></a>00039 {
+<a name="l00040"></a>00040     Quaternion q(Radian(radians), Vector3::UNIT_X);
+<a name="l00041"></a>00041     <a class="code" href="class_base_object.html#a90e7522833181ec5598dc6bf7cca9422">orientation</a>(m_orientation * q);
+<a name="l00042"></a>00042 }
+<a name="l00043"></a>00043 
+<a name="l00044"></a><a class="code" href="class_base_object.html#a2a560ffefd82677a669c6d0e86a2afe2">00044</a> <span class="keywordtype">void</span> <a class="code" href="class_base_object.html#a6104c575c6c4250a54eaeb1dfe805c1e">BaseObject::position</a>(Vector3 position)
+<a name="l00045"></a>00045 {
+<a name="l00046"></a>00046     m_position = position;
+<a name="l00047"></a>00047 }
+<a name="l00048"></a>00048 
+<a name="l00049"></a><a class="code" href="class_base_object.html#a4f744067ab0cfdb7541ede521377fc7a">00049</a> Vector3 <a class="code" href="class_base_object.html#a4f744067ab0cfdb7541ede521377fc7a">BaseObject::displacement</a>(<span class="keyword">const</span> <a class="code" href="class_base_object.html">BaseObject</a>&amp; other) {
+<a name="l00050"></a>00050     <span class="keywordflow">return</span> other.<a class="code" href="class_base_object.html#a2a560ffefd82677a669c6d0e86a2afe2">position</a>() - <a class="code" href="class_base_object.html#a6104c575c6c4250a54eaeb1dfe805c1e">position</a>();
+<a name="l00051"></a>00051 }
+<a name="l00052"></a>00052 
+<a name="l00053"></a><a class="code" href="class_base_object.html#a6104c575c6c4250a54eaeb1dfe805c1e">00053</a> Vector3 <a class="code" href="class_base_object.html#a6104c575c6c4250a54eaeb1dfe805c1e">BaseObject::position</a>()<span class="keyword"> const</span>
+<a name="l00054"></a>00054 <span class="keyword"></span>{
+<a name="l00055"></a>00055     <span class="keywordflow">return</span> m_position;
+<a name="l00056"></a>00056 }
+<a name="l00057"></a>00057 
+<a name="l00058"></a><a class="code" href="class_base_object.html#ad1e27f4a8b70a633a2ca3ab3049504c5">00058</a> Vector3 <a class="code" href="class_base_object.html#ad1e27f4a8b70a633a2ca3ab3049504c5">BaseObject::heading</a>()<span class="keyword"> const</span>
+<a name="l00059"></a>00059 <span class="keyword"></span>{
+<a name="l00060"></a>00060     <span class="keywordflow">return</span> m_orientation * Vector3(0, 0, -1);
+<a name="l00061"></a>00061 }
+<a name="l00062"></a>00062 
+<a name="l00063"></a><a class="code" href="class_base_object.html#a5a8a9d729ce4cb30d8b5d68965d35730">00063</a> Vector3 <a class="code" href="class_base_object.html#a5a8a9d729ce4cb30d8b5d68965d35730">BaseObject::normal</a>()<span class="keyword"> const</span>
+<a name="l00064"></a>00064 <span class="keyword"></span>{
+<a name="l00065"></a>00065     <span class="keywordflow">return</span> m_orientation * Vector3(0, 1, 0);
+<a name="l00066"></a>00066 }
+<a name="l00067"></a>00067 
+<a name="l00068"></a><a class="code" href="class_base_object.html#a90e7522833181ec5598dc6bf7cca9422">00068</a> Quaternion <a class="code" href="class_base_object.html#a90e7522833181ec5598dc6bf7cca9422">BaseObject::orientation</a>()<span class="keyword"> const </span>
+<a name="l00069"></a>00069 <span class="keyword"></span>{
+<a name="l00070"></a>00070     <span class="keywordflow">return</span> m_orientation;
+<a name="l00071"></a>00071 }
+<a name="l00072"></a>00072 
+<a name="l00073"></a><a class="code" href="class_base_object.html#a8cb591fbf97ef70f5bdf5e9fc91b2f1a">00073</a> <span class="keywordtype">void</span> <a class="code" href="class_base_object.html#a90e7522833181ec5598dc6bf7cca9422">BaseObject::orientation</a>(Quaternion orientation) {
+<a name="l00074"></a>00074     m_orientation = orientation;
+<a name="l00075"></a>00075     m_orientation.normalise();
+<a name="l00076"></a>00076 }
+<a name="l00077"></a>00077 
+<a name="l00078"></a>00078 
+<a name="l00079"></a>00079 <span class="comment">// ========================================================================</span>
+<a name="l00080"></a>00080 <span class="comment">// PhysicsObject Implementation</span>
+<a name="l00081"></a>00081 <span class="comment">// ========================================================================</span>
+<a name="l00082"></a>00082 
+<a name="l00083"></a><a class="code" href="class_physics_object.html#a04de359a8cae00bff081d2e3460b9995">00083</a> <a class="code" href="class_physics_object.html#a04de359a8cae00bff081d2e3460b9995">PhysicsObject::PhysicsObject</a>(ObjectType type, Real mass, Vector3 position) :
+<a name="l00084"></a>00084     <a class="code" href="class_base_object.html">BaseObject</a>(position), m_type(type), m_mass(mass), m_velocity(0, 0, 0),
+<a name="l00085"></a>00085     m_acceleration(0, 0, 0), m_force(0, 0, 0), m_tempForce(0, 0, 0)
+<a name="l00086"></a>00086 {
+<a name="l00087"></a>00087 }
+<a name="l00088"></a>00088 
+<a name="l00089"></a><a class="code" href="class_physics_object.html#a4a99693545fefc85d81895afae8d7220">00089</a> <a class="code" href="class_physics_object.html#a04de359a8cae00bff081d2e3460b9995">PhysicsObject::PhysicsObject</a>(ObjectType type, Real mass) : <a class="code" href="class_base_object.html">BaseObject</a>(), m_type(type), m_mass(mass), 
+<a name="l00090"></a>00090     m_velocity(0, 0, 0), m_acceleration(0, 0, 0), m_force(0, 0 ,0), m_tempForce(0, 0, 0)
+<a name="l00091"></a>00091 {
+<a name="l00092"></a>00092 }
+<a name="l00093"></a>00093 
+<a name="l00094"></a><a class="code" href="class_physics_object.html#ae1869a54412255612df17578933bdde9">00094</a> <a class="code" href="class_physics_object.html#a04de359a8cae00bff081d2e3460b9995">PhysicsObject::PhysicsObject</a>(<span class="keyword">const</span> <a class="code" href="class_physics_object.html">PhysicsObject</a>&amp; copy) : <a class="code" href="class_base_object.html">BaseObject</a>(copy), m_type(copy.m_type), 
+<a name="l00095"></a>00095     m_mass(copy.m_mass), m_velocity(copy.m_velocity), m_acceleration(copy.m_acceleration),
+<a name="l00096"></a>00096     m_force(copy.m_force), m_tempForce(copy.m_tempForce)
+<a name="l00097"></a>00097 {
+<a name="l00098"></a>00098 }
+<a name="l00099"></a>00099 
+<a name="l00100"></a><a class="code" href="class_physics_object.html#a4566a4d5077d352a2bab63174791fe57">00100</a> ObjectType <a class="code" href="class_physics_object.html#a4566a4d5077d352a2bab63174791fe57">PhysicsObject::type</a>()<span class="keyword"> const</span>
+<a name="l00101"></a>00101 <span class="keyword"></span>{
+<a name="l00102"></a>00102     <span class="keywordflow">return</span> m_type;
+<a name="l00103"></a>00103 }
+<a name="l00104"></a>00104 
+<a name="l00105"></a><a class="code" href="class_physics_object.html#a3775a4936fd88ce66632088aa7e9d26e">00105</a> Real <a class="code" href="class_physics_object.html#a3775a4936fd88ce66632088aa7e9d26e">PhysicsObject::mass</a>()<span class="keyword"> const</span>
+<a name="l00106"></a>00106 <span class="keyword"></span>{
+<a name="l00107"></a>00107     <span class="keywordflow">return</span> m_mass;
+<a name="l00108"></a>00108 }
+<a name="l00109"></a>00109 
+<a name="l00110"></a><a class="code" href="class_physics_object.html#a7804c67b7896c1c8ce4b5efee6ecef9c">00110</a> <span class="keywordtype">void</span> <a class="code" href="class_physics_object.html#a7804c67b7896c1c8ce4b5efee6ecef9c">PhysicsObject::velocity</a>(Vector3 velocity) 
+<a name="l00111"></a>00111 {
+<a name="l00112"></a>00112     m_velocity = velocity;
+<a name="l00113"></a>00113 }
+<a name="l00114"></a>00114 
+<a name="l00115"></a><a class="code" href="class_physics_object.html#ae538f2938d24578e3a8e947ab3e5f495">00115</a> <span class="keywordtype">void</span> <a class="code" href="class_physics_object.html#aa1ffb528157ba63fc4d328ad8f72964b">PhysicsObject::acceleration</a>(Vector3 acceleration) 
+<a name="l00116"></a>00116 {
+<a name="l00117"></a>00117     m_acceleration = acceleration;
+<a name="l00118"></a>00118 }
+<a name="l00119"></a>00119 
+<a name="l00120"></a><a class="code" href="class_physics_object.html#aa1ee2925ae45f6e8b852e75bee8d7837">00120</a> Vector3 <a class="code" href="class_physics_object.html#aa1ee2925ae45f6e8b852e75bee8d7837">PhysicsObject::getVelocity</a>()<span class="keyword"> const</span>
+<a name="l00121"></a>00121 <span class="keyword"></span>{
+<a name="l00122"></a>00122     <span class="keywordflow">return</span> m_velocity;
+<a name="l00123"></a>00123 }
+<a name="l00124"></a>00124 
+<a name="l00125"></a><a class="code" href="class_physics_object.html#aa1ffb528157ba63fc4d328ad8f72964b">00125</a> Vector3 <a class="code" href="class_physics_object.html#aa1ffb528157ba63fc4d328ad8f72964b">PhysicsObject::acceleration</a>()<span class="keyword"> const</span>
+<a name="l00126"></a>00126 <span class="keyword"></span>{
+<a name="l00127"></a>00127     <span class="keywordflow">return</span> m_acceleration;
+<a name="l00128"></a>00128 }
+<a name="l00129"></a>00129 
+<a name="l00130"></a><a class="code" href="class_physics_object.html#a07d88657f04e54a23207a6e815cc20c1">00130</a> Vector3 <a class="code" href="class_physics_object.html#a07d88657f04e54a23207a6e815cc20c1">PhysicsObject::sumForces</a>()<span class="keyword"> const</span>
+<a name="l00131"></a>00131 <span class="keyword"></span>{
+<a name="l00132"></a>00132     <span class="keywordflow">return</span> m_force;
+<a name="l00133"></a>00133 }
+<a name="l00134"></a>00134 
+<a name="l00135"></a><a class="code" href="class_physics_object.html#af213f1a65c4491a68c0954588a517663">00135</a> Vector3 <a class="code" href="class_physics_object.html#af213f1a65c4491a68c0954588a517663">PhysicsObject::sumTempForces</a>()<span class="keyword"> const</span>
+<a name="l00136"></a>00136 <span class="keyword"></span>{
+<a name="l00137"></a>00137     <span class="keywordflow">return</span> m_tempForce;
+<a name="l00138"></a>00138 }
+<a name="l00139"></a>00139 
+<a name="l00140"></a><a class="code" href="class_physics_object.html#a493315150370fed69d477ff50b322663">00140</a> <span class="keywordtype">void</span> <a class="code" href="class_physics_object.html#a493315150370fed69d477ff50b322663">PhysicsObject::applyForce</a>(Vector3 force) 
+<a name="l00141"></a>00141 {
+<a name="l00142"></a>00142     m_force = m_force + force;
+<a name="l00143"></a>00143 }
+<a name="l00144"></a>00144 
+<a name="l00145"></a><a class="code" href="class_physics_object.html#a5a7fbcfacf83f5b6b01d73deda3f8811">00145</a> <span class="keywordtype">void</span> <a class="code" href="class_physics_object.html#a5a7fbcfacf83f5b6b01d73deda3f8811">PhysicsObject::applyTempForce</a>(Vector3 force) 
+<a name="l00146"></a>00146 {
+<a name="l00147"></a>00147     m_tempForce = m_tempForce + force;
+<a name="l00148"></a>00148 }
+<a name="l00149"></a>00149 
+<a name="l00150"></a><a class="code" href="class_physics_object.html#a52671125aa47139b52d5c56debccb7b6">00150</a> <span class="keywordtype">void</span> <a class="code" href="class_physics_object.html#a52671125aa47139b52d5c56debccb7b6">PhysicsObject::clearForces</a>() 
+<a name="l00151"></a>00151 {
+<a name="l00152"></a>00152     m_force = Vector3(0, 0, 0);
+<a name="l00153"></a>00153     m_tempForce = Vector3(0, 0, 0);
+<a name="l00154"></a>00154 }
+<a name="l00155"></a>00155 
+<a name="l00156"></a><a class="code" href="class_physics_object.html#a4d5740f84fd3df4ba4b5becaebf1038f">00156</a> <span class="keywordtype">void</span> <a class="code" href="class_physics_object.html#a4d5740f84fd3df4ba4b5becaebf1038f">PhysicsObject::updatePhysics</a>(Real timeElapsed) 
+<a name="l00157"></a>00157 {
+<a name="l00158"></a>00158     <span class="comment">// if(m_mass == 0) {</span>
+<a name="l00159"></a>00159     <span class="comment">// TODO: Throw exception</span>
+<a name="l00160"></a>00160     <span class="comment">// }</span>
+<a name="l00161"></a>00161     
+<a name="l00162"></a>00162     m_acceleration = (m_force + m_tempForce) / m_mass;
+<a name="l00163"></a>00163     m_velocity = m_velocity + (m_acceleration * timeElapsed);
+<a name="l00164"></a>00164     <a class="code" href="class_base_object.html#a6104c575c6c4250a54eaeb1dfe805c1e">position</a>(<a class="code" href="class_base_object.html#a6104c575c6c4250a54eaeb1dfe805c1e">position</a>() + (m_velocity * timeElapsed));
+<a name="l00165"></a>00165     m_tempForce = Vector3(0, 0, 0);
+<a name="l00166"></a>00166 }
+<a name="l00167"></a>00167 
+<a name="l00168"></a>00168 
+<a name="l00169"></a>00169 <span class="comment">// ========================================================================</span>
+<a name="l00170"></a>00170 <span class="comment">// Constraint Implementation</span>
+<a name="l00171"></a>00171 <span class="comment">// ========================================================================</span>
+<a name="l00172"></a><a class="code" href="class_constraint.html#af0c237056aaf0f53adafb9a02fa6fd43">00172</a> <a class="code" href="class_constraint.html#af0c237056aaf0f53adafb9a02fa6fd43">Constraint::Constraint</a>(<a class="code" href="class_physics_object.html">PhysicsObject</a> * origin, <a class="code" href="class_physics_object.html">PhysicsObject</a> * target) :
+<a name="l00173"></a>00173     m_origin(origin), m_target(target), 
+<a name="l00174"></a>00174     m_distance(origin-&gt;displacement(*((<a class="code" href="class_base_object.html">BaseObject</a> *)target)).length())
+<a name="l00175"></a>00175 {
+<a name="l00176"></a>00176 }
+<a name="l00177"></a>00177 
+<a name="l00178"></a><a class="code" href="class_constraint.html#a1b04ecbce4432f1871b54a3f6076bea3">00178</a> <a class="code" href="class_constraint.html#af0c237056aaf0f53adafb9a02fa6fd43">Constraint::Constraint</a>(<span class="keyword">const</span> <a class="code" href="class_constraint.html">Constraint</a>&amp; copy) :
+<a name="l00179"></a>00179     m_origin(copy.m_origin), m_target(copy.m_target), m_distance(copy.m_distance)
+<a name="l00180"></a>00180 {
+<a name="l00181"></a>00181 }
+<a name="l00182"></a>00182 
+<a name="l00183"></a><a class="code" href="class_constraint.html#a3cdfcae1d7c8139ea484a241a03a26d5">00183</a> <a class="code" href="class_physics_object.html">PhysicsObject</a> * <a class="code" href="class_constraint.html#a3cdfcae1d7c8139ea484a241a03a26d5">Constraint::getOrigin</a>()
+<a name="l00184"></a>00184 {
+<a name="l00185"></a>00185     <span class="keywordflow">return</span> m_origin;
+<a name="l00186"></a>00186 }
+<a name="l00187"></a>00187 
+<a name="l00188"></a><a class="code" href="class_constraint.html#a50f128d52a156c2d5652b40bb2152bf7">00188</a> <a class="code" href="class_physics_object.html">PhysicsObject</a> * <a class="code" href="class_constraint.html#a50f128d52a156c2d5652b40bb2152bf7">Constraint::getTarget</a>()
+<a name="l00189"></a>00189 {
+<a name="l00190"></a>00190     <span class="keywordflow">return</span> m_target;
+<a name="l00191"></a>00191 }
+<a name="l00192"></a>00192 
+<a name="l00193"></a><a class="code" href="class_constraint.html#a1cc9554c4a106ead7ba947513bd2ecf7">00193</a> <span class="keywordtype">void</span> <a class="code" href="class_constraint.html#a1cc9554c4a106ead7ba947513bd2ecf7">Constraint::applyForces</a>(Real timeElapsed)
+<a name="l00194"></a>00194 {
+<a name="l00195"></a>00195     <span class="comment">// Spring based constraint</span>
+<a name="l00196"></a>00196     <span class="comment">/*</span>
+<a name="l00197"></a>00197 <span class="comment">    Real distance = m_origin-&gt;displacement(*m_target).length();</span>
+<a name="l00198"></a>00198 <span class="comment">    Real appliedForce = Math::Pow((distance - m_distance), 2) * 1 + Math::Abs(distance - m_distance) * 3;</span>
+<a name="l00199"></a>00199 <span class="comment">    if(distance &lt; m_distance) {</span>
+<a name="l00200"></a>00200 <span class="comment">        appliedForce = -appliedForce;</span>
+<a name="l00201"></a>00201 <span class="comment">    }</span>
+<a name="l00202"></a>00202 <span class="comment"></span>
+<a name="l00203"></a>00203 <span class="comment">    m_origin-&gt;applyTempForce((m_origin-&gt;displacement(*m_target)).normalisedCopy()</span>
+<a name="l00204"></a>00204 <span class="comment">        * appliedForce);</span>
+<a name="l00205"></a>00205 <span class="comment"></span>
+<a name="l00206"></a>00206 <span class="comment">    m_target-&gt;applyTempForce((m_target-&gt;displacement(*m_origin)).normalisedCopy()</span>
+<a name="l00207"></a>00207 <span class="comment">        * appliedForce);</span>
+<a name="l00208"></a>00208 <span class="comment">    */</span>
+<a name="l00209"></a>00209 
+<a name="l00210"></a>00210     <span class="comment">// Orbit constraint</span>
+<a name="l00211"></a>00211     Vector3 normalVector = m_target-&gt;<a class="code" href="class_base_object.html#a4f744067ab0cfdb7541ede521377fc7a">displacement</a>(*m_origin);
+<a name="l00212"></a>00212     <span class="keywordflow">if</span>(normalVector.length() &gt; m_distance) {
+<a name="l00213"></a>00213         Plane normalPlane = Plane(normalVector, 0);
+<a name="l00214"></a>00214         normalPlane.normalise();
+<a name="l00215"></a>00215         Vector3 curVelocity = m_origin-&gt;<a class="code" href="class_physics_object.html#aa1ee2925ae45f6e8b852e75bee8d7837">getVelocity</a>() - m_target-&gt;<a class="code" href="class_physics_object.html#aa1ee2925ae45f6e8b852e75bee8d7837">getVelocity</a>();
+<a name="l00216"></a>00216         Vector3 desiredVelocity = normalPlane.projectVector(curVelocity) + m_target-&gt;<a class="code" href="class_physics_object.html#aa1ee2925ae45f6e8b852e75bee8d7837">getVelocity</a>();
+<a name="l00217"></a>00217         Vector3 velocityOffset = desiredVelocity - m_origin-&gt;<a class="code" href="class_physics_object.html#aa1ee2925ae45f6e8b852e75bee8d7837">getVelocity</a>();
+<a name="l00218"></a>00218     
+<a name="l00219"></a>00219         m_origin-&gt;<a class="code" href="class_physics_object.html#a5a7fbcfacf83f5b6b01d73deda3f8811">applyTempForce</a>(((velocityOffset * m_origin-&gt;<a class="code" href="class_physics_object.html#a3775a4936fd88ce66632088aa7e9d26e">mass</a>()) / timeElapsed));
+<a name="l00220"></a>00220     }
+<a name="l00221"></a>00221 }
+<a name="l00222"></a>00222 
+<a name="l00223"></a>00223 
+<a name="l00224"></a>00224 <span class="comment">// ========================================================================</span>
+<a name="l00225"></a>00225 <span class="comment">// SphereCollisionObject Implementation</span>
+<a name="l00226"></a>00226 <span class="comment">// ========================================================================</span>
+<a name="l00227"></a>00227 
+<a name="l00228"></a><a class="code" href="class_sphere_collision_object.html#a92662478bc2a42aa45bea499d26e2ac7">00228</a> <a class="code" href="class_sphere_collision_object.html#a92662478bc2a42aa45bea499d26e2ac7">SphereCollisionObject::SphereCollisionObject</a>(ObjectType type, Real radius, Real mass, Vector3 position)
+<a name="l00229"></a>00229     : <a class="code" href="class_physics_object.html">PhysicsObject</a>(type, mass, position), m_radius(radius)
+<a name="l00230"></a>00230 {
+<a name="l00231"></a>00231 }
+<a name="l00232"></a>00232 
+<a name="l00233"></a><a class="code" href="class_sphere_collision_object.html#afb564f2d212b2b04ed7b2cbf5c6b7f0a">00233</a> <a class="code" href="class_sphere_collision_object.html#a92662478bc2a42aa45bea499d26e2ac7">SphereCollisionObject::SphereCollisionObject</a>(ObjectType type, Real radius, Real mass)
+<a name="l00234"></a>00234     : <a class="code" href="class_physics_object.html">PhysicsObject</a>(type, mass), m_radius(radius)
+<a name="l00235"></a>00235 {
+<a name="l00236"></a>00236 }
+<a name="l00237"></a>00237 
+<a name="l00238"></a><a class="code" href="class_sphere_collision_object.html#a26e188a4403e9229c881d10eae2cfa8f">00238</a> <a class="code" href="class_sphere_collision_object.html#a92662478bc2a42aa45bea499d26e2ac7">SphereCollisionObject::SphereCollisionObject</a>(<span class="keyword">const</span> <a class="code" href="class_sphere_collision_object.html">SphereCollisionObject</a>&amp; copy)
+<a name="l00239"></a>00239     : <a class="code" href="class_physics_object.html">PhysicsObject</a>(copy), m_radius(copy.m_radius)
+<a name="l00240"></a>00240 {
+<a name="l00241"></a>00241 }
+<a name="l00242"></a>00242 
+<a name="l00243"></a><a class="code" href="class_sphere_collision_object.html#aa56481bcd3adbc17c888b38d8bd3e8c2">00243</a> Real <a class="code" href="class_sphere_collision_object.html#aa56481bcd3adbc17c888b38d8bd3e8c2">SphereCollisionObject::radius</a>()<span class="keyword"> const</span>
+<a name="l00244"></a>00244 <span class="keyword"></span>{
+<a name="l00245"></a>00245     <span class="keywordflow">return</span> m_radius;
+<a name="l00246"></a>00246 }
+<a name="l00247"></a>00247 
+<a name="l00248"></a><a class="code" href="class_sphere_collision_object.html#a4258614834411d6012e59af2125edba1">00248</a> <span class="keywordtype">bool</span> <a class="code" href="class_sphere_collision_object.html#a4258614834411d6012e59af2125edba1">SphereCollisionObject::checkCollision</a>(<span class="keyword">const</span> <a class="code" href="class_sphere_collision_object.html">SphereCollisionObject</a>&amp; <span class="keywordtype">object</span>)<span class="keyword"> const</span>
+<a name="l00249"></a>00249 <span class="keyword"></span>{ 
+<a name="l00250"></a>00250     <span class="keywordflow">return</span> <a class="code" href="class_base_object.html#a6104c575c6c4250a54eaeb1dfe805c1e">position</a>().squaredDistance(<span class="keywordtype">object</span>.<a class="code" href="class_base_object.html#a6104c575c6c4250a54eaeb1dfe805c1e">position</a>()) &lt;= Math::Pow(<a class="code" href="class_sphere_collision_object.html#aa56481bcd3adbc17c888b38d8bd3e8c2">radius</a>() + <span class="keywordtype">object</span>.<a class="code" href="class_sphere_collision_object.html#aa56481bcd3adbc17c888b38d8bd3e8c2">radius</a>(), 2);
+<a name="l00251"></a>00251 }
 </pre></div></div>
-<hr class="footer"/><address style="text-align: right;"><small>Generated on Thu Apr 21 03:31:28 2011 for OreWar by&nbsp;
+<hr class="footer"/><address style="text-align: right;"><small>Generated on Wed Jun 8 21:25:19 2011 for OreWar by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.6.3 </small></address>
 </body>

@@ -34,7 +34,7 @@
 <a name="l00011"></a>00011 <span class="comment"> * Enumeration used for differentiating between different types of PhysicsObjects</span>
 <a name="l00012"></a>00012 <span class="comment"> * TODO: This should probably be handled through subclassing</span>
 <a name="l00013"></a>00013 <span class="comment"> */</span>
-<a name="l00014"></a>00014 <span class="keyword">enum</span> ObjectType { SHIP, PROJECTILE };
+<a name="l00014"></a>00014 <span class="keyword">enum</span> ObjectType { SHIP, NPC_SHIP, PROJECTILE, ANCHOR_PROJECTILE };
 <a name="l00015"></a>00015 
 <a name="l00016"></a>00016 <span class="comment"></span>
 <a name="l00017"></a>00017 <span class="comment">/**</span>
@@ -54,127 +54,212 @@
 <a name="l00031"></a>00031 <span class="comment">    /** The current orientation of the object (as a rotation from the base &lt;0, 0, -1&gt; heading) */</span>
 <a name="l00032"></a>00032     Quaternion m_orientation;
 <a name="l00033"></a>00033 
-<a name="l00034"></a>00034 <span class="keyword">public</span>:
-<a name="l00035"></a>00035 <span class="comment"></span>
-<a name="l00036"></a>00036 <span class="comment">    /** Construct a new BaseObject at a specified position with default heading (&lt;0, 0,-1&gt;) */</span>
-<a name="l00037"></a>00037     <a class="code" href="class_base_object.html#ac9e64a371856dc974183c1b04bfdd0c9">BaseObject</a>(Vector3 position);
-<a name="l00038"></a>00038 <span class="comment"></span>
-<a name="l00039"></a>00039 <span class="comment">    /** Copy constructor */</span>
-<a name="l00040"></a>00040     <a class="code" href="class_base_object.html#ac9e64a371856dc974183c1b04bfdd0c9">BaseObject</a>(<span class="keyword">const</span> <a class="code" href="class_base_object.html">BaseObject</a>&amp; copy);
-<a name="l00041"></a>00041 <span class="comment"></span>
-<a name="l00042"></a>00042 <span class="comment">    /** Construct a new BaseObject at the origin with default heading (&lt;0, 0,-1&gt;) */</span>
-<a name="l00043"></a>00043     <a class="code" href="class_base_object.html#ac9e64a371856dc974183c1b04bfdd0c9">BaseObject</a>();
-<a name="l00044"></a>00044 <span class="comment"></span>
-<a name="l00045"></a>00045 <span class="comment">    /** Yaw the object by the specified number of radians (positive for right yaw) */</span>
-<a name="l00046"></a>00046     <span class="keywordtype">void</span> <a class="code" href="class_base_object.html#ab05b58df3d85a531da6ec40a3fe4c343">yaw</a>(Radian radians);
-<a name="l00047"></a>00047 <span class="comment"></span>
-<a name="l00048"></a>00048 <span class="comment">    /** Roll the object by the specified number of radians (positive for counter-clockwise roll) */</span>
-<a name="l00049"></a>00049     <span class="keywordtype">void</span> <a class="code" href="class_base_object.html#ad4f39ea20e390d2e26cd852a1b863eb4">roll</a>(Radian radians);
-<a name="l00050"></a>00050 <span class="comment"></span>
-<a name="l00051"></a>00051 <span class="comment">    /** Pitch the object by the specified number of radians (positive for forward pitch) */</span>
-<a name="l00052"></a>00052     <span class="keywordtype">void</span> <a class="code" href="class_base_object.html#a2f134d171dbf68e3a32cbb0ba12cb9a5">pitch</a>(Radian radians);
-<a name="l00053"></a>00053 <span class="comment"></span>
-<a name="l00054"></a>00054 <span class="comment">    /** Sets the position of the object */</span>
-<a name="l00055"></a>00055     <span class="keywordtype">void</span> <a class="code" href="class_base_object.html#ac8452594da304f6a6f5528f215a50be4">setPosition</a>(Vector3 position);
-<a name="l00056"></a>00056 <span class="comment"></span>
-<a name="l00057"></a>00057 <span class="comment">    /** @return The position of the object */</span>
-<a name="l00058"></a>00058     Vector3 <a class="code" href="class_base_object.html#a097dbe2865e33b5738642438e0a10dbe">getPosition</a>() <span class="keyword">const</span>;
-<a name="l00059"></a>00059 <span class="comment"></span>
-<a name="l00060"></a>00060 <span class="comment">    /** @return The heading of the object (normalised vector pointing &quot;forward&quot; fom it&#39;s current orientation) */</span>
-<a name="l00061"></a>00061     Vector3 <a class="code" href="class_base_object.html#a7c124ce28f101d870680672f62e69ad2">getHeading</a>() <span class="keyword">const</span>;
-<a name="l00062"></a>00062 <span class="comment"></span>
-<a name="l00063"></a>00063 <span class="comment">    /** @return The normal vector of the object (normalised vector pointing &quot;up&quot; from it&#39;s current orientation) */</span>
-<a name="l00064"></a>00064     Vector3 <a class="code" href="class_base_object.html#a450af981f711e79b2b72488f4383d613">getNormal</a>() <span class="keyword">const</span>;
-<a name="l00065"></a>00065 <span class="comment"></span>
-<a name="l00066"></a>00066 <span class="comment">    /** @return The orientation quaternion of the object (with &lt;0, 0, -1&gt; as the base heading) */</span>
-<a name="l00067"></a>00067     Quaternion <a class="code" href="class_base_object.html#a6983854d73e5d568eeeb29b180e04b7d">getOrientation</a>() <span class="keyword">const</span>;
-<a name="l00068"></a>00068 <span class="comment"></span>
-<a name="l00069"></a>00069 <span class="comment">    /** Sets the orientation of the object */</span>
-<a name="l00070"></a>00070     <span class="keywordtype">void</span> <a class="code" href="class_base_object.html#a4428a82048ff771129b169515244a0e4">setOrientation</a>(Quaternion orientation);
-<a name="l00071"></a>00071 };
-<a name="l00072"></a>00072 
-<a name="l00073"></a>00073 <span class="comment"></span>
-<a name="l00074"></a>00074 <span class="comment">/**</span>
-<a name="l00075"></a>00075 <span class="comment"> * The PhysicsObject class represents an object in the OreWar game world which is subject</span>
-<a name="l00076"></a>00076 <span class="comment"> * to physics simulation. Physics objects have a set mass, and forces can be applied</span>
-<a name="l00077"></a>00077 <span class="comment"> * to produce motion when the updatePosition() method is called. The velocity and acceleration</span>
-<a name="l00078"></a>00078 <span class="comment"> * can also be directly manipulated in cases where forces are unnecessary. All properties</span>
-<a name="l00079"></a>00079 <span class="comment"> * use the same coordinate orientation as those in the BaseObject class.</span>
-<a name="l00080"></a>00080 <span class="comment"> */</span>
-<a name="l00081"></a><a class="code" href="class_physics_object.html">00081</a> <span class="keyword">class </span><a class="code" href="class_physics_object.html">PhysicsObject</a> : <span class="keyword">public</span> <a class="code" href="class_base_object.html">BaseObject</a>
-<a name="l00082"></a>00082 {
-<a name="l00083"></a>00083 <span class="keyword">private</span>:<span class="comment"></span>
-<a name="l00084"></a>00084 <span class="comment">    /** The type of the object (see ObjectType enum) */</span>
-<a name="l00085"></a>00085     ObjectType m_type;
-<a name="l00086"></a>00086 <span class="comment"></span>
-<a name="l00087"></a>00087 <span class="comment">    /** The mass of the object */</span>
-<a name="l00088"></a>00088     Real m_mass;
-<a name="l00089"></a>00089 <span class="comment"></span>
-<a name="l00090"></a>00090 <span class="comment">    /** The velocity of the object */</span>
-<a name="l00091"></a>00091     Vector3 m_velocity;
-<a name="l00092"></a>00092 <span class="comment"></span>
-<a name="l00093"></a>00093 <span class="comment">    /** The acceleration of the object */</span>
-<a name="l00094"></a>00094     Vector3 m_acceleration;
-<a name="l00095"></a>00095 <span class="comment"></span>
-<a name="l00096"></a>00096 <span class="comment">    /** The sum vector of all forces current applied on the object */</span>
-<a name="l00097"></a>00097     Vector3 m_force;
-<a name="l00098"></a>00098 <span class="keyword">public</span>:<span class="comment"></span>
-<a name="l00099"></a>00099 <span class="comment">    /** </span>
-<a name="l00100"></a>00100 <span class="comment">     * Construct a PhysicsObject at the given position coordinates with the</span>
-<a name="l00101"></a>00101 <span class="comment">     * specified mass and default heading (&lt;0, 0, -1&gt;).</span>
-<a name="l00102"></a>00102 <span class="comment">     */</span>
-<a name="l00103"></a>00103     <a class="code" href="class_physics_object.html#a04de359a8cae00bff081d2e3460b9995">PhysicsObject</a>(ObjectType type, Real mass, Vector3 position);
-<a name="l00104"></a>00104 <span class="comment"></span>
-<a name="l00105"></a>00105 <span class="comment">    /**</span>
-<a name="l00106"></a>00106 <span class="comment">     * Construct a PhysicsObject at the origin with the specified mass </span>
-<a name="l00107"></a>00107 <span class="comment">     * with default heading (&lt;0, 0, -1&gt;)</span>
-<a name="l00108"></a>00108 <span class="comment">     */</span>
-<a name="l00109"></a>00109     <a class="code" href="class_physics_object.html#a04de359a8cae00bff081d2e3460b9995">PhysicsObject</a>(ObjectType type, Real mass);
-<a name="l00110"></a>00110 <span class="comment"></span>
-<a name="l00111"></a>00111 <span class="comment">    /** Copy constructor */</span>
-<a name="l00112"></a>00112     <a class="code" href="class_physics_object.html#a04de359a8cae00bff081d2e3460b9995">PhysicsObject</a>(<span class="keyword">const</span> <a class="code" href="class_physics_object.html">PhysicsObject</a>&amp; copy);
+<a name="l00034"></a>00034 <span class="keyword">public</span>:<span class="comment"></span>
+<a name="l00035"></a>00035 <span class="comment">    /** Construct a new BaseObject at a specified position with default heading (&lt;0, 0,-1&gt;) */</span>
+<a name="l00036"></a>00036     <a class="code" href="class_base_object.html#ac9e64a371856dc974183c1b04bfdd0c9">BaseObject</a>(Vector3 <a class="code" href="class_base_object.html#a6104c575c6c4250a54eaeb1dfe805c1e">position</a>);
+<a name="l00037"></a>00037 <span class="comment"></span>
+<a name="l00038"></a>00038 <span class="comment">    /** Copy constructor */</span>
+<a name="l00039"></a>00039     <a class="code" href="class_base_object.html#ac9e64a371856dc974183c1b04bfdd0c9">BaseObject</a>(<span class="keyword">const</span> <a class="code" href="class_base_object.html">BaseObject</a>&amp; copy);
+<a name="l00040"></a>00040 <span class="comment"></span>
+<a name="l00041"></a>00041 <span class="comment">    /** Construct a new BaseObject at the origin with default heading (&lt;0, 0,-1&gt;) */</span>
+<a name="l00042"></a>00042     <a class="code" href="class_base_object.html#ac9e64a371856dc974183c1b04bfdd0c9">BaseObject</a>();
+<a name="l00043"></a>00043 <span class="comment"></span>
+<a name="l00044"></a>00044 <span class="comment">    /** Yaw the object by the specified number of radians (positive for right yaw) */</span>
+<a name="l00045"></a>00045     <span class="keywordtype">void</span> <a class="code" href="class_base_object.html#ab05b58df3d85a531da6ec40a3fe4c343">yaw</a>(Radian radians);
+<a name="l00046"></a>00046 <span class="comment"></span>
+<a name="l00047"></a>00047 <span class="comment">    /** Roll the object by the specified number of radians (positive for counter-clockwise roll) */</span>
+<a name="l00048"></a>00048     <span class="keywordtype">void</span> <a class="code" href="class_base_object.html#ad4f39ea20e390d2e26cd852a1b863eb4">roll</a>(Radian radians);
+<a name="l00049"></a>00049 <span class="comment"></span>
+<a name="l00050"></a>00050 <span class="comment">    /** Pitch the object by the specified number of radians (positive for forward pitch) */</span>
+<a name="l00051"></a>00051     <span class="keywordtype">void</span> <a class="code" href="class_base_object.html#a2f134d171dbf68e3a32cbb0ba12cb9a5">pitch</a>(Radian radians);
+<a name="l00052"></a>00052 <span class="comment"></span>
+<a name="l00053"></a>00053 <span class="comment">    /** Sets the position of the object */</span>
+<a name="l00054"></a>00054     <span class="keywordtype">void</span> <a class="code" href="class_base_object.html#a6104c575c6c4250a54eaeb1dfe805c1e">position</a>(Vector3 position);
+<a name="l00055"></a>00055 <span class="comment"></span>
+<a name="l00056"></a>00056 <span class="comment">    /** Calculates the relative displacement between this object and the specified object */</span>
+<a name="l00057"></a>00057     Vector3 <a class="code" href="class_base_object.html#a4f744067ab0cfdb7541ede521377fc7a">displacement</a>(<span class="keyword">const</span> <a class="code" href="class_base_object.html">BaseObject</a>&amp; other);
+<a name="l00058"></a>00058 <span class="comment"></span>
+<a name="l00059"></a>00059 <span class="comment">    /** @return The position of the object */</span>
+<a name="l00060"></a>00060     Vector3 <a class="code" href="class_base_object.html#a6104c575c6c4250a54eaeb1dfe805c1e">position</a>() <span class="keyword">const</span>;
+<a name="l00061"></a>00061 <span class="comment"></span>
+<a name="l00062"></a>00062 <span class="comment">    /** @return The heading of the object (normalised vector pointing &quot;forward&quot; fom it&#39;s current orientation) */</span>
+<a name="l00063"></a>00063     Vector3 <a class="code" href="class_base_object.html#ad1e27f4a8b70a633a2ca3ab3049504c5">heading</a>() <span class="keyword">const</span>;
+<a name="l00064"></a>00064 <span class="comment"></span>
+<a name="l00065"></a>00065 <span class="comment">    /** @return The normal vector of the object (normalised vector pointing &quot;up&quot; from it&#39;s current orientation) */</span>
+<a name="l00066"></a>00066     Vector3 <a class="code" href="class_base_object.html#a5a8a9d729ce4cb30d8b5d68965d35730">normal</a>() <span class="keyword">const</span>;
+<a name="l00067"></a>00067 <span class="comment"></span>
+<a name="l00068"></a>00068 <span class="comment">    /** @return The orientation quaternion of the object (with &lt;0, 0, -1&gt; as the base heading) */</span>
+<a name="l00069"></a>00069     Quaternion <a class="code" href="class_base_object.html#a90e7522833181ec5598dc6bf7cca9422">orientation</a>() <span class="keyword">const</span>;
+<a name="l00070"></a>00070 <span class="comment"></span>
+<a name="l00071"></a>00071 <span class="comment">    /** Sets the orientation of the object */</span>
+<a name="l00072"></a>00072     <span class="keywordtype">void</span> <a class="code" href="class_base_object.html#a90e7522833181ec5598dc6bf7cca9422">orientation</a>(Quaternion orientation);
+<a name="l00073"></a>00073 };
+<a name="l00074"></a>00074 
+<a name="l00075"></a>00075 <span class="comment"></span>
+<a name="l00076"></a>00076 <span class="comment">/**</span>
+<a name="l00077"></a>00077 <span class="comment"> * The PhysicsObject class represents an object in the OreWar game world which is subject</span>
+<a name="l00078"></a>00078 <span class="comment"> * to physics simulation. Physics objects have a set mass, and forces can be applied</span>
+<a name="l00079"></a>00079 <span class="comment"> * to produce motion when the updatePosition() method is called. The velocity and acceleration</span>
+<a name="l00080"></a>00080 <span class="comment"> * can also be directly manipulated in cases where forces are unnecessary. All properties</span>
+<a name="l00081"></a>00081 <span class="comment"> * use the same coordinate orientation as those in the BaseObject class.</span>
+<a name="l00082"></a>00082 <span class="comment"> */</span>
+<a name="l00083"></a><a class="code" href="class_physics_object.html">00083</a> <span class="keyword">class </span><a class="code" href="class_physics_object.html">PhysicsObject</a> : <span class="keyword">public</span> <a class="code" href="class_base_object.html">BaseObject</a>
+<a name="l00084"></a>00084 {
+<a name="l00085"></a>00085 <span class="keyword">private</span>:<span class="comment"></span>
+<a name="l00086"></a>00086 <span class="comment">    /** The type of the object (see ObjectType enum) */</span>
+<a name="l00087"></a>00087     ObjectType m_type;
+<a name="l00088"></a>00088 <span class="comment"></span>
+<a name="l00089"></a>00089 <span class="comment">    /** The mass of the object */</span>
+<a name="l00090"></a>00090     Real m_mass;
+<a name="l00091"></a>00091 <span class="comment"></span>
+<a name="l00092"></a>00092 <span class="comment">    /** The velocity of the object */</span>
+<a name="l00093"></a>00093     Vector3 m_velocity;
+<a name="l00094"></a>00094 <span class="comment"></span>
+<a name="l00095"></a>00095 <span class="comment">    /** The acceleration of the object */</span>
+<a name="l00096"></a>00096     Vector3 m_acceleration;
+<a name="l00097"></a>00097 <span class="comment"></span>
+<a name="l00098"></a>00098 <span class="comment">    /** The sum vector of all persistent forces current applied on the object. */</span>
+<a name="l00099"></a>00099     Vector3 m_force;
+<a name="l00100"></a>00100 <span class="comment"></span>
+<a name="l00101"></a>00101 <span class="comment">    /** </span>
+<a name="l00102"></a>00102 <span class="comment">     * The sum vector of all temporary forces currently applied on the object.</span>
+<a name="l00103"></a>00103 <span class="comment">     * Temporary forces are cleared on each physics update.</span>
+<a name="l00104"></a>00104 <span class="comment">     */</span>
+<a name="l00105"></a>00105     Vector3 m_tempForce;
+<a name="l00106"></a>00106 
+<a name="l00107"></a>00107 <span class="keyword">public</span>:<span class="comment"></span>
+<a name="l00108"></a>00108 <span class="comment">    /** </span>
+<a name="l00109"></a>00109 <span class="comment">     * Construct a PhysicsObject at the given position coordinates with the</span>
+<a name="l00110"></a>00110 <span class="comment">     * specified mass and default heading (&lt;0, 0, -1&gt;).</span>
+<a name="l00111"></a>00111 <span class="comment">     */</span>
+<a name="l00112"></a>00112     <a class="code" href="class_physics_object.html#a04de359a8cae00bff081d2e3460b9995">PhysicsObject</a>(ObjectType <a class="code" href="class_physics_object.html#a4566a4d5077d352a2bab63174791fe57">type</a>, Real <a class="code" href="class_physics_object.html#a3775a4936fd88ce66632088aa7e9d26e">mass</a>, Vector3 <a class="code" href="class_base_object.html#a6104c575c6c4250a54eaeb1dfe805c1e">position</a>);
 <a name="l00113"></a>00113 <span class="comment"></span>
-<a name="l00114"></a>00114 <span class="comment">    /** @return The type of the object (see ObjectType enum) */</span>
-<a name="l00115"></a>00115     ObjectType <a class="code" href="class_physics_object.html#a693a933664bdc6d1f27fd962140ab428">getType</a>() <span class="keyword">const</span>;
-<a name="l00116"></a>00116 <span class="comment"></span>
-<a name="l00117"></a>00117 <span class="comment">    /** @return The mass of the object */</span>
-<a name="l00118"></a>00118     Real <a class="code" href="class_physics_object.html#af8f45d759edd1fa20048e8083d8b1bbf">getMass</a>() <span class="keyword">const</span>;
+<a name="l00114"></a>00114 <span class="comment">    /**</span>
+<a name="l00115"></a>00115 <span class="comment">     * Construct a PhysicsObject at the origin with the specified mass </span>
+<a name="l00116"></a>00116 <span class="comment">     * with default heading (&lt;0, 0, -1&gt;)</span>
+<a name="l00117"></a>00117 <span class="comment">     */</span>
+<a name="l00118"></a>00118     <a class="code" href="class_physics_object.html#a04de359a8cae00bff081d2e3460b9995">PhysicsObject</a>(ObjectType type, Real mass);
 <a name="l00119"></a>00119 <span class="comment"></span>
-<a name="l00120"></a>00120 <span class="comment">    /** Sets the velocity of the object */</span>
-<a name="l00121"></a>00121     <span class="keywordtype">void</span> <a class="code" href="class_physics_object.html#a460a5dbc919731ca2e812384ab3e132a">setVelocity</a>(Vector3 velocity);
+<a name="l00120"></a>00120 <span class="comment">    /** Copy constructor */</span>
+<a name="l00121"></a>00121     <a class="code" href="class_physics_object.html#a04de359a8cae00bff081d2e3460b9995">PhysicsObject</a>(<span class="keyword">const</span> <a class="code" href="class_physics_object.html">PhysicsObject</a>&amp; copy);
 <a name="l00122"></a>00122 <span class="comment"></span>
-<a name="l00123"></a>00123 <span class="comment">    /** Sets the acceleration of the object */</span>
-<a name="l00124"></a>00124     <span class="keywordtype">void</span> <a class="code" href="class_physics_object.html#ab5abb0ecf0c98f68cd5d4317fcce155c">setAcceleration</a>(Vector3 acceleration);
+<a name="l00123"></a>00123 <span class="comment">    /** @return The type of the object (see ObjectType enum) */</span>
+<a name="l00124"></a>00124     ObjectType <a class="code" href="class_physics_object.html#a4566a4d5077d352a2bab63174791fe57">type</a>() <span class="keyword">const</span>;
 <a name="l00125"></a>00125 <span class="comment"></span>
-<a name="l00126"></a>00126 <span class="comment">    /** @return The velocity of the object */</span>
-<a name="l00127"></a>00127     Vector3 <a class="code" href="class_physics_object.html#aa1ee2925ae45f6e8b852e75bee8d7837">getVelocity</a>() <span class="keyword">const</span>;
+<a name="l00126"></a>00126 <span class="comment">    /** @return The mass of the object */</span>
+<a name="l00127"></a>00127     Real <a class="code" href="class_physics_object.html#a3775a4936fd88ce66632088aa7e9d26e">mass</a>() <span class="keyword">const</span>;
 <a name="l00128"></a>00128 <span class="comment"></span>
-<a name="l00129"></a>00129 <span class="comment">    /** @return The acceleration of the object */</span>
-<a name="l00130"></a>00130     Vector3 <a class="code" href="class_physics_object.html#a98673969c4d905e54c70ff0fc0454c70">getAcceleration</a>() <span class="keyword">const</span>;
+<a name="l00129"></a>00129 <span class="comment">    /** Sets the velocity of the object */</span>
+<a name="l00130"></a>00130     <span class="keywordtype">void</span> <a class="code" href="class_physics_object.html#a7804c67b7896c1c8ce4b5efee6ecef9c">velocity</a>(Vector3 <a class="code" href="class_physics_object.html#a7804c67b7896c1c8ce4b5efee6ecef9c">velocity</a>);
 <a name="l00131"></a>00131 <span class="comment"></span>
-<a name="l00132"></a>00132 <span class="comment">    /** @return The vector sum of all forces on the object */</span>
-<a name="l00133"></a>00133     Vector3 <a class="code" href="class_physics_object.html#a057524083dc600fccb62b44dc142cda8">getSumForce</a>() <span class="keyword">const</span>;
+<a name="l00132"></a>00132 <span class="comment">    /** Sets the acceleration of the object */</span>
+<a name="l00133"></a>00133     <span class="keywordtype">void</span> <a class="code" href="class_physics_object.html#aa1ffb528157ba63fc4d328ad8f72964b">acceleration</a>(Vector3 <a class="code" href="class_physics_object.html#aa1ffb528157ba63fc4d328ad8f72964b">acceleration</a>);
 <a name="l00134"></a>00134 <span class="comment"></span>
-<a name="l00135"></a>00135 <span class="comment">    /** </span>
-<a name="l00136"></a>00136 <span class="comment">     * Applies an addititve force on the object which will be taken into account</span>
-<a name="l00137"></a>00137 <span class="comment">     * on the next physics update.</span>
-<a name="l00138"></a>00138 <span class="comment">     */</span>
-<a name="l00139"></a>00139     <span class="keywordtype">void</span> <a class="code" href="class_physics_object.html#a493315150370fed69d477ff50b322663">applyForce</a>(Vector3 force);
+<a name="l00135"></a>00135 <span class="comment">    /** @return The velocity of the object */</span>
+<a name="l00136"></a>00136     Vector3 <a class="code" href="class_physics_object.html#aa1ee2925ae45f6e8b852e75bee8d7837">getVelocity</a>() <span class="keyword">const</span>;
+<a name="l00137"></a>00137 <span class="comment"></span>
+<a name="l00138"></a>00138 <span class="comment">    /** @return The acceleration of the object */</span>
+<a name="l00139"></a>00139     Vector3 <a class="code" href="class_physics_object.html#aa1ffb528157ba63fc4d328ad8f72964b">acceleration</a>() <span class="keyword">const</span>;
 <a name="l00140"></a>00140 <span class="comment"></span>
-<a name="l00141"></a>00141 <span class="comment">    /** Cancel all force currently applied to the object */</span>
-<a name="l00142"></a>00142     <span class="keywordtype">void</span> <a class="code" href="class_physics_object.html#a52671125aa47139b52d5c56debccb7b6">clearForces</a>();
+<a name="l00141"></a>00141 <span class="comment">    /** @return The vector sum of permanent all (not cleared on physics update) forces on the object */</span>
+<a name="l00142"></a>00142     Vector3 <a class="code" href="class_physics_object.html#a07d88657f04e54a23207a6e815cc20c1">sumForces</a>() <span class="keyword">const</span>;
 <a name="l00143"></a>00143 <span class="comment"></span>
-<a name="l00144"></a>00144 <span class="comment">    /**</span>
-<a name="l00145"></a>00145 <span class="comment">     * Updates the object&#39;s position, taking all physics parameters into</span>
-<a name="l00146"></a>00146 <span class="comment">     * account as well as the time elapsed since the last position update</span>
-<a name="l00147"></a>00147 <span class="comment">     * (in seconds).</span>
-<a name="l00148"></a>00148 <span class="comment">     */</span>
-<a name="l00149"></a>00149     <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="class_physics_object.html#a4d5740f84fd3df4ba4b5becaebf1038f">updatePhysics</a>(Real timeElapsed);
-<a name="l00150"></a>00150 };
-<a name="l00151"></a>00151 
-<a name="l00152"></a>00152 <span class="preprocessor">#endif</span>
+<a name="l00144"></a>00144 <span class="comment">    /** @return The vector sum of all temporary (cleared on physics update) forces on the object */</span>
+<a name="l00145"></a>00145     Vector3 <a class="code" href="class_physics_object.html#af213f1a65c4491a68c0954588a517663">sumTempForces</a>() <span class="keyword">const</span>;
+<a name="l00146"></a>00146 <span class="comment"></span>
+<a name="l00147"></a>00147 <span class="comment">    /** </span>
+<a name="l00148"></a>00148 <span class="comment">     * Applies an addititve force on the object which will be taken into account</span>
+<a name="l00149"></a>00149 <span class="comment">     * on the next physics update.</span>
+<a name="l00150"></a>00150 <span class="comment">     */</span>
+<a name="l00151"></a>00151     <span class="keywordtype">void</span> <a class="code" href="class_physics_object.html#a493315150370fed69d477ff50b322663">applyForce</a>(Vector3 force);
+<a name="l00152"></a>00152 <span class="comment"></span>
+<a name="l00153"></a>00153 <span class="comment">    /** </span>
+<a name="l00154"></a>00154 <span class="comment">     * Applies an addititve force on the object which will be taken into account</span>
+<a name="l00155"></a>00155 <span class="comment">     * and cleared on the next physics update.</span>
+<a name="l00156"></a>00156 <span class="comment">     */</span>
+<a name="l00157"></a>00157     <span class="keywordtype">void</span> <a class="code" href="class_physics_object.html#a5a7fbcfacf83f5b6b01d73deda3f8811">applyTempForce</a>(Vector3 force);
+<a name="l00158"></a>00158 <span class="comment"></span>
+<a name="l00159"></a>00159 <span class="comment">    /** Remove all forces (temporary and persistent) all force currently applied to the object */</span>
+<a name="l00160"></a>00160     <span class="keywordtype">void</span> <a class="code" href="class_physics_object.html#a52671125aa47139b52d5c56debccb7b6">clearForces</a>();
+<a name="l00161"></a>00161 <span class="comment"></span>
+<a name="l00162"></a>00162 <span class="comment">    /**</span>
+<a name="l00163"></a>00163 <span class="comment">     * Updates the object&#39;s position, taking all physics parameters into</span>
+<a name="l00164"></a>00164 <span class="comment">     * account as well as the time elapsed since the last position update</span>
+<a name="l00165"></a>00165 <span class="comment">     * (in seconds).</span>
+<a name="l00166"></a>00166 <span class="comment">     */</span>
+<a name="l00167"></a>00167     <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="class_physics_object.html#a4d5740f84fd3df4ba4b5becaebf1038f">updatePhysics</a>(Real timeElapsed);
+<a name="l00168"></a>00168 };
+<a name="l00169"></a>00169 <span class="comment"></span>
+<a name="l00170"></a>00170 <span class="comment">/**</span>
+<a name="l00171"></a>00171 <span class="comment"> * The Constaint class represents a connection between two physics objects</span>
+<a name="l00172"></a>00172 <span class="comment"> * which should apply force based on some condition (ropes or springs for</span>
+<a name="l00173"></a>00173 <span class="comment"> * example.</span>
+<a name="l00174"></a>00174 <span class="comment"> */</span>
+<a name="l00175"></a><a class="code" href="class_constraint.html">00175</a> <span class="keyword">class </span><a class="code" href="class_constraint.html">Constraint</a>
+<a name="l00176"></a>00176 {
+<a name="l00177"></a>00177 <span class="keyword">private</span>:<span class="comment"></span>
+<a name="l00178"></a>00178 <span class="comment">    /** The originating object of the constraint */</span>
+<a name="l00179"></a>00179     <a class="code" href="class_physics_object.html">PhysicsObject</a> * m_origin;
+<a name="l00180"></a>00180 <span class="comment"></span>
+<a name="l00181"></a>00181 <span class="comment">    /** The target object of the constraint */</span>
+<a name="l00182"></a>00182     <a class="code" href="class_physics_object.html">PhysicsObject</a> * m_target;
+<a name="l00183"></a>00183 <span class="comment"></span>
+<a name="l00184"></a>00184 <span class="comment">    /** The distance between the two objects at the time of creation */</span>
+<a name="l00185"></a>00185     Real m_distance;
+<a name="l00186"></a>00186 
+<a name="l00187"></a>00187 <span class="keyword">public</span>:<span class="comment"></span>
+<a name="l00188"></a>00188 <span class="comment">    /** Construct a constraint between the two provided objects */</span>
+<a name="l00189"></a>00189     <a class="code" href="class_constraint.html#af0c237056aaf0f53adafb9a02fa6fd43">Constraint</a>(<a class="code" href="class_physics_object.html">PhysicsObject</a> * origin, <a class="code" href="class_physics_object.html">PhysicsObject</a> * target);
+<a name="l00190"></a>00190 <span class="comment"></span>
+<a name="l00191"></a>00191 <span class="comment">    /** Copy constructor */</span>
+<a name="l00192"></a>00192     <a class="code" href="class_constraint.html#af0c237056aaf0f53adafb9a02fa6fd43">Constraint</a>(<span class="keyword">const</span> <a class="code" href="class_constraint.html">Constraint</a>&amp; copy);
+<a name="l00193"></a>00193 <span class="comment"></span>
+<a name="l00194"></a>00194 <span class="comment">    /** @return The origin object of the constraint */</span>
+<a name="l00195"></a>00195     <a class="code" href="class_physics_object.html">PhysicsObject</a> * <a class="code" href="class_constraint.html#a3cdfcae1d7c8139ea484a241a03a26d5">getOrigin</a>();
+<a name="l00196"></a>00196 <span class="comment"></span>
+<a name="l00197"></a>00197 <span class="comment">    /** @return The target object of the constraint */</span>
+<a name="l00198"></a>00198     <a class="code" href="class_physics_object.html">PhysicsObject</a> * <a class="code" href="class_constraint.html#a50f128d52a156c2d5652b40bb2152bf7">getTarget</a>();
+<a name="l00199"></a>00199 <span class="comment"></span>
+<a name="l00200"></a>00200 <span class="comment">    /** Applies temporary forces on one or both of the constraint objects based on the elapsed time */</span>
+<a name="l00201"></a>00201     <span class="keywordtype">void</span> <a class="code" href="class_constraint.html#a1cc9554c4a106ead7ba947513bd2ecf7">applyForces</a>(Real timeElapsed);
+<a name="l00202"></a>00202 };
+<a name="l00203"></a>00203 
+<a name="l00204"></a>00204 <span class="comment"></span>
+<a name="l00205"></a>00205 <span class="comment">/**</span>
+<a name="l00206"></a>00206 <span class="comment"> * The SphereCollisionObject represents a physical object whose collisions should be</span>
+<a name="l00207"></a>00207 <span class="comment"> * modelled as a sphere.</span>
+<a name="l00208"></a>00208 <span class="comment"> */</span>
+<a name="l00209"></a><a class="code" href="class_sphere_collision_object.html">00209</a> <span class="keyword">class </span><a class="code" href="class_sphere_collision_object.html">SphereCollisionObject</a> : <span class="keyword">public</span> <a class="code" href="class_physics_object.html">PhysicsObject</a>
+<a name="l00210"></a>00210 {
+<a name="l00211"></a>00211 <span class="keyword">private</span>:<span class="comment"></span>
+<a name="l00212"></a>00212 <span class="comment">    /** The radius of the object */</span>
+<a name="l00213"></a>00213     Real m_radius;
+<a name="l00214"></a>00214 <span class="keyword">public</span>:<span class="comment"></span>
+<a name="l00215"></a>00215 <span class="comment">    /** </span>
+<a name="l00216"></a>00216 <span class="comment">     * Construct a SphereCollisionObject at the given position coordinates with the</span>
+<a name="l00217"></a>00217 <span class="comment">     * specified mass and default heading (&lt;0, 0, -1&gt;).</span>
+<a name="l00218"></a>00218 <span class="comment">     */</span>
+<a name="l00219"></a>00219     <a class="code" href="class_sphere_collision_object.html#a92662478bc2a42aa45bea499d26e2ac7">SphereCollisionObject</a>(ObjectType <a class="code" href="class_physics_object.html#a4566a4d5077d352a2bab63174791fe57">type</a>, Real <a class="code" href="class_sphere_collision_object.html#aa56481bcd3adbc17c888b38d8bd3e8c2">radius</a>, Real <a class="code" href="class_physics_object.html#a3775a4936fd88ce66632088aa7e9d26e">mass</a>, Vector3 <a class="code" href="class_base_object.html#a6104c575c6c4250a54eaeb1dfe805c1e">position</a>);
+<a name="l00220"></a>00220 <span class="comment"></span>
+<a name="l00221"></a>00221 <span class="comment">    /**</span>
+<a name="l00222"></a>00222 <span class="comment">     * Construct a SphereCollisionObject at the origin with the specified mass </span>
+<a name="l00223"></a>00223 <span class="comment">     * with default heading (&lt;0, 0, -1&gt;)</span>
+<a name="l00224"></a>00224 <span class="comment">     */</span>
+<a name="l00225"></a>00225     <a class="code" href="class_sphere_collision_object.html#a92662478bc2a42aa45bea499d26e2ac7">SphereCollisionObject</a>(ObjectType type, Real radius, Real mass);
+<a name="l00226"></a>00226 <span class="comment"></span>
+<a name="l00227"></a>00227 <span class="comment">    /** Copy constructor */</span>
+<a name="l00228"></a>00228     <a class="code" href="class_sphere_collision_object.html#a92662478bc2a42aa45bea499d26e2ac7">SphereCollisionObject</a>(<span class="keyword">const</span> <a class="code" href="class_sphere_collision_object.html">SphereCollisionObject</a>&amp; copy);
+<a name="l00229"></a>00229 <span class="comment"></span>
+<a name="l00230"></a>00230 <span class="comment">    /** @return The radius of the object */</span>
+<a name="l00231"></a>00231     Real <a class="code" href="class_sphere_collision_object.html#aa56481bcd3adbc17c888b38d8bd3e8c2">radius</a>() <span class="keyword">const</span>;
+<a name="l00232"></a>00232 <span class="comment"></span>
+<a name="l00233"></a>00233 <span class="comment">    /** @return True if the passed object intersects with the sphere */</span>
+<a name="l00234"></a>00234     <span class="keywordtype">bool</span> <a class="code" href="class_sphere_collision_object.html#a4258614834411d6012e59af2125edba1">checkCollision</a>(<span class="keyword">const</span> <a class="code" href="class_sphere_collision_object.html">SphereCollisionObject</a>&amp; <span class="keywordtype">object</span>) <span class="keyword">const</span>;
+<a name="l00235"></a>00235 };
+<a name="l00236"></a>00236 
+<a name="l00237"></a>00237 <span class="preprocessor">#endif</span>
 </pre></div></div>
-<hr class="footer"/><address style="text-align: right;"><small>Generated on Thu Apr 21 03:31:28 2011 for OreWar by&nbsp;
+<hr class="footer"/><address style="text-align: right;"><small>Generated on Wed Jun 8 21:25:19 2011 for OreWar by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.6.3 </small></address>
 </body>

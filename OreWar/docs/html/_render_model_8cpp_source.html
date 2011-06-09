@@ -26,137 +26,424 @@
 <a name="l00003"></a>00003 
 <a name="l00004"></a>00004 <span class="keyword">using namespace </span>Ogre;
 <a name="l00005"></a>00005 
-<a name="l00006"></a>00006 <span class="comment">// ========================================================================</span>
-<a name="l00007"></a>00007 <span class="comment">// RenderObject Implementation</span>
-<a name="l00008"></a>00008 <span class="comment">// ========================================================================</span>
-<a name="l00009"></a><a class="code" href="class_render_object.html#ac27dca7a43335c9f0b614193edf431a4">00009</a> <a class="code" href="class_render_object.html#ac27dca7a43335c9f0b614193edf431a4">RenderObject::RenderObject</a>(<a class="code" href="class_physics_object.html">PhysicsObject</a> * <span class="keywordtype">object</span>, SceneNode * node)
-<a name="l00010"></a>00010     : mp_object(object), mp_node(node)
-<a name="l00011"></a>00011 {
-<a name="l00012"></a>00012 }
-<a name="l00013"></a>00013 
-<a name="l00014"></a><a class="code" href="class_render_object.html#a2c844e84c79a3de750e69eb13c2d0d3a">00014</a> <span class="keywordtype">void</span> <a class="code" href="class_render_object.html#a2c844e84c79a3de750e69eb13c2d0d3a">RenderObject::updateNode</a>(Real elapsedTime, Quaternion camOrientation)
-<a name="l00015"></a>00015 {
-<a name="l00016"></a>00016     mp_node-&gt;setPosition(mp_object-&gt;<a class="code" href="class_base_object.html#a097dbe2865e33b5738642438e0a10dbe">getPosition</a>());
-<a name="l00017"></a>00017     <span class="keywordflow">if</span>(mp_object-&gt;<a class="code" href="class_physics_object.html#a693a933664bdc6d1f27fd962140ab428">getType</a>() == ObjectType::PROJECTILE) {
-<a name="l00018"></a>00018         mp_node-&gt;setOrientation(camOrientation);
-<a name="l00019"></a>00019     } <span class="keywordflow">else</span> {
-<a name="l00020"></a>00020         mp_node-&gt;setOrientation(mp_object-&gt;<a class="code" href="class_base_object.html#a6983854d73e5d568eeeb29b180e04b7d">getOrientation</a>());
-<a name="l00021"></a>00021     }
-<a name="l00022"></a>00022 }
-<a name="l00023"></a>00023 
-<a name="l00024"></a><a class="code" href="class_render_object.html#ae93de1d5fa4ee008f71125434cbcf444">00024</a> <a class="code" href="class_physics_object.html">PhysicsObject</a> * <a class="code" href="class_render_object.html#ae93de1d5fa4ee008f71125434cbcf444">RenderObject::getObject</a>() {
-<a name="l00025"></a>00025     <span class="keywordflow">return</span> mp_object;
+<a name="l00006"></a>00006 
+<a name="l00007"></a>00007 <span class="comment">// ========================================================================</span>
+<a name="l00008"></a>00008 <span class="comment">// RenderObject Implementation</span>
+<a name="l00009"></a>00009 <span class="comment">// ========================================================================</span>
+<a name="l00010"></a>00010 <span class="keywordtype">int</span> RenderObject::m_nextRenderId = 1;
+<a name="l00011"></a>00011 
+<a name="l00012"></a><a class="code" href="class_render_object.html#a044efc6b99868ffb8c9b41e498d291e6">00012</a> <a class="code" href="class_render_object.html#a044efc6b99868ffb8c9b41e498d291e6">RenderObject::RenderObject</a>(SceneManager * mgr)
+<a name="l00013"></a>00013     : mp_mgr(mgr), m_renderId(m_nextRenderId)
+<a name="l00014"></a>00014 {
+<a name="l00015"></a>00015     m_nextRenderId++;
+<a name="l00016"></a>00016 }
+<a name="l00017"></a>00017 
+<a name="l00018"></a><a class="code" href="class_render_object.html#aeaf568feba5a9c7fbecefc2315255f9c">00018</a> SceneManager * <a class="code" href="class_render_object.html#aeaf568feba5a9c7fbecefc2315255f9c">RenderObject::getSceneManager</a>()
+<a name="l00019"></a>00019 {
+<a name="l00020"></a>00020     <span class="keywordflow">return</span> mp_mgr;
+<a name="l00021"></a>00021 }
+<a name="l00022"></a>00022 
+<a name="l00023"></a><a class="code" href="class_render_object.html#af0530a607c4e48ef9550acb602cbf21b">00023</a> <span class="keywordtype">int</span> <a class="code" href="class_render_object.html#af0530a607c4e48ef9550acb602cbf21b">RenderObject::renderId</a>()<span class="keyword"> const</span>
+<a name="l00024"></a>00024 <span class="keyword"></span>{
+<a name="l00025"></a>00025     <span class="keywordflow">return</span> m_renderId;
 <a name="l00026"></a>00026 }
 <a name="l00027"></a>00027 
-<a name="l00028"></a><a class="code" href="class_render_object.html#abee84cffcbb1050d9afe445e6dbd67fc">00028</a> SceneNode * <a class="code" href="class_render_object.html#abee84cffcbb1050d9afe445e6dbd67fc">RenderObject::getRootNode</a>() {
-<a name="l00029"></a>00029     <span class="keywordflow">return</span> mp_node;
-<a name="l00030"></a>00030 }
-<a name="l00031"></a>00031 
+<a name="l00028"></a><a class="code" href="class_render_object.html#a9e4f0e2315e377d7ed0a13cabb3df15f">00028</a> <span class="keywordtype">bool</span> <a class="code" href="class_render_object.html#a9e4f0e2315e377d7ed0a13cabb3df15f">RenderObject::operator==</a>(<span class="keyword">const</span> <a class="code" href="class_render_object.html">RenderObject</a> &amp;other)<span class="keyword"> const</span>
+<a name="l00029"></a>00029 <span class="keyword"></span>{
+<a name="l00030"></a>00030     <span class="keywordflow">return</span> (m_renderId == other.m_renderId);
+<a name="l00031"></a>00031 }
 <a name="l00032"></a>00032 
-<a name="l00033"></a>00033 <span class="comment">// ========================================================================</span>
-<a name="l00034"></a>00034 <span class="comment">// RenderModel Implementation</span>
-<a name="l00035"></a>00035 <span class="comment">// ========================================================================</span>
-<a name="l00036"></a><a class="code" href="class_render_model.html#a2534a2fbd7f58be8beb1b8e9a72e5f2b">00036</a> <a class="code" href="class_render_model.html#a2534a2fbd7f58be8beb1b8e9a72e5f2b">RenderModel::RenderModel</a>(<a class="code" href="class_game_arena.html">GameArena</a>&amp; model, SceneManager * mgr) : m_model(model), m_renderList(),
-<a name="l00037"></a>00037     mp_mgr(mgr), m_entityIndex(0)
-<a name="l00038"></a>00038 {
-<a name="l00039"></a>00039     m_model.<a class="code" href="class_game_arena.html#ad37980dc97a049225baf5292e9850690">addGameArenaListener</a>(<span class="keyword">this</span>);
-<a name="l00040"></a>00040 
-<a name="l00041"></a>00041     <span class="comment">// Set up required textures</span>
-<a name="l00042"></a>00042     Plane plane = Plane(Ogre::Vector3::UNIT_Z, 0);
-<a name="l00043"></a>00043     MeshManager::getSingleton().createPlane(<span class="stringliteral">&quot;projSprite&quot;</span>, Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME,
-<a name="l00044"></a>00044         plane, 200, 200, 1, 1, <span class="keyword">true</span>, 1, 1, 1, Ogre::Vector3::UNIT_Y);
-<a name="l00045"></a>00045 }
-<a name="l00046"></a>00046 
-<a name="l00047"></a><a class="code" href="class_render_model.html#a4c23ee9555f429659d6b38c3bdab3313">00047</a> <span class="keywordtype">void</span> <a class="code" href="class_render_model.html#a4c23ee9555f429659d6b38c3bdab3313">RenderModel::generateRenderObject</a>(<a class="code" href="class_physics_object.html">PhysicsObject</a> * <span class="keywordtype">object</span>)
-<a name="l00048"></a>00048 {
-<a name="l00049"></a>00049     <span class="keywordflow">if</span>(object-&gt;<a class="code" href="class_physics_object.html#a693a933664bdc6d1f27fd962140ab428">getType</a>() == ObjectType::SHIP) {
-<a name="l00050"></a>00050         SceneNode * shipNode = mp_mgr-&gt;getRootSceneNode()-&gt;createChildSceneNode();
-<a name="l00051"></a>00051         std::stringstream oss;
-<a name="l00052"></a>00052         oss &lt;&lt; <span class="stringliteral">&quot;Ship&quot;</span> &lt;&lt; m_entityIndex;
-<a name="l00053"></a>00053         Entity * shipEntity = mp_mgr-&gt;createEntity(oss.str(), <span class="stringliteral">&quot;RZR-002.mesh&quot;</span>);
-<a name="l00054"></a>00054         shipEntity-&gt;setCastShadows(<span class="keyword">true</span>);
-<a name="l00055"></a>00055         shipNode-&gt;setScale(6, 6, 6);
-<a name="l00056"></a>00056         SceneNode * shipRotateNode = shipNode-&gt;createChildSceneNode();
-<a name="l00057"></a>00057         shipRotateNode-&gt;setDirection(Vector3(0, 0, 1));
-<a name="l00058"></a>00058         shipRotateNode-&gt;attachObject(shipEntity);
-<a name="l00059"></a>00059 
-<a name="l00060"></a>00060         <span class="comment">// Add a spot light to the ship</span>
-<a name="l00061"></a>00061         oss &lt;&lt; <span class="stringliteral">&quot;L1&quot;</span>;
-<a name="l00062"></a>00062         Ogre::Light* spotLight = mp_mgr-&gt;createLight(oss.str());
-<a name="l00063"></a>00063         spotLight-&gt;setType(Ogre::Light::LT_SPOTLIGHT);
-<a name="l00064"></a>00064         spotLight-&gt;setDiffuseColour(0.8, 0.8, 1.0);
-<a name="l00065"></a>00065         spotLight-&gt;setSpecularColour(0.2, 0.2, 1.0);
-<a name="l00066"></a>00066         spotLight-&gt;setDirection(0, -1, -3);
-<a name="l00067"></a>00067         spotLight-&gt;setPosition(Vector3(0, 30, 0));
-<a name="l00068"></a>00068         spotLight-&gt;setSpotlightRange(Ogre::Degree(20), Ogre::Degree(45));
-<a name="l00069"></a>00069         shipNode-&gt;attachObject(spotLight);
-<a name="l00070"></a>00070         
-<a name="l00071"></a>00071         <span class="comment">// Add a point light aboive the ship</span>
-<a name="l00072"></a>00072         oss &lt;&lt; <span class="stringliteral">&quot;L2&quot;</span>;
-<a name="l00073"></a>00073         Ogre::Light* pointLight = mp_mgr-&gt;createLight(oss.str());
-<a name="l00074"></a>00074         pointLight-&gt;setType(Ogre::Light::LT_POINT);
-<a name="l00075"></a>00075         pointLight-&gt;setPosition(Ogre::Vector3(0, 30, 0));
-<a name="l00076"></a>00076         pointLight-&gt;setDiffuseColour(0.4, 0.1, 0.1);
-<a name="l00077"></a>00077         pointLight-&gt;setSpecularColour(0.4, 0.4, 0.4);
-<a name="l00078"></a>00078         shipNode-&gt;attachObject(pointLight);
-<a name="l00079"></a>00079 
-<a name="l00080"></a>00080         <a class="code" href="class_render_object.html">RenderObject</a> renderShip = <a class="code" href="class_render_object.html">RenderObject</a>(<span class="keywordtype">object</span>, shipNode);
-<a name="l00081"></a>00081         m_renderList.push_back(renderShip);
-<a name="l00082"></a>00082         m_entityIndex++;
-<a name="l00083"></a>00083     } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (object-&gt;<a class="code" href="class_physics_object.html#a693a933664bdc6d1f27fd962140ab428">getType</a>() == ObjectType::PROJECTILE) {
-<a name="l00084"></a>00084         SceneNode * projNode = mp_mgr-&gt;getRootSceneNode()-&gt;createChildSceneNode();
-<a name="l00085"></a>00085 
-<a name="l00086"></a>00086         std::stringstream oss;
-<a name="l00087"></a>00087         oss &lt;&lt; <span class="stringliteral">&quot;Projectile&quot;</span> &lt;&lt; m_entityIndex;
-<a name="l00088"></a>00088         Ogre::Entity* plasmaSprite = mp_mgr-&gt;createEntity(oss.str(), <span class="stringliteral">&quot;projSprite&quot;</span>);
-<a name="l00089"></a>00089         plasmaSprite-&gt;setMaterialName(<span class="stringliteral">&quot;Orewar/PlasmaSprite&quot;</span>);
-<a name="l00090"></a>00090         plasmaSprite-&gt;setCastShadows(<span class="keyword">false</span>);
-<a name="l00091"></a>00091         projNode-&gt;attachObject(plasmaSprite);
-<a name="l00092"></a>00092 
-<a name="l00093"></a>00093         <span class="comment">// Dynamic spot lights on projectiles</span>
-<a name="l00094"></a>00094         oss &lt;&lt; <span class="stringliteral">&quot;Light&quot;</span>;
-<a name="l00095"></a>00095         Ogre::Light* pointLight = mp_mgr-&gt;createLight(oss.str());
-<a name="l00096"></a>00096         pointLight-&gt;setType(Ogre::Light::LT_POINT);
-<a name="l00097"></a>00097         pointLight-&gt;setPosition(Ogre::Vector3(0, 60, 0));
-<a name="l00098"></a>00098         pointLight-&gt;setDiffuseColour(0.0, 1, 0.0);
-<a name="l00099"></a>00099         pointLight-&gt;setSpecularColour(0.2, 0.7, 0.2);
-<a name="l00100"></a>00100         pointLight-&gt;setAttenuation(3250, 1.0, 0.0014, 0.000007);
-<a name="l00101"></a>00101         projNode-&gt;attachObject(pointLight);
-<a name="l00102"></a>00102         
-<a name="l00103"></a>00103         <a class="code" href="class_render_object.html">RenderObject</a> newProj = <a class="code" href="class_render_object.html">RenderObject</a>(<span class="keywordtype">object</span>, projNode);
-<a name="l00104"></a>00104         m_renderList.push_back(newProj);
-<a name="l00105"></a>00105         m_entityIndex++;
-<a name="l00106"></a>00106     }
-<a name="l00107"></a>00107 }
-<a name="l00108"></a>00108 
-<a name="l00109"></a><a class="code" href="class_render_model.html#ae8685db7c5503538e973599d2fbdefb8">00109</a> <span class="keywordtype">void</span> <a class="code" href="class_render_model.html#ae8685db7c5503538e973599d2fbdefb8">RenderModel::destroyRenderObject</a>(<a class="code" href="class_physics_object.html">PhysicsObject</a> * <span class="keywordtype">object</span>)
-<a name="l00110"></a>00110 {
-<a name="l00111"></a>00111     <span class="keywordflow">for</span>(<span class="keywordtype">int</span> i = 0; i &lt; m_renderList.size(); i++) {
-<a name="l00112"></a>00112         <span class="keywordflow">if</span>(m_renderList[i].getObject() == object) {
-<a name="l00113"></a>00113             mp_mgr-&gt;destroySceneNode(m_renderList[i].getRootNode());
-<a name="l00114"></a>00114             m_renderList.erase(m_renderList.begin() + i);
-<a name="l00115"></a>00115         }
-<a name="l00116"></a>00116     }
-<a name="l00117"></a>00117 }
-<a name="l00118"></a>00118 
-<a name="l00119"></a><a class="code" href="class_render_model.html#a0c4f26a5b128074f73b977387aec990a">00119</a> <span class="keywordtype">void</span> <a class="code" href="class_render_model.html#a0c4f26a5b128074f73b977387aec990a">RenderModel::updateRenderList</a>(Real elapsedTime, Quaternion camOrientation)
-<a name="l00120"></a>00120 {
-<a name="l00121"></a>00121     <span class="keywordflow">for</span>(<span class="keywordtype">int</span> i = 0; i &lt; m_renderList.size(); i++) {
-<a name="l00122"></a>00122         m_renderList[i].updateNode(elapsedTime, camOrientation);
-<a name="l00123"></a>00123     }
-<a name="l00124"></a>00124 }
-<a name="l00125"></a>00125 
-<a name="l00126"></a><a class="code" href="class_render_model.html#a50b93bc34e08418531c3534ca7acaf4b">00126</a> <span class="keywordtype">void</span> <a class="code" href="class_render_model.html#a50b93bc34e08418531c3534ca7acaf4b">RenderModel::newPhysicsObject</a>(<a class="code" href="class_physics_object.html">PhysicsObject</a> * <span class="keywordtype">object</span>)
-<a name="l00127"></a>00127 {
-<a name="l00128"></a>00128     <a class="code" href="class_render_model.html#a4c23ee9555f429659d6b38c3bdab3313">generateRenderObject</a>(<span class="keywordtype">object</span>);
-<a name="l00129"></a>00129 }
-<a name="l00130"></a>00130 
-<a name="l00131"></a><a class="code" href="class_render_model.html#aa2c2e52075359bfa268396479292abdf">00131</a> <span class="keywordtype">void</span> <a class="code" href="class_render_model.html#aa2c2e52075359bfa268396479292abdf">RenderModel::destroyedPhysicsObject</a>(<a class="code" href="class_physics_object.html">PhysicsObject</a> * <span class="keywordtype">object</span>)
-<a name="l00132"></a>00132 {
-<a name="l00133"></a>00133     <a class="code" href="class_render_model.html#ae8685db7c5503538e973599d2fbdefb8">destroyRenderObject</a>(<span class="keywordtype">object</span>);
-<a name="l00134"></a>00134 }
+<a name="l00033"></a>00033 
+<a name="l00034"></a>00034 <span class="comment">// ========================================================================</span>
+<a name="l00035"></a>00035 <span class="comment">// ConstraintRenderObject Implementation</span>
+<a name="l00036"></a>00036 <span class="comment">// ========================================================================</span>
+<a name="l00037"></a>00037 <span class="keywordtype">bool</span> ConstraintRenderObject::m_resourcesLoaded = <span class="keyword">false</span>;
+<a name="l00038"></a>00038 
+<a name="l00039"></a><a class="code" href="class_constraint_render_object.html#aa27528461e0f560b9c1d602ac3b15a6f">00039</a> <a class="code" href="class_constraint_render_object.html#aa27528461e0f560b9c1d602ac3b15a6f">ConstraintRenderObject::ConstraintRenderObject</a>(<a class="code" href="class_constraint.html">Constraint</a> * constraint, SceneManager * mgr)
+<a name="l00040"></a>00040     : <a class="code" href="class_render_object.html">RenderObject</a>(mgr), mp_constraint(constraint), mp_node(), mp_particle(NULL)
+<a name="l00041"></a>00041 {
+<a name="l00042"></a>00042 }
+<a name="l00043"></a>00043 
+<a name="l00044"></a><a class="code" href="class_constraint_render_object.html#ad15b4c7c390e17a87dfc18ff64d6ea93">00044</a> <a class="code" href="class_constraint.html">Constraint</a> * <a class="code" href="class_constraint_render_object.html#ad15b4c7c390e17a87dfc18ff64d6ea93">ConstraintRenderObject::getConstraint</a>()
+<a name="l00045"></a>00045 {
+<a name="l00046"></a>00046     <span class="keywordflow">return</span> mp_constraint;
+<a name="l00047"></a>00047 }
+<a name="l00048"></a>00048 
+<a name="l00049"></a><a class="code" href="class_constraint_render_object.html#a8de871a59ed89ef8c5a8c9b947425453">00049</a> <span class="keywordtype">void</span> <a class="code" href="class_constraint_render_object.html#a8de871a59ed89ef8c5a8c9b947425453">ConstraintRenderObject::updateEffects</a>(Real elapsedTime, Quaternion camOrientation)
+<a name="l00050"></a>00050 {
+<a name="l00051"></a>00051     Vector3 offset = mp_constraint-&gt;<a class="code" href="class_constraint.html#a50f128d52a156c2d5652b40bb2152bf7">getTarget</a>()-&gt;<a class="code" href="class_base_object.html#a2a560ffefd82677a669c6d0e86a2afe2">position</a>() - mp_constraint-&gt;<a class="code" href="class_constraint.html#a3cdfcae1d7c8139ea484a241a03a26d5">getOrigin</a>()-&gt;<a class="code" href="class_base_object.html#a2a560ffefd82677a669c6d0e86a2afe2">position</a>();
+<a name="l00052"></a>00052     mp_node-&gt;setPosition(mp_constraint-&gt;<a class="code" href="class_constraint.html#a3cdfcae1d7c8139ea484a241a03a26d5">getOrigin</a>()-&gt;<a class="code" href="class_base_object.html#a2a560ffefd82677a669c6d0e86a2afe2">position</a>() + (offset * Real(0.5)));
+<a name="l00053"></a>00053     mp_node-&gt;setOrientation(Vector3(0, 0, -1).getRotationTo(offset));
+<a name="l00054"></a>00054 
+<a name="l00055"></a>00055     <span class="comment">// Note: This relies on a single Cylinder emitter being present in the Orewar/ConstraintStream script</span>
+<a name="l00056"></a>00056     mp_particle-&gt;getEmitter(0)-&gt;setParameter(<span class="stringliteral">&quot;depth&quot;</span>, Ogre::StringConverter::toString(offset.length()));
+<a name="l00057"></a>00057 }
+<a name="l00058"></a>00058 
+<a name="l00059"></a><a class="code" href="class_constraint_render_object.html#a70f4c25cdb6fdbbbedeff26c29ae898b">00059</a> <span class="keywordtype">void</span> <a class="code" href="class_constraint_render_object.html#a70f4c25cdb6fdbbbedeff26c29ae898b">ConstraintRenderObject::loadSceneResources</a>()
+<a name="l00060"></a>00060 {
+<a name="l00061"></a>00061 }
+<a name="l00062"></a>00062  
+<a name="l00063"></a><a class="code" href="class_constraint_render_object.html#a16a9cc8a683984e378129925c82fb068">00063</a> <span class="keywordtype">void</span> <a class="code" href="class_constraint_render_object.html#a16a9cc8a683984e378129925c82fb068">ConstraintRenderObject::createEffects</a>()
+<a name="l00064"></a>00064 {
+<a name="l00065"></a>00065     mp_node = <a class="code" href="class_render_object.html#aeaf568feba5a9c7fbecefc2315255f9c">getSceneManager</a>()-&gt;getRootSceneNode()-&gt;createChildSceneNode();
+<a name="l00066"></a>00066 
+<a name="l00067"></a>00067     std::stringstream oss;
+<a name="l00068"></a>00068     oss &lt;&lt; <span class="stringliteral">&quot;Constraint&quot;</span> &lt;&lt; <a class="code" href="class_render_object.html#af0530a607c4e48ef9550acb602cbf21b">renderId</a>();
+<a name="l00069"></a>00069     mp_particle = <a class="code" href="class_render_object.html#aeaf568feba5a9c7fbecefc2315255f9c">getSceneManager</a>()-&gt;createParticleSystem(oss.str(), <span class="stringliteral">&quot;Orewar/ConstraintStream&quot;</span>);
+<a name="l00070"></a>00070     mp_particle-&gt;setEmitting(<span class="keyword">true</span>);
+<a name="l00071"></a>00071     mp_node-&gt;attachObject(mp_particle);
+<a name="l00072"></a>00072 }
+<a name="l00073"></a>00073 
+<a name="l00074"></a><a class="code" href="class_constraint_render_object.html#a84009a4c6805420f83ab819d050a7333">00074</a> <span class="keywordtype">void</span> <a class="code" href="class_constraint_render_object.html#a84009a4c6805420f83ab819d050a7333">ConstraintRenderObject::destroyEffects</a>()
+<a name="l00075"></a>00075 {
+<a name="l00076"></a>00076     mp_node-&gt;detachAllObjects();
+<a name="l00077"></a>00077     mp_node-&gt;removeAllChildren();
+<a name="l00078"></a>00078     <a class="code" href="class_render_object.html#aeaf568feba5a9c7fbecefc2315255f9c">getSceneManager</a>()-&gt;destroyParticleSystem(mp_particle);
+<a name="l00079"></a>00079     <a class="code" href="class_render_object.html#aeaf568feba5a9c7fbecefc2315255f9c">getSceneManager</a>()-&gt;destroySceneNode(mp_node);
+<a name="l00080"></a>00080 }
+<a name="l00081"></a>00081 
+<a name="l00082"></a>00082 
+<a name="l00083"></a>00083 <span class="comment">// ========================================================================</span>
+<a name="l00084"></a>00084 <span class="comment">// PhysicsRenderObject Implementation</span>
+<a name="l00085"></a>00085 <span class="comment">// ========================================================================</span>
+<a name="l00086"></a><a class="code" href="class_physics_render_object.html#a89273d6c894633b9d8c256c11844f7f5">00086</a> <a class="code" href="class_physics_render_object.html#a89273d6c894633b9d8c256c11844f7f5">PhysicsRenderObject::PhysicsRenderObject</a>(<a class="code" href="class_sphere_collision_object.html">SphereCollisionObject</a> * <span class="keywordtype">object</span>, SceneManager * mgr)
+<a name="l00087"></a>00087     : <a class="code" href="class_render_object.html">RenderObject</a>(mgr), mp_object(object)
+<a name="l00088"></a>00088 {
+<a name="l00089"></a>00089 }
+<a name="l00090"></a>00090 
+<a name="l00091"></a><a class="code" href="class_physics_render_object.html#a01807e58dffdb26d4f3d6811fe953553">00091</a> <a class="code" href="class_sphere_collision_object.html">SphereCollisionObject</a> * <a class="code" href="class_physics_render_object.html#a01807e58dffdb26d4f3d6811fe953553">PhysicsRenderObject::getObject</a>() {
+<a name="l00092"></a>00092     <span class="keywordflow">return</span> mp_object;
+<a name="l00093"></a>00093 }
+<a name="l00094"></a>00094 
+<a name="l00095"></a>00095 <span class="comment">// ========================================================================</span>
+<a name="l00096"></a>00096 <span class="comment">// ShipRO Implementation</span>
+<a name="l00097"></a>00097 <span class="comment">// ========================================================================</span>
+<a name="l00098"></a>00098 <span class="keywordtype">bool</span> ShipRO::m_resourcesLoaded = <span class="keyword">false</span>;
+<a name="l00099"></a>00099 
+<a name="l00100"></a>00100 ShipRO::ShipRO(<a class="code" href="class_space_ship.html">SpaceShip</a> * ship, SceneManager * mgr)
+<a name="l00101"></a>00101     : <a class="code" href="class_physics_render_object.html">PhysicsRenderObject</a>(ship-&gt;phys(), mgr), mp_spaceShip(ship), mp_shipNode(NULL), mp_shipRotateNode(NULL), mp_shipEntity(NULL),
+<a name="l00102"></a>00102     mp_spotLight(NULL), mp_pointLight(NULL), mp_engineParticles(NULL)
+<a name="l00103"></a>00103 {
+<a name="l00104"></a>00104 }
+<a name="l00105"></a>00105 
+<a name="l00106"></a><a class="code" href="class_ship_r_o.html#ab606fd1f606ae6553da387235f347a7f">00106</a> <a class="code" href="class_space_ship.html">SpaceShip</a> * <a class="code" href="class_ship_r_o.html#ab606fd1f606ae6553da387235f347a7f">ShipRO::ship</a>()<span class="keyword"> const</span>
+<a name="l00107"></a>00107 <span class="keyword"></span>{
+<a name="l00108"></a>00108     <span class="keywordflow">return</span> mp_spaceShip;
+<a name="l00109"></a>00109 }
+<a name="l00110"></a>00110 <span class="comment"></span>
+<a name="l00111"></a>00111 <span class="comment">/** Updates the node based on passed time and camera orientation (useful for sprites) */</span>
+<a name="l00112"></a><a class="code" href="class_ship_r_o.html#af9d560a187d66fe4950c0dec2a304839">00112</a> <span class="keywordtype">void</span> <a class="code" href="class_ship_r_o.html#af9d560a187d66fe4950c0dec2a304839">ShipRO::updateEffects</a>(Real elapsedTime, Quaternion camOrientation)
+<a name="l00113"></a>00113 {
+<a name="l00114"></a>00114     mp_shipNode-&gt;setPosition(<a class="code" href="class_physics_render_object.html#a01807e58dffdb26d4f3d6811fe953553">getObject</a>()-&gt;position());
+<a name="l00115"></a>00115     mp_shipNode-&gt;setOrientation(<a class="code" href="class_physics_render_object.html#a01807e58dffdb26d4f3d6811fe953553">getObject</a>()-&gt;orientation());
+<a name="l00116"></a>00116 }
+<a name="l00117"></a>00117 
+<a name="l00118"></a><a class="code" href="class_ship_r_o.html#a7f8df7f9c402865feb79bf29b2c03e73">00118</a> <span class="keywordtype">void</span> <a class="code" href="class_ship_r_o.html#a7f8df7f9c402865feb79bf29b2c03e73">ShipRO::loadSceneResources</a>() 
+<a name="l00119"></a>00119 {
+<a name="l00120"></a>00120     <span class="keywordflow">if</span>(!m_resourcesLoaded) {
+<a name="l00121"></a>00121         m_resourcesLoaded = <span class="keyword">true</span>;
+<a name="l00122"></a>00122     }
+<a name="l00123"></a>00123 }
+<a name="l00124"></a>00124 
+<a name="l00125"></a><a class="code" href="class_ship_r_o.html#aa096e5e8a90f19ffc660a79679fd156c">00125</a> <span class="keywordtype">void</span> <a class="code" href="class_ship_r_o.html#aa096e5e8a90f19ffc660a79679fd156c">ShipRO::createEffects</a>()
+<a name="l00126"></a>00126 {
+<a name="l00127"></a>00127     mp_shipNode = <a class="code" href="class_render_object.html#aeaf568feba5a9c7fbecefc2315255f9c">getSceneManager</a>()-&gt;getRootSceneNode()-&gt;createChildSceneNode();
+<a name="l00128"></a>00128     std::stringstream oss;
+<a name="l00129"></a>00129     oss &lt;&lt; <span class="stringliteral">&quot;Ship&quot;</span> &lt;&lt; <a class="code" href="class_render_object.html#af0530a607c4e48ef9550acb602cbf21b">renderId</a>();
+<a name="l00130"></a>00130     mp_shipEntity = <a class="code" href="class_render_object.html#aeaf568feba5a9c7fbecefc2315255f9c">getSceneManager</a>()-&gt;createEntity(oss.str(), <span class="stringliteral">&quot;RZR-002.mesh&quot;</span>);
+<a name="l00131"></a>00131     mp_shipEntity-&gt;setCastShadows(<span class="keyword">true</span>);
+<a name="l00132"></a>00132     mp_shipNode-&gt;setScale(10, 10, 10);
+<a name="l00133"></a>00133     mp_shipRotateNode = mp_shipNode-&gt;createChildSceneNode();
+<a name="l00134"></a>00134     mp_shipRotateNode-&gt;setDirection(Vector3(0, 0, 1));
+<a name="l00135"></a>00135     mp_shipRotateNode-&gt;attachObject(mp_shipEntity);
+<a name="l00136"></a>00136 
+<a name="l00137"></a>00137     <span class="comment">// Add a spot light to the ship of it&#39;s the player ship</span>
+<a name="l00138"></a>00138     oss &lt;&lt; <span class="stringliteral">&quot;L&quot;</span>;
+<a name="l00139"></a>00139     mp_spotLight = <a class="code" href="class_render_object.html#aeaf568feba5a9c7fbecefc2315255f9c">getSceneManager</a>()-&gt;createLight(oss.str());
+<a name="l00140"></a>00140     mp_spotLight-&gt;setType(Light::LT_SPOTLIGHT);
+<a name="l00141"></a>00141     mp_spotLight-&gt;setDiffuseColour(0.8, 0.8, 1.0);
+<a name="l00142"></a>00142     mp_spotLight-&gt;setSpecularColour(0.2, 0.2, 1.0);
+<a name="l00143"></a>00143     mp_spotLight-&gt;setDirection(0, 0, -1);
+<a name="l00144"></a>00144     mp_spotLight-&gt;setPosition(Vector3(0, 30, 0));
+<a name="l00145"></a>00145     mp_spotLight-&gt;setSpotlightRange(Degree(20), Degree(45));
+<a name="l00146"></a>00146     mp_shipNode-&gt;attachObject(mp_spotLight);
+<a name="l00147"></a>00147 
+<a name="l00148"></a>00148     <span class="comment">// Add a point light above the ship</span>
+<a name="l00149"></a>00149     oss &lt;&lt; <span class="stringliteral">&quot;L&quot;</span>;
+<a name="l00150"></a>00150     mp_pointLight = <a class="code" href="class_render_object.html#aeaf568feba5a9c7fbecefc2315255f9c">getSceneManager</a>()-&gt;createLight(oss.str());
+<a name="l00151"></a>00151     mp_pointLight-&gt;setType(Ogre::Light::LT_POINT);
+<a name="l00152"></a>00152     mp_pointLight-&gt;setPosition(Ogre::Vector3(0, 30, 0));
+<a name="l00153"></a>00153     <span class="keywordflow">if</span> (<a class="code" href="class_physics_render_object.html#a01807e58dffdb26d4f3d6811fe953553">getObject</a>()-&gt;type() == ObjectType::SHIP) {
+<a name="l00154"></a>00154         mp_pointLight-&gt;setDiffuseColour(0.4, 0.1, 0.1);
+<a name="l00155"></a>00155         mp_pointLight-&gt;setSpecularColour(0.4, 0.4, 0.4);
+<a name="l00156"></a>00156     } <span class="keywordflow">else</span> {
+<a name="l00157"></a>00157         mp_pointLight-&gt;setDiffuseColour(0.1, 0.1, 0.5);
+<a name="l00158"></a>00158         mp_pointLight-&gt;setSpecularColour(0.4, 0.4, 0.4);
+<a name="l00159"></a>00159     }
+<a name="l00160"></a>00160     mp_shipNode-&gt;attachObject(mp_pointLight);
+<a name="l00161"></a>00161 
+<a name="l00162"></a>00162     <span class="comment">// Add the engine particle stream</span>
+<a name="l00163"></a>00163     oss &lt;&lt; <span class="stringliteral">&quot;P&quot;</span>;
+<a name="l00164"></a>00164     mp_engineParticles = <a class="code" href="class_render_object.html#aeaf568feba5a9c7fbecefc2315255f9c">getSceneManager</a>()-&gt;createParticleSystem(oss.str(), <span class="stringliteral">&quot;Orewar/EngineStream&quot;</span>);
+<a name="l00165"></a>00165     mp_engineParticles-&gt;setEmitting(<span class="keyword">true</span>);
+<a name="l00166"></a>00166     mp_shipNode-&gt;attachObject(mp_engineParticles);
+<a name="l00167"></a>00167 }
+<a name="l00168"></a>00168 
+<a name="l00169"></a><a class="code" href="class_ship_r_o.html#a5b6efa97428804662af487f394faee8a">00169</a> <span class="keywordtype">void</span> <a class="code" href="class_ship_r_o.html#a5b6efa97428804662af487f394faee8a">ShipRO::destroyEffects</a>()
+<a name="l00170"></a>00170 {
+<a name="l00171"></a>00171     mp_shipNode-&gt;removeAllChildren();
+<a name="l00172"></a>00172     mp_shipNode-&gt;detachAllObjects();
+<a name="l00173"></a>00173     mp_shipRotateNode-&gt;removeAllChildren();
+<a name="l00174"></a>00174     mp_shipRotateNode-&gt;detachAllObjects();
+<a name="l00175"></a>00175     <a class="code" href="class_render_object.html#aeaf568feba5a9c7fbecefc2315255f9c">getSceneManager</a>()-&gt;destroyMovableObject(mp_shipEntity);
+<a name="l00176"></a>00176 
+<a name="l00177"></a>00177     <a class="code" href="class_render_object.html#aeaf568feba5a9c7fbecefc2315255f9c">getSceneManager</a>()-&gt;destroyLight(mp_spotLight);
+<a name="l00178"></a>00178     <a class="code" href="class_render_object.html#aeaf568feba5a9c7fbecefc2315255f9c">getSceneManager</a>()-&gt;destroyLight(mp_pointLight);
+<a name="l00179"></a>00179     <a class="code" href="class_render_object.html#aeaf568feba5a9c7fbecefc2315255f9c">getSceneManager</a>()-&gt;destroyParticleSystem(mp_engineParticles);
+<a name="l00180"></a>00180 }
+<a name="l00181"></a>00181 
+<a name="l00182"></a>00182 
+<a name="l00183"></a>00183 <span class="comment">// ========================================================================</span>
+<a name="l00184"></a>00184 <span class="comment">// NpcShipRO Implementation</span>
+<a name="l00185"></a>00185 <span class="comment">// ========================================================================</span>
+<a name="l00186"></a>00186 <span class="keywordtype">bool</span> NpcShipRO::m_resourcesLoaded = <span class="keyword">false</span>;
+<a name="l00187"></a>00187 
+<a name="l00188"></a>00188 NpcShipRO::NpcShipRO(<a class="code" href="class_space_ship.html">SpaceShip</a> * ship, SceneManager * mgr)
+<a name="l00189"></a>00189     : <a class="code" href="class_ship_r_o.html">ShipRO</a>(ship, mgr), mp_frameNode(NULL), mp_frameSprite(NULL), mp_screen(NULL),
+<a name="l00190"></a>00190     mp_healthBar(NULL), mp_energyBar(NULL)
+<a name="l00191"></a>00191 {
+<a name="l00192"></a>00192 }
+<a name="l00193"></a>00193 
+<a name="l00194"></a><a class="code" href="class_npc_ship_r_o.html#a854ec527beb0ac68ae6aa701cab4dfaa">00194</a> <span class="keywordtype">void</span> <a class="code" href="class_npc_ship_r_o.html#a854ec527beb0ac68ae6aa701cab4dfaa">NpcShipRO::updateEffects</a>(Real elapsedTime, Quaternion camOrientation)
+<a name="l00195"></a>00195 {
+<a name="l00196"></a>00196     <a class="code" href="class_npc_ship_r_o.html#a854ec527beb0ac68ae6aa701cab4dfaa">ShipRO::updateEffects</a>(elapsedTime, camOrientation);
+<a name="l00197"></a>00197     mp_frameNode-&gt;setPosition(<a class="code" href="class_physics_render_object.html#a01807e58dffdb26d4f3d6811fe953553">getObject</a>()-&gt;position());
+<a name="l00198"></a>00198     mp_frameNode-&gt;setOrientation(camOrientation);
+<a name="l00199"></a>00199 
+<a name="l00200"></a>00200     mp_healthBar-&gt;<a class="code" href="class_gorilla_1_1_rectangle.html#a002b75184c9941ea46259f17608aa9d2">width</a>((<a class="code" href="class_ship_r_o.html#ab606fd1f606ae6553da387235f347a7f">ship</a>()-&gt;health() / <a class="code" href="class_ship_r_o.html#ab606fd1f606ae6553da387235f347a7f">ship</a>()-&gt;maxHealth()) * 25000);
+<a name="l00201"></a>00201     mp_energyBar-&gt;<a class="code" href="class_gorilla_1_1_rectangle.html#a002b75184c9941ea46259f17608aa9d2">width</a>((<a class="code" href="class_ship_r_o.html#ab606fd1f606ae6553da387235f347a7f">ship</a>()-&gt;energy() / <a class="code" href="class_ship_r_o.html#ab606fd1f606ae6553da387235f347a7f">ship</a>()-&gt;maxEnergy()) * 25000);
+<a name="l00202"></a>00202 }
+<a name="l00203"></a>00203 
+<a name="l00204"></a>00204 
+<a name="l00205"></a><a class="code" href="class_npc_ship_r_o.html#a95bc86c768e02e4817660cb2af9db44c">00205</a> <span class="keywordtype">void</span> <a class="code" href="class_npc_ship_r_o.html#a95bc86c768e02e4817660cb2af9db44c">NpcShipRO::loadSceneResources</a>()
+<a name="l00206"></a>00206 {
+<a name="l00207"></a>00207     <a class="code" href="class_npc_ship_r_o.html#a95bc86c768e02e4817660cb2af9db44c">ShipRO::loadSceneResources</a>();
+<a name="l00208"></a>00208     <span class="keywordflow">if</span>(!m_resourcesLoaded) {
+<a name="l00209"></a>00209         Plane planeTarget = Plane(Ogre::Vector3::UNIT_Z, 0);
+<a name="l00210"></a>00210         MeshManager::getSingleton().createPlane(<span class="stringliteral">&quot;targetFrameSprite&quot;</span>, Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME,
+<a name="l00211"></a>00211             planeTarget, 250, 250, 1, 1, <span class="keyword">true</span>, 1, 1, 1, Ogre::Vector3::UNIT_Y);
+<a name="l00212"></a>00212     }
+<a name="l00213"></a>00213 }
+<a name="l00214"></a>00214 
+<a name="l00215"></a><a class="code" href="class_npc_ship_r_o.html#ae87823b78443ba2f2e47750daac36d9a">00215</a> <span class="keywordtype">void</span> <a class="code" href="class_npc_ship_r_o.html#ae87823b78443ba2f2e47750daac36d9a">NpcShipRO::createEffects</a>()
+<a name="l00216"></a>00216 {
+<a name="l00217"></a>00217     <a class="code" href="class_npc_ship_r_o.html#ae87823b78443ba2f2e47750daac36d9a">ShipRO::createEffects</a>();
+<a name="l00218"></a>00218     mp_frameNode = <a class="code" href="class_render_object.html#aeaf568feba5a9c7fbecefc2315255f9c">getSceneManager</a>()-&gt;getRootSceneNode()-&gt;createChildSceneNode();
+<a name="l00219"></a>00219 
+<a name="l00220"></a>00220     std::stringstream oss;
+<a name="l00221"></a>00221     oss &lt;&lt; <span class="stringliteral">&quot;TargetFrame&quot;</span> &lt;&lt; <a class="code" href="class_render_object.html#af0530a607c4e48ef9550acb602cbf21b">renderId</a>();
+<a name="l00222"></a>00222     mp_frameSprite = <a class="code" href="class_render_object.html#aeaf568feba5a9c7fbecefc2315255f9c">getSceneManager</a>()-&gt;createEntity(oss.str(), <span class="stringliteral">&quot;targetFrameSprite&quot;</span>);
+<a name="l00223"></a>00223     mp_frameSprite-&gt;setMaterialName(<span class="stringliteral">&quot;Orewar/TargetFrame&quot;</span>);
+<a name="l00224"></a>00224     mp_frameSprite-&gt;setCastShadows(<span class="keyword">false</span>);
+<a name="l00225"></a>00225     mp_frameNode-&gt;attachObject(mp_frameSprite);
+<a name="l00226"></a>00226 
+<a name="l00227"></a>00227     
+<a name="l00228"></a>00228     Viewport * p_vp = <a class="code" href="class_render_object.html#aeaf568feba5a9c7fbecefc2315255f9c">getSceneManager</a>()-&gt;getCamera(<span class="stringliteral">&quot;Camera&quot;</span>)-&gt;getViewport();
+<a name="l00229"></a>00229     <a class="code" href="class_gorilla_1_1_silverback.html">Gorilla::Silverback</a> * gorilla = Gorilla::Silverback::getSingletonPtr();
+<a name="l00230"></a>00230     mp_screen = gorilla-&gt;<a class="code" href="class_gorilla_1_1_silverback.html#a644be17e6fd266d21edd1ec959c2baa9">createScreenRenderable</a>(Vector2(250, 440), <span class="stringliteral">&quot;dejavu&quot;</span>);
+<a name="l00231"></a>00231     mp_frameNode-&gt;attachObject(mp_screen);
+<a name="l00232"></a>00232 
+<a name="l00233"></a>00233     <a class="code" href="class_gorilla_1_1_layer.html">Gorilla::Layer</a> * layer = mp_screen-&gt;<a class="code" href="class_gorilla_1_1_layer_container.html#a94f6214aa3793fab6783627d594248b7">createLayer</a>(10);
+<a name="l00234"></a>00234 
+<a name="l00235"></a>00235     mp_healthBar = layer-&gt;<a class="code" href="class_gorilla_1_1_layer.html#ae92bfd3aca9f157cacc61df915dc71ce">createRectangle</a>(Vector2(0, 0), Vector2(25000, 2000));
+<a name="l00236"></a>00236     mp_healthBar-&gt;<a class="code" href="class_gorilla_1_1_rectangle.html#aa4a2663124e234b7053e6907702835b0">background_colour</a>(Gorilla::Colours::Red);
+<a name="l00237"></a>00237     mp_healthBar-&gt;<a class="code" href="class_gorilla_1_1_rectangle.html#a195a91057deedeb5324cae5cf5827c4f">border_colour</a>(Gorilla::Colours::Red);
+<a name="l00238"></a>00238 
+<a name="l00239"></a>00239     <a class="code" href="class_gorilla_1_1_rectangle.html">Gorilla::Rectangle</a> * healthBarBorder = layer-&gt;<a class="code" href="class_gorilla_1_1_layer.html#ae92bfd3aca9f157cacc61df915dc71ce">createRectangle</a>(Vector2(0, 0), Vector2(25000, 2000));
+<a name="l00240"></a>00240     healthBarBorder-&gt;<a class="code" href="class_gorilla_1_1_rectangle.html#a203c875fa26a99bf1d66bd30927f23b8">no_background</a>();
+<a name="l00241"></a>00241     healthBarBorder-&gt;<a class="code" href="class_gorilla_1_1_rectangle.html#a195a91057deedeb5324cae5cf5827c4f">border_colour</a>(Gorilla::Colours::Red);
+<a name="l00242"></a>00242     healthBarBorder-&gt;<a class="code" href="class_gorilla_1_1_rectangle.html#a30978be2f099700760dc3dc13977cbe2">border_width</a>(200);
+<a name="l00243"></a>00243 
+<a name="l00244"></a>00244     mp_energyBar = layer-&gt;<a class="code" href="class_gorilla_1_1_layer.html#ae92bfd3aca9f157cacc61df915dc71ce">createRectangle</a>(Vector2(0, 2500), Vector2(25000, 2000));
+<a name="l00245"></a>00245     mp_energyBar-&gt;<a class="code" href="class_gorilla_1_1_rectangle.html#aa4a2663124e234b7053e6907702835b0">background_colour</a>(Gorilla::Colours::Blue);
+<a name="l00246"></a>00246     mp_energyBar-&gt;<a class="code" href="class_gorilla_1_1_rectangle.html#a195a91057deedeb5324cae5cf5827c4f">border_colour</a>(Gorilla::Colours::Blue);
+<a name="l00247"></a>00247 
+<a name="l00248"></a>00248     <a class="code" href="class_gorilla_1_1_rectangle.html">Gorilla::Rectangle</a> * energyBarBorder = layer-&gt;<a class="code" href="class_gorilla_1_1_layer.html#ae92bfd3aca9f157cacc61df915dc71ce">createRectangle</a>(Vector2(0, 2500), Vector2(25000, 2000));
+<a name="l00249"></a>00249     energyBarBorder-&gt;<a class="code" href="class_gorilla_1_1_rectangle.html#a203c875fa26a99bf1d66bd30927f23b8">no_background</a>();
+<a name="l00250"></a>00250     energyBarBorder-&gt;<a class="code" href="class_gorilla_1_1_rectangle.html#a195a91057deedeb5324cae5cf5827c4f">border_colour</a>(Gorilla::Colours::Blue);
+<a name="l00251"></a>00251     energyBarBorder-&gt;<a class="code" href="class_gorilla_1_1_rectangle.html#a30978be2f099700760dc3dc13977cbe2">border_width</a>(200);
+<a name="l00252"></a>00252 }
+<a name="l00253"></a>00253 
+<a name="l00254"></a><a class="code" href="class_npc_ship_r_o.html#a2fb60038ef8bbe4cc9d957914de19b76">00254</a> <span class="keywordtype">void</span> <a class="code" href="class_npc_ship_r_o.html#a2fb60038ef8bbe4cc9d957914de19b76">NpcShipRO::destroyEffects</a>()
+<a name="l00255"></a>00255 {
+<a name="l00256"></a>00256     <a class="code" href="class_npc_ship_r_o.html#a2fb60038ef8bbe4cc9d957914de19b76">ShipRO::destroyEffects</a>();
+<a name="l00257"></a>00257     mp_frameNode-&gt;detachAllObjects();
+<a name="l00258"></a>00258     mp_frameNode-&gt;removeAllChildren();
+<a name="l00259"></a>00259     <a class="code" href="class_render_object.html#aeaf568feba5a9c7fbecefc2315255f9c">getSceneManager</a>()-&gt;destroyMovableObject(mp_frameSprite);
+<a name="l00260"></a>00260     <a class="code" href="class_render_object.html#aeaf568feba5a9c7fbecefc2315255f9c">getSceneManager</a>()-&gt;destroySceneNode(mp_frameNode);
+<a name="l00261"></a>00261     Gorilla::Silverback::getSingletonPtr()-&gt;destroyScreenRenderable(mp_screen);
+<a name="l00262"></a>00262 }
+<a name="l00263"></a>00263 
+<a name="l00264"></a>00264 <span class="comment">// ========================================================================</span>
+<a name="l00265"></a>00265 <span class="comment">// ProjectileRO Implementation</span>
+<a name="l00266"></a>00266 <span class="comment">// ========================================================================</span>
+<a name="l00267"></a>00267 <span class="keywordtype">bool</span> ProjectileRO::m_resourcesLoaded = <span class="keyword">false</span>;
+<a name="l00268"></a>00268 
+<a name="l00269"></a>00269 ProjectileRO::ProjectileRO(<a class="code" href="class_projectile.html">Projectile</a> * proj, SceneManager * mgr)
+<a name="l00270"></a>00270     : <a class="code" href="class_physics_render_object.html">PhysicsRenderObject</a>(proj-&gt;phys(), mgr), mp_projectile(proj), mp_projNode(NULL), 
+<a name="l00271"></a>00271     mp_pointLight(NULL), mp_particle(NULL)
+<a name="l00272"></a>00272 {
+<a name="l00273"></a>00273 }
+<a name="l00274"></a>00274 
+<a name="l00275"></a>00275 <a class="code" href="class_projectile.html">Projectile</a> * ProjectileRO::getProjectile()<span class="keyword"> const</span>
+<a name="l00276"></a>00276 <span class="keyword"></span>{
+<a name="l00277"></a>00277     <span class="keywordflow">return</span> mp_projectile;
+<a name="l00278"></a>00278 }
+<a name="l00279"></a>00279 
+<a name="l00280"></a><a class="code" href="class_projectile_r_o.html#aedbe88ae9b99f9ab217082ffcd9a1fe6">00280</a> <span class="keywordtype">void</span> <a class="code" href="class_projectile_r_o.html#aedbe88ae9b99f9ab217082ffcd9a1fe6">ProjectileRO::updateEffects</a>(Real elapsedTime, Quaternion camOrientation)
+<a name="l00281"></a>00281 {
+<a name="l00282"></a>00282     mp_projNode-&gt;setPosition(<a class="code" href="class_physics_render_object.html#a01807e58dffdb26d4f3d6811fe953553">getObject</a>()-&gt;position());
+<a name="l00283"></a>00283     mp_projNode-&gt;setOrientation(Vector3(0, 0, -1).getRotationTo(<a class="code" href="class_physics_render_object.html#a01807e58dffdb26d4f3d6811fe953553">getObject</a>()-&gt;getVelocity()));
+<a name="l00284"></a>00284 }
+<a name="l00285"></a>00285 
+<a name="l00286"></a>00286 
+<a name="l00287"></a><a class="code" href="class_projectile_r_o.html#a19e2d8371baa7f4a2f9b32517c733053">00287</a> <span class="keywordtype">void</span> <a class="code" href="class_projectile_r_o.html#a19e2d8371baa7f4a2f9b32517c733053">ProjectileRO::loadSceneResources</a>()
+<a name="l00288"></a>00288 {
+<a name="l00289"></a>00289     <span class="keywordflow">if</span>(!m_resourcesLoaded) {
+<a name="l00290"></a>00290         m_resourcesLoaded = <span class="keyword">true</span>;
+<a name="l00291"></a>00291     }
+<a name="l00292"></a>00292 }
+<a name="l00293"></a>00293 
+<a name="l00294"></a><a class="code" href="class_projectile_r_o.html#a54097b7f5cf0f4cfee50d387d91baa48">00294</a> <span class="keywordtype">void</span> <a class="code" href="class_projectile_r_o.html#a54097b7f5cf0f4cfee50d387d91baa48">ProjectileRO::createEffects</a>()
+<a name="l00295"></a>00295 {
+<a name="l00296"></a>00296     mp_projNode = <a class="code" href="class_render_object.html#aeaf568feba5a9c7fbecefc2315255f9c">getSceneManager</a>()-&gt;getRootSceneNode()-&gt;createChildSceneNode();
+<a name="l00297"></a>00297 
+<a name="l00298"></a>00298     std::stringstream oss;
+<a name="l00299"></a>00299     oss &lt;&lt; <span class="stringliteral">&quot;Projectile&quot;</span> &lt;&lt; <a class="code" href="class_render_object.html#af0530a607c4e48ef9550acb602cbf21b">renderId</a>();
+<a name="l00300"></a>00300 
+<a name="l00301"></a>00301     <span class="comment">// Dynamic point lights on projectiles</span>
+<a name="l00302"></a>00302     mp_pointLight = <a class="code" href="class_render_object.html#aeaf568feba5a9c7fbecefc2315255f9c">getSceneManager</a>()-&gt;createLight(oss.str());
+<a name="l00303"></a>00303     mp_pointLight-&gt;setType(Ogre::Light::LT_POINT);
+<a name="l00304"></a>00304     mp_pointLight-&gt;setPosition(Ogre::Vector3(0, 60, 0));
+<a name="l00305"></a>00305     mp_pointLight-&gt;setAttenuation(3250, 1.0, 0.0014, 0.000007);
+<a name="l00306"></a>00306     mp_pointLight-&gt;setCastShadows(<span class="keyword">false</span>);
+<a name="l00307"></a>00307     mp_projNode-&gt;attachObject(mp_pointLight);
+<a name="l00308"></a>00308 
+<a name="l00309"></a>00309     oss &lt;&lt; <span class="stringliteral">&quot;P&quot;</span>;
+<a name="l00310"></a>00310     <span class="keywordflow">if</span>(mp_projectile-&gt;type() == ObjectType::PROJECTILE) {
+<a name="l00311"></a>00311         mp_particle = <a class="code" href="class_render_object.html#aeaf568feba5a9c7fbecefc2315255f9c">getSceneManager</a>()-&gt;createParticleSystem(oss.str(), <span class="stringliteral">&quot;Orewar/PlasmaStream&quot;</span>);
+<a name="l00312"></a>00312         mp_pointLight-&gt;setDiffuseColour(0.0, 1, 0.0);
+<a name="l00313"></a>00313         mp_pointLight-&gt;setSpecularColour(0.2, 0.7, 0.2);
+<a name="l00314"></a>00314     } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (mp_projectile-&gt;type() == ObjectType::ANCHOR_PROJECTILE) {
+<a name="l00315"></a>00315         mp_particle = <a class="code" href="class_render_object.html#aeaf568feba5a9c7fbecefc2315255f9c">getSceneManager</a>()-&gt;createParticleSystem(oss.str(), <span class="stringliteral">&quot;Orewar/Anchor&quot;</span>);
+<a name="l00316"></a>00316         mp_pointLight-&gt;setDiffuseColour(1, 0.0, 0.0);
+<a name="l00317"></a>00317         mp_pointLight-&gt;setSpecularColour(0.7, 0.2, 0.2);
+<a name="l00318"></a>00318     }
+<a name="l00319"></a>00319     mp_particle-&gt;setEmitting(<span class="keyword">true</span>);
+<a name="l00320"></a>00320     mp_projNode-&gt;attachObject(mp_particle);
+<a name="l00321"></a>00321 }
+<a name="l00322"></a>00322 
+<a name="l00323"></a><a class="code" href="class_projectile_r_o.html#ac365cc57f5075003beb1951046d5ec57">00323</a> <span class="keywordtype">void</span> <a class="code" href="class_projectile_r_o.html#ac365cc57f5075003beb1951046d5ec57">ProjectileRO::destroyEffects</a>()
+<a name="l00324"></a>00324 {
+<a name="l00325"></a>00325     mp_projNode-&gt;detachAllObjects();
+<a name="l00326"></a>00326     mp_projNode-&gt;removeAllChildren();
+<a name="l00327"></a>00327     <a class="code" href="class_render_object.html#aeaf568feba5a9c7fbecefc2315255f9c">getSceneManager</a>()-&gt;destroyLight(mp_pointLight);
+<a name="l00328"></a>00328     <a class="code" href="class_render_object.html#aeaf568feba5a9c7fbecefc2315255f9c">getSceneManager</a>()-&gt;destroySceneNode(mp_projNode);
+<a name="l00329"></a>00329     <a class="code" href="class_render_object.html#aeaf568feba5a9c7fbecefc2315255f9c">getSceneManager</a>()-&gt;destroyParticleSystem(mp_particle);
+<a name="l00330"></a>00330 }
+<a name="l00331"></a>00331 
+<a name="l00332"></a>00332 <span class="comment">// ========================================================================</span>
+<a name="l00333"></a>00333 <span class="comment">// RenderModel Implementation</span>
+<a name="l00334"></a>00334 <span class="comment">// ========================================================================</span>
+<a name="l00335"></a><a class="code" href="class_render_model.html#a2534a2fbd7f58be8beb1b8e9a72e5f2b">00335</a> <a class="code" href="class_render_model.html#a2534a2fbd7f58be8beb1b8e9a72e5f2b">RenderModel::RenderModel</a>(<a class="code" href="class_game_arena.html">GameArena</a>&amp; model, SceneManager * mgr) : m_model(model), m_physicsRenderList(),
+<a name="l00336"></a>00336     mp_mgr(mgr)
+<a name="l00337"></a>00337 {
+<a name="l00338"></a>00338     m_model.<a class="code" href="class_game_arena.html#ad37980dc97a049225baf5292e9850690">addGameArenaListener</a>(<span class="keyword">this</span>);
+<a name="l00339"></a>00339 }
+<a name="l00340"></a>00340 
+<a name="l00341"></a>00341 
+<a name="l00342"></a><a class="code" href="class_render_model.html#a0c4f26a5b128074f73b977387aec990a">00342</a> <span class="keywordtype">void</span> <a class="code" href="class_render_model.html#a0c4f26a5b128074f73b977387aec990a">RenderModel::updateRenderList</a>(Real elapsedTime, Quaternion camOrientation)
+<a name="l00343"></a>00343 {
+<a name="l00344"></a>00344     <span class="keywordflow">for</span>(std::vector&lt;PhysicsRenderObject *&gt;::iterator physIter = m_physicsRenderList.begin();
+<a name="l00345"></a>00345         physIter != m_physicsRenderList.end();
+<a name="l00346"></a>00346         physIter++) 
+<a name="l00347"></a>00347     {
+<a name="l00348"></a>00348         (*(*physIter)).updateEffects(elapsedTime, camOrientation);
+<a name="l00349"></a>00349     }
+<a name="l00350"></a>00350 
+<a name="l00351"></a>00351     <span class="keywordflow">for</span>(std::vector&lt;ConstraintRenderObject *&gt;::iterator conIter = m_constraintRenderList.begin();
+<a name="l00352"></a>00352         conIter != m_constraintRenderList.end();
+<a name="l00353"></a>00353         conIter++) 
+<a name="l00354"></a>00354     {
+<a name="l00355"></a>00355         (*(*conIter)).updateEffects(elapsedTime, camOrientation);
+<a name="l00356"></a>00356     }
+<a name="l00357"></a>00357 }
+<a name="l00358"></a>00358 
+<a name="l00359"></a><a class="code" href="class_render_model.html#a9535d877871991cfbece6839775d92ef">00359</a> <span class="keywordtype">void</span> <a class="code" href="class_render_model.html#a9535d877871991cfbece6839775d92ef">RenderModel::newGameObject</a>(<a class="code" href="class_game_object.html">GameObject</a> * <span class="keywordtype">object</span>)
+<a name="l00360"></a>00360 {
+<a name="l00361"></a>00361     <a class="code" href="class_physics_render_object.html">PhysicsRenderObject</a> * p_renderObj = NULL;
+<a name="l00362"></a>00362     <span class="keywordflow">if</span>(object-&gt;type() == ObjectType::SHIP) {
+<a name="l00363"></a>00363         p_renderObj = <span class="keyword">new</span> <a class="code" href="class_ship_r_o.html">ShipRO</a>((<a class="code" href="class_space_ship.html">SpaceShip</a>*)<span class="keywordtype">object</span>, mp_mgr);
+<a name="l00364"></a>00364     } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (object-&gt;type() == ObjectType::NPC_SHIP) {
+<a name="l00365"></a>00365         p_renderObj = <span class="keyword">new</span> <a class="code" href="class_npc_ship_r_o.html">NpcShipRO</a>((<a class="code" href="class_space_ship.html">SpaceShip</a>*)<span class="keywordtype">object</span>, mp_mgr);
+<a name="l00366"></a>00366     } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (object-&gt;type() == ObjectType::PROJECTILE
+<a name="l00367"></a>00367         || <span class="keywordtype">object</span>-&gt;type() == ObjectType::ANCHOR_PROJECTILE) 
+<a name="l00368"></a>00368     {
+<a name="l00369"></a>00369         p_renderObj = <span class="keyword">new</span> <a class="code" href="class_projectile_r_o.html">ProjectileRO</a>((<a class="code" href="class_projectile.html">Projectile</a>*)<span class="keywordtype">object</span>, mp_mgr);
+<a name="l00370"></a>00370     }
+<a name="l00371"></a>00371 
+<a name="l00372"></a>00372     p_renderObj-&gt;<a class="code" href="class_physics_render_object.html#a61addf78bfe6c078e4dc5c25a87d1e64">loadSceneResources</a>();
+<a name="l00373"></a>00373     p_renderObj-&gt;<a class="code" href="class_physics_render_object.html#aaa86860493044b75280e368ec5df67d4">createEffects</a>();
+<a name="l00374"></a>00374     m_physicsRenderList.push_back(p_renderObj);
+<a name="l00375"></a>00375 }
+<a name="l00376"></a>00376 
+<a name="l00377"></a><a class="code" href="class_render_model.html#aace9eb490220bbb13b1a5bae25642428">00377</a> <span class="keywordtype">void</span> <a class="code" href="class_render_model.html#aace9eb490220bbb13b1a5bae25642428">RenderModel::destroyedGameObject</a>(<a class="code" href="class_game_object.html">GameObject</a> * <span class="keywordtype">object</span>)
+<a name="l00378"></a>00378 {
+<a name="l00379"></a>00379     <span class="keywordflow">for</span>(std::vector&lt;PhysicsRenderObject *&gt;::iterator renderIter =  m_physicsRenderList.begin(); 
+<a name="l00380"></a>00380         renderIter != m_physicsRenderList.end();
+<a name="l00381"></a>00381         renderIter++) {
+<a name="l00382"></a>00382 
+<a name="l00383"></a>00383             <span class="keywordflow">if</span>((*(*renderIter)).getObject() == <span class="keywordtype">object</span>-&gt;phys()) {
+<a name="l00384"></a>00384             (*(*renderIter)).destroyEffects();
+<a name="l00385"></a>00385             <span class="keyword">delete</span> (*renderIter);
+<a name="l00386"></a>00386             m_physicsRenderList.erase(std::remove(m_physicsRenderList.begin(), 
+<a name="l00387"></a>00387                 m_physicsRenderList.end(), (*renderIter)), m_physicsRenderList.end());
+<a name="l00388"></a>00388             <span class="keywordflow">return</span>;
+<a name="l00389"></a>00389         }
+<a name="l00390"></a>00390     }
+<a name="l00391"></a>00391 }
+<a name="l00392"></a>00392 
+<a name="l00393"></a><a class="code" href="class_render_model.html#af85d1bc5471284532806e3c0642f2835">00393</a> <span class="keywordtype">void</span> <a class="code" href="class_render_model.html#af85d1bc5471284532806e3c0642f2835">RenderModel::newConstraint</a>(<a class="code" href="class_constraint.html">Constraint</a> * constraint)
+<a name="l00394"></a>00394 {
+<a name="l00395"></a>00395     <a class="code" href="class_constraint_render_object.html">ConstraintRenderObject</a> * p_renderObj = <span class="keyword">new</span> <a class="code" href="class_constraint_render_object.html">ConstraintRenderObject</a>(constraint, mp_mgr);
+<a name="l00396"></a>00396 
+<a name="l00397"></a>00397     p_renderObj-&gt;<a class="code" href="class_constraint_render_object.html#a70f4c25cdb6fdbbbedeff26c29ae898b">loadSceneResources</a>();
+<a name="l00398"></a>00398     p_renderObj-&gt;<a class="code" href="class_constraint_render_object.html#a16a9cc8a683984e378129925c82fb068">createEffects</a>();
+<a name="l00399"></a>00399     m_constraintRenderList.push_back(p_renderObj);
+<a name="l00400"></a>00400 }
+<a name="l00401"></a>00401 
+<a name="l00402"></a><a class="code" href="class_render_model.html#a734926c9b22541e6a853953686144901">00402</a> <span class="keywordtype">void</span> <a class="code" href="class_render_model.html#a734926c9b22541e6a853953686144901">RenderModel::destroyedConstraint</a>(<a class="code" href="class_constraint.html">Constraint</a> * constraint)
+<a name="l00403"></a>00403 {
+<a name="l00404"></a>00404     <span class="keywordflow">for</span>(std::vector&lt;ConstraintRenderObject *&gt;::iterator renderIter =  m_constraintRenderList.begin(); 
+<a name="l00405"></a>00405         renderIter != m_constraintRenderList.end();
+<a name="l00406"></a>00406         renderIter++) {
+<a name="l00407"></a>00407 
+<a name="l00408"></a>00408         <span class="keywordflow">if</span>((*(*renderIter)).getConstraint() == constraint) {
+<a name="l00409"></a>00409             (*(*renderIter)).destroyEffects();
+<a name="l00410"></a>00410             <span class="keyword">delete</span> (*renderIter);
+<a name="l00411"></a>00411             m_constraintRenderList.erase(std::remove(m_constraintRenderList.begin(), 
+<a name="l00412"></a>00412                 m_constraintRenderList.end(), (*renderIter)), m_constraintRenderList.end());
+<a name="l00413"></a>00413             <span class="keywordflow">return</span>;
+<a name="l00414"></a>00414         }
+<a name="l00415"></a>00415     }
+<a name="l00416"></a>00416 }
+<a name="l00417"></a>00417 
+<a name="l00418"></a>00418 <span class="keywordtype">int</span> RenderModel::getNumObjects()<span class="keyword"> const</span>
+<a name="l00419"></a>00419 <span class="keyword"></span>{
+<a name="l00420"></a>00420     <span class="keywordflow">return</span> m_physicsRenderList.size() + m_constraintRenderList.size();
+<a name="l00421"></a>00421 }
 </pre></div></div>
-<hr class="footer"/><address style="text-align: right;"><small>Generated on Thu Apr 21 03:31:28 2011 for OreWar by&nbsp;
+<hr class="footer"/><address style="text-align: right;"><small>Generated on Wed Jun 8 21:25:19 2011 for OreWar by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.6.3 </small></address>
 </body>

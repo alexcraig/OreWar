@@ -33,8 +33,8 @@ Inheritance diagram for PhysicsObject:</div>
  <div class="center">
   <img src="class_physics_object.png" usemap="#PhysicsObject_map" alt=""/>
   <map id="PhysicsObject_map" name="PhysicsObject_map">
-<area href="class_base_object.html" alt="BaseObject" shape="rect" coords="0,0,93,24"/>
-<area href="class_player_ship.html" alt="PlayerShip" shape="rect" coords="0,112,93,136"/>
+<area href="class_base_object.html" alt="BaseObject" shape="rect" coords="0,0,138,24"/>
+<area href="class_sphere_collision_object.html" alt="SphereCollisionObject" shape="rect" coords="0,112,138,136"/>
 </map>
  </div>
 </div>
@@ -45,21 +45,23 @@ Inheritance diagram for PhysicsObject:</div>
 <tr><td class="memItemLeft" align="right" valign="top">&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_physics_object.html#a04de359a8cae00bff081d2e3460b9995">PhysicsObject</a> (ObjectType type, Real mass, Vector3 position)</td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_physics_object.html#a4a99693545fefc85d81895afae8d7220">PhysicsObject</a> (ObjectType type, Real mass)</td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_physics_object.html#ae1869a54412255612df17578933bdde9">PhysicsObject</a> (const <a class="el" href="class_physics_object.html">PhysicsObject</a> &amp;copy)</td></tr>
-<tr><td class="memItemLeft" align="right" valign="top">ObjectType&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_physics_object.html#a693a933664bdc6d1f27fd962140ab428">getType</a> () const </td></tr>
-<tr><td class="memItemLeft" align="right" valign="top">Real&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_physics_object.html#af8f45d759edd1fa20048e8083d8b1bbf">getMass</a> () const </td></tr>
-<tr><td class="memItemLeft" align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_physics_object.html#a460a5dbc919731ca2e812384ab3e132a">setVelocity</a> (Vector3 velocity)</td></tr>
-<tr><td class="memItemLeft" align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_physics_object.html#ab5abb0ecf0c98f68cd5d4317fcce155c">setAcceleration</a> (Vector3 acceleration)</td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">ObjectType&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_physics_object.html#a4566a4d5077d352a2bab63174791fe57">type</a> () const </td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">Real&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_physics_object.html#a3775a4936fd88ce66632088aa7e9d26e">mass</a> () const </td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_physics_object.html#a7804c67b7896c1c8ce4b5efee6ecef9c">velocity</a> (Vector3 velocity)</td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_physics_object.html#ae538f2938d24578e3a8e947ab3e5f495">acceleration</a> (Vector3 acceleration)</td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">Vector3&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_physics_object.html#aa1ee2925ae45f6e8b852e75bee8d7837">getVelocity</a> () const </td></tr>
-<tr><td class="memItemLeft" align="right" valign="top">Vector3&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_physics_object.html#a98673969c4d905e54c70ff0fc0454c70">getAcceleration</a> () const </td></tr>
-<tr><td class="memItemLeft" align="right" valign="top">Vector3&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_physics_object.html#a057524083dc600fccb62b44dc142cda8">getSumForce</a> () const </td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">Vector3&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_physics_object.html#aa1ffb528157ba63fc4d328ad8f72964b">acceleration</a> () const </td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">Vector3&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_physics_object.html#a07d88657f04e54a23207a6e815cc20c1">sumForces</a> () const </td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">Vector3&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_physics_object.html#af213f1a65c4491a68c0954588a517663">sumTempForces</a> () const </td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_physics_object.html#a493315150370fed69d477ff50b322663">applyForce</a> (Vector3 force)</td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_physics_object.html#a5a7fbcfacf83f5b6b01d73deda3f8811">applyTempForce</a> (Vector3 force)</td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_physics_object.html#a52671125aa47139b52d5c56debccb7b6">clearForces</a> ()</td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_physics_object.html#a4d5740f84fd3df4ba4b5becaebf1038f">updatePhysics</a> (Real timeElapsed)</td></tr>
 </table>
 <hr/><a name="_details"></a><h2>Detailed Description</h2>
 <p>The <a class="el" href="class_physics_object.html">PhysicsObject</a> class represents an object in the OreWar game world which is subject to physics simulation. Physics objects have a set mass, and forces can be applied to produce motion when the updatePosition() method is called. The velocity and acceleration can also be directly manipulated in cases where forces are unnecessary. All properties use the same coordinate orientation as those in the <a class="el" href="class_base_object.html">BaseObject</a> class. </p>
 
-<p>Definition at line <a class="el" href="_physics_engine_8h_source.html#l00081">81</a> of file <a class="el" href="_physics_engine_8h_source.html">PhysicsEngine.h</a>.</p>
+<p>Definition at line <a class="el" href="_physics_engine_8h_source.html#l00083">83</a> of file <a class="el" href="_physics_engine_8h_source.html">PhysicsEngine.h</a>.</p>
 <hr/><h2>Constructor &amp; Destructor Documentation</h2>
 <a class="anchor" id="a04de359a8cae00bff081d2e3460b9995"></a><!-- doxytag: member="PhysicsObject::PhysicsObject" ref="a04de359a8cae00bff081d2e3460b9995" args="(ObjectType type, Real mass, Vector3 position)" -->
 <div class="memitem">
@@ -93,7 +95,7 @@ Inheritance diagram for PhysicsObject:</div>
 <div class="memdoc">
 <p>Construct a <a class="el" href="class_physics_object.html">PhysicsObject</a> at the given position coordinates with the specified mass and default heading (&lt;0, 0, -1&gt;). </p>
 
-<p>Definition at line <a class="el" href="_physics_engine_8cpp_source.html#l00076">76</a> of file <a class="el" href="_physics_engine_8cpp_source.html">PhysicsEngine.cpp</a>.</p>
+<p>Definition at line <a class="el" href="_physics_engine_8cpp_source.html#l00083">83</a> of file <a class="el" href="_physics_engine_8cpp_source.html">PhysicsEngine.cpp</a>.</p>
 
 </div>
 </div>
@@ -123,7 +125,7 @@ Inheritance diagram for PhysicsObject:</div>
 <div class="memdoc">
 <p>Construct a <a class="el" href="class_physics_object.html">PhysicsObject</a> at the origin with the specified mass with default heading (&lt;0, 0, -1&gt;) </p>
 
-<p>Definition at line <a class="el" href="_physics_engine_8cpp_source.html#l00082">82</a> of file <a class="el" href="_physics_engine_8cpp_source.html">PhysicsEngine.cpp</a>.</p>
+<p>Definition at line <a class="el" href="_physics_engine_8cpp_source.html#l00089">89</a> of file <a class="el" href="_physics_engine_8cpp_source.html">PhysicsEngine.cpp</a>.</p>
 
 </div>
 </div>
@@ -144,11 +146,52 @@ Inheritance diagram for PhysicsObject:</div>
 <div class="memdoc">
 <p>Copy constructor </p>
 
-<p>Definition at line <a class="el" href="_physics_engine_8cpp_source.html#l00087">87</a> of file <a class="el" href="_physics_engine_8cpp_source.html">PhysicsEngine.cpp</a>.</p>
+<p>Definition at line <a class="el" href="_physics_engine_8cpp_source.html#l00094">94</a> of file <a class="el" href="_physics_engine_8cpp_source.html">PhysicsEngine.cpp</a>.</p>
 
 </div>
 </div>
 <hr/><h2>Member Function Documentation</h2>
+<a class="anchor" id="aa1ffb528157ba63fc4d328ad8f72964b"></a><!-- doxytag: member="PhysicsObject::acceleration" ref="aa1ffb528157ba63fc4d328ad8f72964b" args="() const " -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">Vector3 PhysicsObject::acceleration </td>
+          <td>(</td>
+          <td class="paramname"></td>
+          <td>&nbsp;)&nbsp;</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+<dl class="return"><dt><b>Returns:</b></dt><dd>The acceleration of the object </dd></dl>
+
+<p>Definition at line <a class="el" href="_physics_engine_8cpp_source.html#l00125">125</a> of file <a class="el" href="_physics_engine_8cpp_source.html">PhysicsEngine.cpp</a>.</p>
+
+</div>
+</div>
+<a class="anchor" id="ae538f2938d24578e3a8e947ab3e5f495"></a><!-- doxytag: member="PhysicsObject::acceleration" ref="ae538f2938d24578e3a8e947ab3e5f495" args="(Vector3 acceleration)" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void PhysicsObject::acceleration </td>
+          <td>(</td>
+          <td class="paramtype">Vector3&nbsp;</td>
+          <td class="paramname"> <em>acceleration</em></td>
+          <td>&nbsp;)&nbsp;</td>
+          <td></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+<p>Sets the acceleration of the object </p>
+
+<p>Definition at line <a class="el" href="_physics_engine_8cpp_source.html#l00115">115</a> of file <a class="el" href="_physics_engine_8cpp_source.html">PhysicsEngine.cpp</a>.</p>
+
+</div>
+</div>
 <a class="anchor" id="a493315150370fed69d477ff50b322663"></a><!-- doxytag: member="PhysicsObject::applyForce" ref="a493315150370fed69d477ff50b322663" args="(Vector3 force)" -->
 <div class="memitem">
 <div class="memproto">
@@ -166,7 +209,28 @@ Inheritance diagram for PhysicsObject:</div>
 <div class="memdoc">
 <p>Applies an addititve force on the object which will be taken into account on the next physics update. </p>
 
-<p>Definition at line <a class="el" href="_physics_engine_8cpp_source.html#l00128">128</a> of file <a class="el" href="_physics_engine_8cpp_source.html">PhysicsEngine.cpp</a>.</p>
+<p>Definition at line <a class="el" href="_physics_engine_8cpp_source.html#l00140">140</a> of file <a class="el" href="_physics_engine_8cpp_source.html">PhysicsEngine.cpp</a>.</p>
+
+</div>
+</div>
+<a class="anchor" id="a5a7fbcfacf83f5b6b01d73deda3f8811"></a><!-- doxytag: member="PhysicsObject::applyTempForce" ref="a5a7fbcfacf83f5b6b01d73deda3f8811" args="(Vector3 force)" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void PhysicsObject::applyTempForce </td>
+          <td>(</td>
+          <td class="paramtype">Vector3&nbsp;</td>
+          <td class="paramname"> <em>force</em></td>
+          <td>&nbsp;)&nbsp;</td>
+          <td></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+<p>Applies an addititve force on the object which will be taken into account and cleared on the next physics update. </p>
+
+<p>Definition at line <a class="el" href="_physics_engine_8cpp_source.html#l00145">145</a> of file <a class="el" href="_physics_engine_8cpp_source.html">PhysicsEngine.cpp</a>.</p>
 
 </div>
 </div>
@@ -184,89 +248,9 @@ Inheritance diagram for PhysicsObject:</div>
       </table>
 </div>
 <div class="memdoc">
-<p>Cancel all force currently applied to the object </p>
+<p>Remove all forces (temporary and persistent) all force currently applied to the object </p>
 
-<p>Definition at line <a class="el" href="_physics_engine_8cpp_source.html#l00133">133</a> of file <a class="el" href="_physics_engine_8cpp_source.html">PhysicsEngine.cpp</a>.</p>
-
-</div>
-</div>
-<a class="anchor" id="a98673969c4d905e54c70ff0fc0454c70"></a><!-- doxytag: member="PhysicsObject::getAcceleration" ref="a98673969c4d905e54c70ff0fc0454c70" args="() const " -->
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">Vector3 PhysicsObject::getAcceleration </td>
-          <td>(</td>
-          <td class="paramname"></td>
-          <td>&nbsp;)&nbsp;</td>
-          <td> const</td>
-        </tr>
-      </table>
-</div>
-<div class="memdoc">
-<dl class="return"><dt><b>Returns:</b></dt><dd>The acceleration of the object </dd></dl>
-
-<p>Definition at line <a class="el" href="_physics_engine_8cpp_source.html#l00118">118</a> of file <a class="el" href="_physics_engine_8cpp_source.html">PhysicsEngine.cpp</a>.</p>
-
-</div>
-</div>
-<a class="anchor" id="af8f45d759edd1fa20048e8083d8b1bbf"></a><!-- doxytag: member="PhysicsObject::getMass" ref="af8f45d759edd1fa20048e8083d8b1bbf" args="() const " -->
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">Real PhysicsObject::getMass </td>
-          <td>(</td>
-          <td class="paramname"></td>
-          <td>&nbsp;)&nbsp;</td>
-          <td> const</td>
-        </tr>
-      </table>
-</div>
-<div class="memdoc">
-<dl class="return"><dt><b>Returns:</b></dt><dd>The mass of the object </dd></dl>
-
-<p>Definition at line <a class="el" href="_physics_engine_8cpp_source.html#l00098">98</a> of file <a class="el" href="_physics_engine_8cpp_source.html">PhysicsEngine.cpp</a>.</p>
-
-</div>
-</div>
-<a class="anchor" id="a057524083dc600fccb62b44dc142cda8"></a><!-- doxytag: member="PhysicsObject::getSumForce" ref="a057524083dc600fccb62b44dc142cda8" args="() const " -->
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">Vector3 PhysicsObject::getSumForce </td>
-          <td>(</td>
-          <td class="paramname"></td>
-          <td>&nbsp;)&nbsp;</td>
-          <td> const</td>
-        </tr>
-      </table>
-</div>
-<div class="memdoc">
-<dl class="return"><dt><b>Returns:</b></dt><dd>The vector sum of all forces on the object </dd></dl>
-
-<p>Definition at line <a class="el" href="_physics_engine_8cpp_source.html#l00123">123</a> of file <a class="el" href="_physics_engine_8cpp_source.html">PhysicsEngine.cpp</a>.</p>
-
-</div>
-</div>
-<a class="anchor" id="a693a933664bdc6d1f27fd962140ab428"></a><!-- doxytag: member="PhysicsObject::getType" ref="a693a933664bdc6d1f27fd962140ab428" args="() const " -->
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">ObjectType PhysicsObject::getType </td>
-          <td>(</td>
-          <td class="paramname"></td>
-          <td>&nbsp;)&nbsp;</td>
-          <td> const</td>
-        </tr>
-      </table>
-</div>
-<div class="memdoc">
-<dl class="return"><dt><b>Returns:</b></dt><dd>The type of the object (see ObjectType enum) </dd></dl>
-
-<p>Definition at line <a class="el" href="_physics_engine_8cpp_source.html#l00093">93</a> of file <a class="el" href="_physics_engine_8cpp_source.html">PhysicsEngine.cpp</a>.</p>
+<p>Definition at line <a class="el" href="_physics_engine_8cpp_source.html#l00150">150</a> of file <a class="el" href="_physics_engine_8cpp_source.html">PhysicsEngine.cpp</a>.</p>
 
 </div>
 </div>
@@ -286,49 +270,87 @@ Inheritance diagram for PhysicsObject:</div>
 <div class="memdoc">
 <dl class="return"><dt><b>Returns:</b></dt><dd>The velocity of the object </dd></dl>
 
-<p>Definition at line <a class="el" href="_physics_engine_8cpp_source.html#l00113">113</a> of file <a class="el" href="_physics_engine_8cpp_source.html">PhysicsEngine.cpp</a>.</p>
+<p>Definition at line <a class="el" href="_physics_engine_8cpp_source.html#l00120">120</a> of file <a class="el" href="_physics_engine_8cpp_source.html">PhysicsEngine.cpp</a>.</p>
 
 </div>
 </div>
-<a class="anchor" id="ab5abb0ecf0c98f68cd5d4317fcce155c"></a><!-- doxytag: member="PhysicsObject::setAcceleration" ref="ab5abb0ecf0c98f68cd5d4317fcce155c" args="(Vector3 acceleration)" -->
+<a class="anchor" id="a3775a4936fd88ce66632088aa7e9d26e"></a><!-- doxytag: member="PhysicsObject::mass" ref="a3775a4936fd88ce66632088aa7e9d26e" args="() const " -->
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">void PhysicsObject::setAcceleration </td>
+          <td class="memname">Real PhysicsObject::mass </td>
           <td>(</td>
-          <td class="paramtype">Vector3&nbsp;</td>
-          <td class="paramname"> <em>acceleration</em></td>
+          <td class="paramname"></td>
           <td>&nbsp;)&nbsp;</td>
-          <td></td>
+          <td> const</td>
         </tr>
       </table>
 </div>
 <div class="memdoc">
-<p>Sets the acceleration of the object </p>
+<dl class="return"><dt><b>Returns:</b></dt><dd>The mass of the object </dd></dl>
 
-<p>Definition at line <a class="el" href="_physics_engine_8cpp_source.html#l00108">108</a> of file <a class="el" href="_physics_engine_8cpp_source.html">PhysicsEngine.cpp</a>.</p>
+<p>Definition at line <a class="el" href="_physics_engine_8cpp_source.html#l00105">105</a> of file <a class="el" href="_physics_engine_8cpp_source.html">PhysicsEngine.cpp</a>.</p>
 
 </div>
 </div>
-<a class="anchor" id="a460a5dbc919731ca2e812384ab3e132a"></a><!-- doxytag: member="PhysicsObject::setVelocity" ref="a460a5dbc919731ca2e812384ab3e132a" args="(Vector3 velocity)" -->
+<a class="anchor" id="a07d88657f04e54a23207a6e815cc20c1"></a><!-- doxytag: member="PhysicsObject::sumForces" ref="a07d88657f04e54a23207a6e815cc20c1" args="() const " -->
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">void PhysicsObject::setVelocity </td>
+          <td class="memname">Vector3 PhysicsObject::sumForces </td>
           <td>(</td>
-          <td class="paramtype">Vector3&nbsp;</td>
-          <td class="paramname"> <em>velocity</em></td>
+          <td class="paramname"></td>
           <td>&nbsp;)&nbsp;</td>
-          <td></td>
+          <td> const</td>
         </tr>
       </table>
 </div>
 <div class="memdoc">
-<p>Sets the velocity of the object </p>
+<dl class="return"><dt><b>Returns:</b></dt><dd>The vector sum of permanent all (not cleared on physics update) forces on the object </dd></dl>
 
-<p>Definition at line <a class="el" href="_physics_engine_8cpp_source.html#l00103">103</a> of file <a class="el" href="_physics_engine_8cpp_source.html">PhysicsEngine.cpp</a>.</p>
+<p>Definition at line <a class="el" href="_physics_engine_8cpp_source.html#l00130">130</a> of file <a class="el" href="_physics_engine_8cpp_source.html">PhysicsEngine.cpp</a>.</p>
+
+</div>
+</div>
+<a class="anchor" id="af213f1a65c4491a68c0954588a517663"></a><!-- doxytag: member="PhysicsObject::sumTempForces" ref="af213f1a65c4491a68c0954588a517663" args="() const " -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">Vector3 PhysicsObject::sumTempForces </td>
+          <td>(</td>
+          <td class="paramname"></td>
+          <td>&nbsp;)&nbsp;</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+<dl class="return"><dt><b>Returns:</b></dt><dd>The vector sum of all temporary (cleared on physics update) forces on the object </dd></dl>
+
+<p>Definition at line <a class="el" href="_physics_engine_8cpp_source.html#l00135">135</a> of file <a class="el" href="_physics_engine_8cpp_source.html">PhysicsEngine.cpp</a>.</p>
+
+</div>
+</div>
+<a class="anchor" id="a4566a4d5077d352a2bab63174791fe57"></a><!-- doxytag: member="PhysicsObject::type" ref="a4566a4d5077d352a2bab63174791fe57" args="() const " -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">ObjectType PhysicsObject::type </td>
+          <td>(</td>
+          <td class="paramname"></td>
+          <td>&nbsp;)&nbsp;</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+<dl class="return"><dt><b>Returns:</b></dt><dd>The type of the object (see ObjectType enum) </dd></dl>
+
+<p>Definition at line <a class="el" href="_physics_engine_8cpp_source.html#l00100">100</a> of file <a class="el" href="_physics_engine_8cpp_source.html">PhysicsEngine.cpp</a>.</p>
 
 </div>
 </div>
@@ -349,9 +371,28 @@ Inheritance diagram for PhysicsObject:</div>
 <div class="memdoc">
 <p>Updates the object's position, taking all physics parameters into account as well as the time elapsed since the last position update (in seconds). </p>
 
-<p>Reimplemented in <a class="el" href="class_player_ship.html#ae1ba2c506cf54004a0311f295705f407">PlayerShip</a>.</p>
+<p>Definition at line <a class="el" href="_physics_engine_8cpp_source.html#l00156">156</a> of file <a class="el" href="_physics_engine_8cpp_source.html">PhysicsEngine.cpp</a>.</p>
 
-<p>Definition at line <a class="el" href="_physics_engine_8cpp_source.html#l00138">138</a> of file <a class="el" href="_physics_engine_8cpp_source.html">PhysicsEngine.cpp</a>.</p>
+</div>
+</div>
+<a class="anchor" id="a7804c67b7896c1c8ce4b5efee6ecef9c"></a><!-- doxytag: member="PhysicsObject::velocity" ref="a7804c67b7896c1c8ce4b5efee6ecef9c" args="(Vector3 velocity)" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void PhysicsObject::velocity </td>
+          <td>(</td>
+          <td class="paramtype">Vector3&nbsp;</td>
+          <td class="paramname"> <em>velocity</em></td>
+          <td>&nbsp;)&nbsp;</td>
+          <td></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+<p>Sets the velocity of the object </p>
+
+<p>Definition at line <a class="el" href="_physics_engine_8cpp_source.html#l00110">110</a> of file <a class="el" href="_physics_engine_8cpp_source.html">PhysicsEngine.cpp</a>.</p>
 
 </div>
 </div>
@@ -360,7 +401,7 @@ Inheritance diagram for PhysicsObject:</div>
 <li>C:/Programming/Personal/OreWar/OreWar/<a class="el" href="_physics_engine_8cpp_source.html">PhysicsEngine.cpp</a></li>
 </ul>
 </div>
-<hr class="footer"/><address style="text-align: right;"><small>Generated on Thu Apr 21 03:31:28 2011 for OreWar by&nbsp;
+<hr class="footer"/><address style="text-align: right;"><small>Generated on Wed Jun 8 21:25:19 2011 for OreWar by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.6.3 </small></address>
 </body>

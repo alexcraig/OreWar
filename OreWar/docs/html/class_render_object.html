@@ -27,57 +27,106 @@
 <div class="contents">
 <h1>RenderObject Class Reference</h1><!-- doxytag: class="RenderObject" -->
 <p><code>#include &lt;<a class="el" href="_render_model_8h_source.html">RenderModel.h</a>&gt;</code></p>
+<div class="dynheader">
+Inheritance diagram for RenderObject:</div>
+<div class="dynsection">
+ <div class="center">
+  <img src="class_render_object.png" usemap="#RenderObject_map" alt=""/>
+  <map id="RenderObject_map" name="RenderObject_map">
+<area href="class_constraint_render_object.html" alt="ConstraintRenderObject" shape="rect" coords="0,56,147,80"/>
+<area href="class_physics_render_object.html" alt="PhysicsRenderObject" shape="rect" coords="157,56,304,80"/>
+<area href="class_projectile_r_o.html" alt="ProjectileRO" shape="rect" coords="78,112,225,136"/>
+<area href="class_ship_r_o.html" alt="ShipRO" shape="rect" coords="235,112,382,136"/>
+<area href="class_npc_ship_r_o.html" alt="NpcShipRO" shape="rect" coords="235,168,382,192"/>
+</map>
+ </div>
+</div>
 
 <p><a href="class_render_object-members.html">List of all members.</a></p>
 <table border="0" cellpadding="0" cellspacing="0">
 <tr><td colspan="2"><h2>Public Member Functions</h2></td></tr>
-<tr><td class="memItemLeft" align="right" valign="top">&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_render_object.html#ac27dca7a43335c9f0b614193edf431a4">RenderObject</a> (<a class="el" href="class_physics_object.html">PhysicsObject</a> *object, SceneNode *node)</td></tr>
-<tr><td class="memItemLeft" align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_render_object.html#a2c844e84c79a3de750e69eb13c2d0d3a">updateNode</a> (Real elapsedTime, Quaternion camOrientation)</td></tr>
-<tr><td class="memItemLeft" align="right" valign="top"><a class="el" href="class_physics_object.html">PhysicsObject</a> *&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_render_object.html#ae93de1d5fa4ee008f71125434cbcf444">getObject</a> ()</td></tr>
-<tr><td class="memItemLeft" align="right" valign="top">SceneNode *&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_render_object.html#abee84cffcbb1050d9afe445e6dbd67fc">getRootNode</a> ()</td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_render_object.html#a044efc6b99868ffb8c9b41e498d291e6">RenderObject</a> (SceneManager *mgr)</td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">SceneManager *&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_render_object.html#aeaf568feba5a9c7fbecefc2315255f9c">getSceneManager</a> ()</td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">int&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_render_object.html#af0530a607c4e48ef9550acb602cbf21b">renderId</a> () const </td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_render_object.html#ae71a482126a6a6fd38eef8fd5507987c">updateEffects</a> (Real elapsedTime, Quaternion camOrientation)=0</td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_render_object.html#afb4232c417b0351e0ba4c26ec0373581">loadSceneResources</a> ()=0</td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_render_object.html#a64458e67d7f639dd6fe8da903dae6616">createEffects</a> ()=0</td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_render_object.html#a9404f639c6acd8de891e5c89b0605a91">destroyEffects</a> ()=0</td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_render_object.html#a9e4f0e2315e377d7ed0a13cabb3df15f">operator==</a> (const <a class="el" href="class_render_object.html">RenderObject</a> &amp;other) const </td></tr>
 </table>
 <hr/><a name="_details"></a><h2>Detailed Description</h2>
-<p>A <a class="el" href="class_render_object.html">RenderObject</a> represents a single logical object from the game model that should be rendered to screen. The <a class="el" href="class_render_object.html">RenderObject</a> combines a reference to the <a class="el" href="class_physics_object.html">PhysicsObject</a> of the model with a reference to the root sceneNode that should be used to render the entity through OGRE. </p>
+<p>The <a class="el" href="class_render_object.html">RenderObject</a> class represents any entity in the game world which will be rendered through the OgreScene manager (typically attached to SceneNodes) </p>
 
-<p>Definition at line <a class="el" href="_render_model_8h_source.html#l00017">17</a> of file <a class="el" href="_render_model_8h_source.html">RenderModel.h</a>.</p>
+<p>Definition at line <a class="el" href="_render_model_8h_source.html#l00018">18</a> of file <a class="el" href="_render_model_8h_source.html">RenderModel.h</a>.</p>
 <hr/><h2>Constructor &amp; Destructor Documentation</h2>
-<a class="anchor" id="ac27dca7a43335c9f0b614193edf431a4"></a><!-- doxytag: member="RenderObject::RenderObject" ref="ac27dca7a43335c9f0b614193edf431a4" args="(PhysicsObject *object, SceneNode *node)" -->
+<a class="anchor" id="a044efc6b99868ffb8c9b41e498d291e6"></a><!-- doxytag: member="RenderObject::RenderObject" ref="a044efc6b99868ffb8c9b41e498d291e6" args="(SceneManager *mgr)" -->
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
           <td class="memname">RenderObject::RenderObject </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="class_physics_object.html">PhysicsObject</a> *&nbsp;</td>
-          <td class="paramname"> <em>object</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
+          <td class="paramtype">SceneManager *&nbsp;</td>
+          <td class="paramname"> <em>mgr</em></td>
+          <td>&nbsp;)&nbsp;</td>
           <td></td>
-          <td class="paramtype">SceneNode *&nbsp;</td>
-          <td class="paramname"> <em>node</em></td><td>&nbsp;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td><td></td>
         </tr>
       </table>
 </div>
 <div class="memdoc">
-<p>Constructs a new <a class="el" href="class_render_object.html">RenderObject</a> </p>
+<p>Constructs a new <a class="el" href="class_render_object.html">RenderObject</a> which uses the specified SceneManager </p>
 
-<p>Definition at line <a class="el" href="_render_model_8cpp_source.html#l00009">9</a> of file <a class="el" href="_render_model_8cpp_source.html">RenderModel.cpp</a>.</p>
+<p>Definition at line <a class="el" href="_render_model_8cpp_source.html#l00012">12</a> of file <a class="el" href="_render_model_8cpp_source.html">RenderModel.cpp</a>.</p>
 
 </div>
 </div>
 <hr/><h2>Member Function Documentation</h2>
-<a class="anchor" id="ae93de1d5fa4ee008f71125434cbcf444"></a><!-- doxytag: member="RenderObject::getObject" ref="ae93de1d5fa4ee008f71125434cbcf444" args="()" -->
+<a class="anchor" id="a64458e67d7f639dd6fe8da903dae6616"></a><!-- doxytag: member="RenderObject::createEffects" ref="a64458e67d7f639dd6fe8da903dae6616" args="()=0" -->
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="class_physics_object.html">PhysicsObject</a> * RenderObject::getObject </td>
+          <td class="memname">virtual void RenderObject::createEffects </td>
+          <td>(</td>
+          <td class="paramname"></td>
+          <td>&nbsp;)&nbsp;</td>
+          <td><code> [pure virtual]</code></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+<p>Performs first time creation of required OGRE effects </p>
+
+<p>Implemented in <a class="el" href="class_constraint_render_object.html#a16a9cc8a683984e378129925c82fb068">ConstraintRenderObject</a>, <a class="el" href="class_physics_render_object.html#aaa86860493044b75280e368ec5df67d4">PhysicsRenderObject</a>, <a class="el" href="class_ship_r_o.html#aa096e5e8a90f19ffc660a79679fd156c">ShipRO</a>, <a class="el" href="class_npc_ship_r_o.html#ae87823b78443ba2f2e47750daac36d9a">NpcShipRO</a>, and <a class="el" href="class_projectile_r_o.html#a54097b7f5cf0f4cfee50d387d91baa48">ProjectileRO</a>.</p>
+
+</div>
+</div>
+<a class="anchor" id="a9404f639c6acd8de891e5c89b0605a91"></a><!-- doxytag: member="RenderObject::destroyEffects" ref="a9404f639c6acd8de891e5c89b0605a91" args="()=0" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual void RenderObject::destroyEffects </td>
+          <td>(</td>
+          <td class="paramname"></td>
+          <td>&nbsp;)&nbsp;</td>
+          <td><code> [pure virtual]</code></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+<p>Performs destruction of all generated OGRE effects </p>
+
+<p>Implemented in <a class="el" href="class_constraint_render_object.html#a84009a4c6805420f83ab819d050a7333">ConstraintRenderObject</a>, <a class="el" href="class_physics_render_object.html#a5e732df7ddeb3d961a6e731e0b89c3e8">PhysicsRenderObject</a>, <a class="el" href="class_ship_r_o.html#a5b6efa97428804662af487f394faee8a">ShipRO</a>, <a class="el" href="class_npc_ship_r_o.html#a2fb60038ef8bbe4cc9d957914de19b76">NpcShipRO</a>, and <a class="el" href="class_projectile_r_o.html#ac365cc57f5075003beb1951046d5ec57">ProjectileRO</a>.</p>
+
+</div>
+</div>
+<a class="anchor" id="aeaf568feba5a9c7fbecefc2315255f9c"></a><!-- doxytag: member="RenderObject::getSceneManager" ref="aeaf568feba5a9c7fbecefc2315255f9c" args="()" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">SceneManager * RenderObject::getSceneManager </td>
           <td>(</td>
           <td class="paramname"></td>
           <td>&nbsp;)&nbsp;</td>
@@ -86,38 +135,81 @@
       </table>
 </div>
 <div class="memdoc">
-<dl class="return"><dt><b>Returns:</b></dt><dd>A pointer to the model object </dd></dl>
+<dl class="return"><dt><b>Returns:</b></dt><dd>The OGRE scene manager used to manage resources for this object </dd></dl>
 
-<p>Definition at line <a class="el" href="_render_model_8cpp_source.html#l00024">24</a> of file <a class="el" href="_render_model_8cpp_source.html">RenderModel.cpp</a>.</p>
+<p>Definition at line <a class="el" href="_render_model_8cpp_source.html#l00018">18</a> of file <a class="el" href="_render_model_8cpp_source.html">RenderModel.cpp</a>.</p>
 
 </div>
 </div>
-<a class="anchor" id="abee84cffcbb1050d9afe445e6dbd67fc"></a><!-- doxytag: member="RenderObject::getRootNode" ref="abee84cffcbb1050d9afe445e6dbd67fc" args="()" -->
+<a class="anchor" id="afb4232c417b0351e0ba4c26ec0373581"></a><!-- doxytag: member="RenderObject::loadSceneResources" ref="afb4232c417b0351e0ba4c26ec0373581" args="()=0" -->
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">SceneNode * RenderObject::getRootNode </td>
+          <td class="memname">virtual void RenderObject::loadSceneResources </td>
           <td>(</td>
           <td class="paramname"></td>
           <td>&nbsp;)&nbsp;</td>
-          <td></td>
+          <td><code> [pure virtual]</code></td>
         </tr>
       </table>
 </div>
 <div class="memdoc">
-<dl class="return"><dt><b>Returns:</b></dt><dd>A pointer to the root scene node used to render the object </dd></dl>
+<p>Loads any resources (sprites, particles, etc) that will be neccesary to render the entity. </p>
+
+<p>Implemented in <a class="el" href="class_constraint_render_object.html#a70f4c25cdb6fdbbbedeff26c29ae898b">ConstraintRenderObject</a>, <a class="el" href="class_physics_render_object.html#a61addf78bfe6c078e4dc5c25a87d1e64">PhysicsRenderObject</a>, <a class="el" href="class_ship_r_o.html#a7f8df7f9c402865feb79bf29b2c03e73">ShipRO</a>, <a class="el" href="class_npc_ship_r_o.html#a95bc86c768e02e4817660cb2af9db44c">NpcShipRO</a>, and <a class="el" href="class_projectile_r_o.html#a19e2d8371baa7f4a2f9b32517c733053">ProjectileRO</a>.</p>
+
+</div>
+</div>
+<a class="anchor" id="a9e4f0e2315e377d7ed0a13cabb3df15f"></a><!-- doxytag: member="RenderObject::operator==" ref="a9e4f0e2315e377d7ed0a13cabb3df15f" args="(const RenderObject &amp;other) const " -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool RenderObject::operator== </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="class_render_object.html">RenderObject</a> &amp;&nbsp;</td>
+          <td class="paramname"> <em>other</em></td>
+          <td>&nbsp;)&nbsp;</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+<dl class="return"><dt><b>Returns:</b></dt><dd>True if the passed <a class="el" href="class_render_object.html">RenderObject</a> has the same render id </dd></dl>
+
+<p>Reimplemented in <a class="el" href="class_physics_render_object.html#a08ed9b1426fd647964294ae146a2233e">PhysicsRenderObject</a>.</p>
 
 <p>Definition at line <a class="el" href="_render_model_8cpp_source.html#l00028">28</a> of file <a class="el" href="_render_model_8cpp_source.html">RenderModel.cpp</a>.</p>
 
 </div>
 </div>
-<a class="anchor" id="a2c844e84c79a3de750e69eb13c2d0d3a"></a><!-- doxytag: member="RenderObject::updateNode" ref="a2c844e84c79a3de750e69eb13c2d0d3a" args="(Real elapsedTime, Quaternion camOrientation)" -->
+<a class="anchor" id="af0530a607c4e48ef9550acb602cbf21b"></a><!-- doxytag: member="RenderObject::renderId" ref="af0530a607c4e48ef9550acb602cbf21b" args="() const " -->
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">void RenderObject::updateNode </td>
+          <td class="memname">int RenderObject::renderId </td>
+          <td>(</td>
+          <td class="paramname"></td>
+          <td>&nbsp;)&nbsp;</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+<dl class="return"><dt><b>Returns:</b></dt><dd>The unique render identifier of this <a class="el" href="class_render_object.html">RenderObject</a> </dd></dl>
+
+<p>Definition at line <a class="el" href="_render_model_8cpp_source.html#l00023">23</a> of file <a class="el" href="_render_model_8cpp_source.html">RenderModel.cpp</a>.</p>
+
+</div>
+</div>
+<a class="anchor" id="ae71a482126a6a6fd38eef8fd5507987c"></a><!-- doxytag: member="RenderObject::updateEffects" ref="ae71a482126a6a6fd38eef8fd5507987c" args="(Real elapsedTime, Quaternion camOrientation)=0" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual void RenderObject::updateEffects </td>
           <td>(</td>
           <td class="paramtype">Real&nbsp;</td>
           <td class="paramname"> <em>elapsedTime</em>, </td>
@@ -131,14 +223,14 @@
         <tr>
           <td></td>
           <td>)</td>
-          <td></td><td></td><td></td>
+          <td></td><td></td><td><code> [pure virtual]</code></td>
         </tr>
       </table>
 </div>
 <div class="memdoc">
-<p>Updates the node based on passed time and camera orientation (useful for sprites) </p>
+<p>Updates the entities effects based on passed time and camera orientation (useful for sprites) </p>
 
-<p>Definition at line <a class="el" href="_render_model_8cpp_source.html#l00014">14</a> of file <a class="el" href="_render_model_8cpp_source.html">RenderModel.cpp</a>.</p>
+<p>Implemented in <a class="el" href="class_constraint_render_object.html#a8de871a59ed89ef8c5a8c9b947425453">ConstraintRenderObject</a>, <a class="el" href="class_physics_render_object.html#a1deec62f82487c3fef68669200b0e8cd">PhysicsRenderObject</a>, <a class="el" href="class_ship_r_o.html#af9d560a187d66fe4950c0dec2a304839">ShipRO</a>, <a class="el" href="class_npc_ship_r_o.html#a854ec527beb0ac68ae6aa701cab4dfaa">NpcShipRO</a>, and <a class="el" href="class_projectile_r_o.html#aedbe88ae9b99f9ab217082ffcd9a1fe6">ProjectileRO</a>.</p>
 
 </div>
 </div>
@@ -147,7 +239,7 @@
 <li>C:/Programming/Personal/OreWar/OreWar/<a class="el" href="_render_model_8cpp_source.html">RenderModel.cpp</a></li>
 </ul>
 </div>
-<hr class="footer"/><address style="text-align: right;"><small>Generated on Thu Apr 21 03:31:28 2011 for OreWar by&nbsp;
+<hr class="footer"/><address style="text-align: right;"><small>Generated on Wed Jun 8 21:25:19 2011 for OreWar by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.6.3 </small></address>
 </body>

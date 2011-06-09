@@ -33,8 +33,8 @@ Inheritance diagram for BaseObject:</div>
  <div class="center">
   <img src="class_base_object.png" usemap="#BaseObject_map" alt=""/>
   <map id="BaseObject_map" name="BaseObject_map">
-<area href="class_physics_object.html" alt="PhysicsObject" shape="rect" coords="0,56,93,80"/>
-<area href="class_player_ship.html" alt="PlayerShip" shape="rect" coords="0,112,93,136"/>
+<area href="class_physics_object.html" alt="PhysicsObject" shape="rect" coords="0,56,138,80"/>
+<area href="class_sphere_collision_object.html" alt="SphereCollisionObject" shape="rect" coords="0,112,138,136"/>
 </map>
  </div>
 </div>
@@ -48,12 +48,13 @@ Inheritance diagram for BaseObject:</div>
 <tr><td class="memItemLeft" align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_base_object.html#ab05b58df3d85a531da6ec40a3fe4c343">yaw</a> (Radian radians)</td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_base_object.html#ad4f39ea20e390d2e26cd852a1b863eb4">roll</a> (Radian radians)</td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_base_object.html#a2f134d171dbf68e3a32cbb0ba12cb9a5">pitch</a> (Radian radians)</td></tr>
-<tr><td class="memItemLeft" align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_base_object.html#ac8452594da304f6a6f5528f215a50be4">setPosition</a> (Vector3 position)</td></tr>
-<tr><td class="memItemLeft" align="right" valign="top">Vector3&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_base_object.html#a097dbe2865e33b5738642438e0a10dbe">getPosition</a> () const </td></tr>
-<tr><td class="memItemLeft" align="right" valign="top">Vector3&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_base_object.html#a7c124ce28f101d870680672f62e69ad2">getHeading</a> () const </td></tr>
-<tr><td class="memItemLeft" align="right" valign="top">Vector3&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_base_object.html#a450af981f711e79b2b72488f4383d613">getNormal</a> () const </td></tr>
-<tr><td class="memItemLeft" align="right" valign="top">Quaternion&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_base_object.html#a6983854d73e5d568eeeb29b180e04b7d">getOrientation</a> () const </td></tr>
-<tr><td class="memItemLeft" align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_base_object.html#a4428a82048ff771129b169515244a0e4">setOrientation</a> (Quaternion orientation)</td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_base_object.html#a2a560ffefd82677a669c6d0e86a2afe2">position</a> (Vector3 position)</td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">Vector3&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_base_object.html#a4f744067ab0cfdb7541ede521377fc7a">displacement</a> (const <a class="el" href="class_base_object.html">BaseObject</a> &amp;other)</td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">Vector3&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_base_object.html#a6104c575c6c4250a54eaeb1dfe805c1e">position</a> () const </td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">Vector3&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_base_object.html#ad1e27f4a8b70a633a2ca3ab3049504c5">heading</a> () const </td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">Vector3&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_base_object.html#a5a8a9d729ce4cb30d8b5d68965d35730">normal</a> () const </td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">Quaternion&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_base_object.html#a90e7522833181ec5598dc6bf7cca9422">orientation</a> () const </td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_base_object.html#a8cb591fbf97ef70f5bdf5e9fc91b2f1a">orientation</a> (Quaternion orientation)</td></tr>
 </table>
 <hr/><a name="_details"></a><h2>Detailed Description</h2>
 <p>The <a class="el" href="class_base_object.html">BaseObject</a> class represents an entity in the OreWar game world. BaseObjects use an X, Y, Z coordinate system following Ogre's axis conventions. (see <a href="http://www.ogre3d.org/tikiwiki/Basic+Tutorial+1&structure=Tutorials">http://www.ogre3d.org/tikiwiki/Basic+Tutorial+1&amp;structure=Tutorials</a>) The coordinate system is centered with 0,0,0 in the exact center of the game world. Orientation is stored as a quaternion with &lt;0, 0, -1&gt; as the base heading (to correspond with the default for Ogre cameras, scene nodes, etc.) </p>
@@ -77,7 +78,7 @@ Inheritance diagram for BaseObject:</div>
 <div class="memdoc">
 <p>Construct a new <a class="el" href="class_base_object.html">BaseObject</a> at a specified position with default heading (&lt;0, 0,-1&gt;) </p>
 
-<p>Definition at line <a class="el" href="_physics_engine_8cpp_source.html#l00009">9</a> of file <a class="el" href="_physics_engine_8cpp_source.html">PhysicsEngine.cpp</a>.</p>
+<p>Definition at line <a class="el" href="_physics_engine_8cpp_source.html#l00011">11</a> of file <a class="el" href="_physics_engine_8cpp_source.html">PhysicsEngine.cpp</a>.</p>
 
 </div>
 </div>
@@ -98,7 +99,7 @@ Inheritance diagram for BaseObject:</div>
 <div class="memdoc">
 <p>Copy constructor </p>
 
-<p>Definition at line <a class="el" href="_physics_engine_8cpp_source.html#l00014">14</a> of file <a class="el" href="_physics_engine_8cpp_source.html">PhysicsEngine.cpp</a>.</p>
+<p>Definition at line <a class="el" href="_physics_engine_8cpp_source.html#l00016">16</a> of file <a class="el" href="_physics_engine_8cpp_source.html">PhysicsEngine.cpp</a>.</p>
 
 </div>
 </div>
@@ -118,17 +119,38 @@ Inheritance diagram for BaseObject:</div>
 <div class="memdoc">
 <p>Construct a new <a class="el" href="class_base_object.html">BaseObject</a> at the origin with default heading (&lt;0, 0,-1&gt;) </p>
 
-<p>Definition at line <a class="el" href="_physics_engine_8cpp_source.html#l00019">19</a> of file <a class="el" href="_physics_engine_8cpp_source.html">PhysicsEngine.cpp</a>.</p>
+<p>Definition at line <a class="el" href="_physics_engine_8cpp_source.html#l00021">21</a> of file <a class="el" href="_physics_engine_8cpp_source.html">PhysicsEngine.cpp</a>.</p>
 
 </div>
 </div>
 <hr/><h2>Member Function Documentation</h2>
-<a class="anchor" id="a7c124ce28f101d870680672f62e69ad2"></a><!-- doxytag: member="BaseObject::getHeading" ref="a7c124ce28f101d870680672f62e69ad2" args="() const " -->
+<a class="anchor" id="a4f744067ab0cfdb7541ede521377fc7a"></a><!-- doxytag: member="BaseObject::displacement" ref="a4f744067ab0cfdb7541ede521377fc7a" args="(const BaseObject &amp;other)" -->
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">Vector3 BaseObject::getHeading </td>
+          <td class="memname">Vector3 BaseObject::displacement </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="class_base_object.html">BaseObject</a> &amp;&nbsp;</td>
+          <td class="paramname"> <em>other</em></td>
+          <td>&nbsp;)&nbsp;</td>
+          <td></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+<p>Calculates the relative displacement between this object and the specified object </p>
+
+<p>Definition at line <a class="el" href="_physics_engine_8cpp_source.html#l00049">49</a> of file <a class="el" href="_physics_engine_8cpp_source.html">PhysicsEngine.cpp</a>.</p>
+
+</div>
+</div>
+<a class="anchor" id="ad1e27f4a8b70a633a2ca3ab3049504c5"></a><!-- doxytag: member="BaseObject::heading" ref="ad1e27f4a8b70a633a2ca3ab3049504c5" args="() const " -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">Vector3 BaseObject::heading </td>
           <td>(</td>
           <td class="paramname"></td>
           <td>&nbsp;)&nbsp;</td>
@@ -139,16 +161,16 @@ Inheritance diagram for BaseObject:</div>
 <div class="memdoc">
 <dl class="return"><dt><b>Returns:</b></dt><dd>The heading of the object (normalised vector pointing "forward" fom it's current orientation) </dd></dl>
 
-<p>Definition at line <a class="el" href="_physics_engine_8cpp_source.html#l00052">52</a> of file <a class="el" href="_physics_engine_8cpp_source.html">PhysicsEngine.cpp</a>.</p>
+<p>Definition at line <a class="el" href="_physics_engine_8cpp_source.html#l00058">58</a> of file <a class="el" href="_physics_engine_8cpp_source.html">PhysicsEngine.cpp</a>.</p>
 
 </div>
 </div>
-<a class="anchor" id="a450af981f711e79b2b72488f4383d613"></a><!-- doxytag: member="BaseObject::getNormal" ref="a450af981f711e79b2b72488f4383d613" args="() const " -->
+<a class="anchor" id="a5a8a9d729ce4cb30d8b5d68965d35730"></a><!-- doxytag: member="BaseObject::normal" ref="a5a8a9d729ce4cb30d8b5d68965d35730" args="() const " -->
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">Vector3 BaseObject::getNormal </td>
+          <td class="memname">Vector3 BaseObject::normal </td>
           <td>(</td>
           <td class="paramname"></td>
           <td>&nbsp;)&nbsp;</td>
@@ -159,16 +181,37 @@ Inheritance diagram for BaseObject:</div>
 <div class="memdoc">
 <dl class="return"><dt><b>Returns:</b></dt><dd>The normal vector of the object (normalised vector pointing "up" from it's current orientation) </dd></dl>
 
-<p>Definition at line <a class="el" href="_physics_engine_8cpp_source.html#l00057">57</a> of file <a class="el" href="_physics_engine_8cpp_source.html">PhysicsEngine.cpp</a>.</p>
+<p>Definition at line <a class="el" href="_physics_engine_8cpp_source.html#l00063">63</a> of file <a class="el" href="_physics_engine_8cpp_source.html">PhysicsEngine.cpp</a>.</p>
 
 </div>
 </div>
-<a class="anchor" id="a6983854d73e5d568eeeb29b180e04b7d"></a><!-- doxytag: member="BaseObject::getOrientation" ref="a6983854d73e5d568eeeb29b180e04b7d" args="() const " -->
+<a class="anchor" id="a8cb591fbf97ef70f5bdf5e9fc91b2f1a"></a><!-- doxytag: member="BaseObject::orientation" ref="a8cb591fbf97ef70f5bdf5e9fc91b2f1a" args="(Quaternion orientation)" -->
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">Quaternion BaseObject::getOrientation </td>
+          <td class="memname">void BaseObject::orientation </td>
+          <td>(</td>
+          <td class="paramtype">Quaternion&nbsp;</td>
+          <td class="paramname"> <em>orientation</em></td>
+          <td>&nbsp;)&nbsp;</td>
+          <td></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+<p>Sets the orientation of the object </p>
+
+<p>Definition at line <a class="el" href="_physics_engine_8cpp_source.html#l00073">73</a> of file <a class="el" href="_physics_engine_8cpp_source.html">PhysicsEngine.cpp</a>.</p>
+
+</div>
+</div>
+<a class="anchor" id="a90e7522833181ec5598dc6bf7cca9422"></a><!-- doxytag: member="BaseObject::orientation" ref="a90e7522833181ec5598dc6bf7cca9422" args="() const " -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">Quaternion BaseObject::orientation </td>
           <td>(</td>
           <td class="paramname"></td>
           <td>&nbsp;)&nbsp;</td>
@@ -179,27 +222,7 @@ Inheritance diagram for BaseObject:</div>
 <div class="memdoc">
 <dl class="return"><dt><b>Returns:</b></dt><dd>The orientation quaternion of the object (with &lt;0, 0, -1&gt; as the base heading) </dd></dl>
 
-<p>Definition at line <a class="el" href="_physics_engine_8cpp_source.html#l00062">62</a> of file <a class="el" href="_physics_engine_8cpp_source.html">PhysicsEngine.cpp</a>.</p>
-
-</div>
-</div>
-<a class="anchor" id="a097dbe2865e33b5738642438e0a10dbe"></a><!-- doxytag: member="BaseObject::getPosition" ref="a097dbe2865e33b5738642438e0a10dbe" args="() const " -->
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">Vector3 BaseObject::getPosition </td>
-          <td>(</td>
-          <td class="paramname"></td>
-          <td>&nbsp;)&nbsp;</td>
-          <td> const</td>
-        </tr>
-      </table>
-</div>
-<div class="memdoc">
-<dl class="return"><dt><b>Returns:</b></dt><dd>The position of the object </dd></dl>
-
-<p>Definition at line <a class="el" href="_physics_engine_8cpp_source.html#l00047">47</a> of file <a class="el" href="_physics_engine_8cpp_source.html">PhysicsEngine.cpp</a>.</p>
+<p>Definition at line <a class="el" href="_physics_engine_8cpp_source.html#l00068">68</a> of file <a class="el" href="_physics_engine_8cpp_source.html">PhysicsEngine.cpp</a>.</p>
 
 </div>
 </div>
@@ -220,7 +243,48 @@ Inheritance diagram for BaseObject:</div>
 <div class="memdoc">
 <p>Pitch the object by the specified number of radians (positive for forward pitch) </p>
 
-<p>Definition at line <a class="el" href="_physics_engine_8cpp_source.html#l00036">36</a> of file <a class="el" href="_physics_engine_8cpp_source.html">PhysicsEngine.cpp</a>.</p>
+<p>Definition at line <a class="el" href="_physics_engine_8cpp_source.html#l00038">38</a> of file <a class="el" href="_physics_engine_8cpp_source.html">PhysicsEngine.cpp</a>.</p>
+
+</div>
+</div>
+<a class="anchor" id="a6104c575c6c4250a54eaeb1dfe805c1e"></a><!-- doxytag: member="BaseObject::position" ref="a6104c575c6c4250a54eaeb1dfe805c1e" args="() const " -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">Vector3 BaseObject::position </td>
+          <td>(</td>
+          <td class="paramname"></td>
+          <td>&nbsp;)&nbsp;</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+<dl class="return"><dt><b>Returns:</b></dt><dd>The position of the object </dd></dl>
+
+<p>Definition at line <a class="el" href="_physics_engine_8cpp_source.html#l00053">53</a> of file <a class="el" href="_physics_engine_8cpp_source.html">PhysicsEngine.cpp</a>.</p>
+
+</div>
+</div>
+<a class="anchor" id="a2a560ffefd82677a669c6d0e86a2afe2"></a><!-- doxytag: member="BaseObject::position" ref="a2a560ffefd82677a669c6d0e86a2afe2" args="(Vector3 position)" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void BaseObject::position </td>
+          <td>(</td>
+          <td class="paramtype">Vector3&nbsp;</td>
+          <td class="paramname"> <em>position</em></td>
+          <td>&nbsp;)&nbsp;</td>
+          <td></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+<p>Sets the position of the object </p>
+
+<p>Definition at line <a class="el" href="_physics_engine_8cpp_source.html#l00044">44</a> of file <a class="el" href="_physics_engine_8cpp_source.html">PhysicsEngine.cpp</a>.</p>
 
 </div>
 </div>
@@ -241,49 +305,7 @@ Inheritance diagram for BaseObject:</div>
 <div class="memdoc">
 <p>Roll the object by the specified number of radians (positive for counter-clockwise roll) </p>
 
-<p>Definition at line <a class="el" href="_physics_engine_8cpp_source.html#l00030">30</a> of file <a class="el" href="_physics_engine_8cpp_source.html">PhysicsEngine.cpp</a>.</p>
-
-</div>
-</div>
-<a class="anchor" id="a4428a82048ff771129b169515244a0e4"></a><!-- doxytag: member="BaseObject::setOrientation" ref="a4428a82048ff771129b169515244a0e4" args="(Quaternion orientation)" -->
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void BaseObject::setOrientation </td>
-          <td>(</td>
-          <td class="paramtype">Quaternion&nbsp;</td>
-          <td class="paramname"> <em>orientation</em></td>
-          <td>&nbsp;)&nbsp;</td>
-          <td></td>
-        </tr>
-      </table>
-</div>
-<div class="memdoc">
-<p>Sets the orientation of the object </p>
-
-<p>Definition at line <a class="el" href="_physics_engine_8cpp_source.html#l00067">67</a> of file <a class="el" href="_physics_engine_8cpp_source.html">PhysicsEngine.cpp</a>.</p>
-
-</div>
-</div>
-<a class="anchor" id="ac8452594da304f6a6f5528f215a50be4"></a><!-- doxytag: member="BaseObject::setPosition" ref="ac8452594da304f6a6f5528f215a50be4" args="(Vector3 position)" -->
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void BaseObject::setPosition </td>
-          <td>(</td>
-          <td class="paramtype">Vector3&nbsp;</td>
-          <td class="paramname"> <em>position</em></td>
-          <td>&nbsp;)&nbsp;</td>
-          <td></td>
-        </tr>
-      </table>
-</div>
-<div class="memdoc">
-<p>Sets the position of the object </p>
-
-<p>Definition at line <a class="el" href="_physics_engine_8cpp_source.html#l00042">42</a> of file <a class="el" href="_physics_engine_8cpp_source.html">PhysicsEngine.cpp</a>.</p>
+<p>Definition at line <a class="el" href="_physics_engine_8cpp_source.html#l00032">32</a> of file <a class="el" href="_physics_engine_8cpp_source.html">PhysicsEngine.cpp</a>.</p>
 
 </div>
 </div>
@@ -304,7 +326,7 @@ Inheritance diagram for BaseObject:</div>
 <div class="memdoc">
 <p>Yaw the object by the specified number of radians (positive for right yaw) </p>
 
-<p>Definition at line <a class="el" href="_physics_engine_8cpp_source.html#l00024">24</a> of file <a class="el" href="_physics_engine_8cpp_source.html">PhysicsEngine.cpp</a>.</p>
+<p>Definition at line <a class="el" href="_physics_engine_8cpp_source.html#l00026">26</a> of file <a class="el" href="_physics_engine_8cpp_source.html">PhysicsEngine.cpp</a>.</p>
 
 </div>
 </div>
@@ -313,7 +335,7 @@ Inheritance diagram for BaseObject:</div>
 <li>C:/Programming/Personal/OreWar/OreWar/<a class="el" href="_physics_engine_8cpp_source.html">PhysicsEngine.cpp</a></li>
 </ul>
 </div>
-<hr class="footer"/><address style="text-align: right;"><small>Generated on Thu Apr 21 03:31:28 2011 for OreWar by&nbsp;
+<hr class="footer"/><address style="text-align: right;"><small>Generated on Wed Jun 8 21:25:19 2011 for OreWar by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.6.3 </small></address>
 </body>

@@ -42,16 +42,18 @@ Inheritance diagram for RenderModel:</div>
 <table border="0" cellpadding="0" cellspacing="0">
 <tr><td colspan="2"><h2>Public Member Functions</h2></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_render_model.html#a2534a2fbd7f58be8beb1b8e9a72e5f2b">RenderModel</a> (<a class="el" href="class_game_arena.html">GameArena</a> &amp;model, SceneManager *mgr)</td></tr>
-<tr><td class="memItemLeft" align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_render_model.html#a4c23ee9555f429659d6b38c3bdab3313">generateRenderObject</a> (<a class="el" href="class_physics_object.html">PhysicsObject</a> *object)</td></tr>
-<tr><td class="memItemLeft" align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_render_model.html#ae8685db7c5503538e973599d2fbdefb8">destroyRenderObject</a> (<a class="el" href="class_physics_object.html">PhysicsObject</a> *object)</td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_render_model.html#a0c4f26a5b128074f73b977387aec990a">updateRenderList</a> (Real elapsedTime, Quaternion camOrientation)</td></tr>
-<tr><td class="memItemLeft" align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_render_model.html#a50b93bc34e08418531c3534ca7acaf4b">newPhysicsObject</a> (<a class="el" href="class_physics_object.html">PhysicsObject</a> *object)</td></tr>
-<tr><td class="memItemLeft" align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_render_model.html#aa2c2e52075359bfa268396479292abdf">destroyedPhysicsObject</a> (<a class="el" href="class_physics_object.html">PhysicsObject</a> *object)</td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_render_model.html#a9535d877871991cfbece6839775d92ef">newGameObject</a> (<a class="el" href="class_game_object.html">GameObject</a> *object)</td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_render_model.html#aace9eb490220bbb13b1a5bae25642428">destroyedGameObject</a> (<a class="el" href="class_game_object.html">GameObject</a> *object)</td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_render_model.html#af85d1bc5471284532806e3c0642f2835">newConstraint</a> (<a class="el" href="class_constraint.html">Constraint</a> *object)</td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_render_model.html#a734926c9b22541e6a853953686144901">destroyedConstraint</a> (<a class="el" href="class_constraint.html">Constraint</a> *object)</td></tr>
+<tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a5edada7ceba46de8a9d1cb227493a790"></a><!-- doxytag: member="RenderModel::getNumObjects" ref="a5edada7ceba46de8a9d1cb227493a790" args="() const " -->
+int&nbsp;</td><td class="memItemRight" valign="bottom"><b>getNumObjects</b> () const </td></tr>
 </table>
 <hr/><a name="_details"></a><h2>Detailed Description</h2>
 <p>The <a class="el" href="class_render_model.html">RenderModel</a> stores the complete list of RenderObjects that should be rendered each frame for a scene. </p>
 
-<p>Definition at line <a class="el" href="_render_model_8h_source.html#l00043">43</a> of file <a class="el" href="_render_model_8h_source.html">RenderModel.h</a>.</p>
+<p>Definition at line <a class="el" href="_render_model_8h_source.html#l00231">231</a> of file <a class="el" href="_render_model_8h_source.html">RenderModel.h</a>.</p>
 <hr/><h2>Constructor &amp; Destructor Documentation</h2>
 <a class="anchor" id="a2534a2fbd7f58be8beb1b8e9a72e5f2b"></a><!-- doxytag: member="RenderModel::RenderModel" ref="a2534a2fbd7f58be8beb1b8e9a72e5f2b" args="(GameArena &amp;model, SceneManager *mgr)" -->
 <div class="memitem">
@@ -79,19 +81,19 @@ Inheritance diagram for RenderModel:</div>
 <div class="memdoc">
 <p>Constructs a <a class="el" href="class_render_model.html">RenderModel</a> which observes the specified <a class="el" href="class_game_arena.html">GameArena</a>, and creates scene nodes through the passed SceneManager. </p>
 
-<p>Definition at line <a class="el" href="_render_model_8cpp_source.html#l00036">36</a> of file <a class="el" href="_render_model_8cpp_source.html">RenderModel.cpp</a>.</p>
+<p>Definition at line <a class="el" href="_render_model_8cpp_source.html#l00335">335</a> of file <a class="el" href="_render_model_8cpp_source.html">RenderModel.cpp</a>.</p>
 
 </div>
 </div>
 <hr/><h2>Member Function Documentation</h2>
-<a class="anchor" id="aa2c2e52075359bfa268396479292abdf"></a><!-- doxytag: member="RenderModel::destroyedPhysicsObject" ref="aa2c2e52075359bfa268396479292abdf" args="(PhysicsObject *object)" -->
+<a class="anchor" id="a734926c9b22541e6a853953686144901"></a><!-- doxytag: member="RenderModel::destroyedConstraint" ref="a734926c9b22541e6a853953686144901" args="(Constraint *object)" -->
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">void RenderModel::destroyedPhysicsObject </td>
+          <td class="memname">void RenderModel::destroyedConstraint </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="class_physics_object.html">PhysicsObject</a> *&nbsp;</td>
+          <td class="paramtype"><a class="el" href="class_constraint.html">Constraint</a> *&nbsp;</td>
           <td class="paramname"> <em>object</em></td>
           <td>&nbsp;)&nbsp;</td>
           <td><code> [virtual]</code></td>
@@ -99,64 +101,22 @@ Inheritance diagram for RenderModel:</div>
       </table>
 </div>
 <div class="memdoc">
-<p>Called whenever a <a class="el" href="class_physics_object.html">PhysicsObject</a> is destroyed by the observed <a class="el" href="class_game_arena.html">GameArena</a> </p>
+<p>Called just before a <a class="el" href="class_constraint.html">Constraint</a> is destroyed in the <a class="el" href="class_game_arena.html">GameArena</a> </p>
 
-<p>Implements <a class="el" href="class_game_arena_listener.html#a970b85aec3f773192b43f01671b1bc85">GameArenaListener</a>.</p>
+<p>Implements <a class="el" href="class_game_arena_listener.html#a73839f2e21eec4706d2e5085eed193eb">GameArenaListener</a>.</p>
 
-<p>Definition at line <a class="el" href="_render_model_8cpp_source.html#l00131">131</a> of file <a class="el" href="_render_model_8cpp_source.html">RenderModel.cpp</a>.</p>
+<p>Definition at line <a class="el" href="_render_model_8cpp_source.html#l00402">402</a> of file <a class="el" href="_render_model_8cpp_source.html">RenderModel.cpp</a>.</p>
 
 </div>
 </div>
-<a class="anchor" id="ae8685db7c5503538e973599d2fbdefb8"></a><!-- doxytag: member="RenderModel::destroyRenderObject" ref="ae8685db7c5503538e973599d2fbdefb8" args="(PhysicsObject *object)" -->
+<a class="anchor" id="aace9eb490220bbb13b1a5bae25642428"></a><!-- doxytag: member="RenderModel::destroyedGameObject" ref="aace9eb490220bbb13b1a5bae25642428" args="(GameObject *object)" -->
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">void RenderModel::destroyRenderObject </td>
+          <td class="memname">void RenderModel::destroyedGameObject </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="class_physics_object.html">PhysicsObject</a> *&nbsp;</td>
-          <td class="paramname"> <em>object</em></td>
-          <td>&nbsp;)&nbsp;</td>
-          <td></td>
-        </tr>
-      </table>
-</div>
-<div class="memdoc">
-<p>Searches the render list for a <a class="el" href="class_render_object.html">RenderObject</a> representing the passed object, and deletes it if it exists. </p>
-
-<p>Definition at line <a class="el" href="_render_model_8cpp_source.html#l00109">109</a> of file <a class="el" href="_render_model_8cpp_source.html">RenderModel.cpp</a>.</p>
-
-</div>
-</div>
-<a class="anchor" id="a4c23ee9555f429659d6b38c3bdab3313"></a><!-- doxytag: member="RenderModel::generateRenderObject" ref="a4c23ee9555f429659d6b38c3bdab3313" args="(PhysicsObject *object)" -->
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void RenderModel::generateRenderObject </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="class_physics_object.html">PhysicsObject</a> *&nbsp;</td>
-          <td class="paramname"> <em>object</em></td>
-          <td>&nbsp;)&nbsp;</td>
-          <td></td>
-        </tr>
-      </table>
-</div>
-<div class="memdoc">
-<p>Generates a <a class="el" href="class_render_object.html">RenderObject</a> to represent the passed <a class="el" href="class_physics_object.html">PhysicsObject</a>, and adds it to the render list </p>
-
-<p>Definition at line <a class="el" href="_render_model_8cpp_source.html#l00047">47</a> of file <a class="el" href="_render_model_8cpp_source.html">RenderModel.cpp</a>.</p>
-
-</div>
-</div>
-<a class="anchor" id="a50b93bc34e08418531c3534ca7acaf4b"></a><!-- doxytag: member="RenderModel::newPhysicsObject" ref="a50b93bc34e08418531c3534ca7acaf4b" args="(PhysicsObject *object)" -->
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void RenderModel::newPhysicsObject </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="class_physics_object.html">PhysicsObject</a> *&nbsp;</td>
+          <td class="paramtype"><a class="el" href="class_game_object.html">GameObject</a> *&nbsp;</td>
           <td class="paramname"> <em>object</em></td>
           <td>&nbsp;)&nbsp;</td>
           <td><code> [virtual]</code></td>
@@ -164,11 +124,57 @@ Inheritance diagram for RenderModel:</div>
       </table>
 </div>
 <div class="memdoc">
-<p>Called whenever a new <a class="el" href="class_physics_object.html">PhysicsObject</a> is created by the observed <a class="el" href="class_game_arena.html">GameArena</a> </p>
+<p>Called whenever a <a class="el" href="class_game_object.html">GameObject</a> is destroyed by the observed <a class="el" href="class_game_arena.html">GameArena</a> </p>
 
-<p>Implements <a class="el" href="class_game_arena_listener.html#a74bb28dbf6632a96a08465e81ceab616">GameArenaListener</a>.</p>
+<p>Implements <a class="el" href="class_game_arena_listener.html#a31e068f6fd3a40c1bddc55fd8b47745c">GameArenaListener</a>.</p>
 
-<p>Definition at line <a class="el" href="_render_model_8cpp_source.html#l00126">126</a> of file <a class="el" href="_render_model_8cpp_source.html">RenderModel.cpp</a>.</p>
+<p>Definition at line <a class="el" href="_render_model_8cpp_source.html#l00377">377</a> of file <a class="el" href="_render_model_8cpp_source.html">RenderModel.cpp</a>.</p>
+
+</div>
+</div>
+<a class="anchor" id="af85d1bc5471284532806e3c0642f2835"></a><!-- doxytag: member="RenderModel::newConstraint" ref="af85d1bc5471284532806e3c0642f2835" args="(Constraint *object)" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void RenderModel::newConstraint </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="class_constraint.html">Constraint</a> *&nbsp;</td>
+          <td class="paramname"> <em>object</em></td>
+          <td>&nbsp;)&nbsp;</td>
+          <td><code> [virtual]</code></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+<p>Called whenever a new <a class="el" href="class_constraint.html">Constraint</a> is generated in the <a class="el" href="class_game_arena.html">GameArena</a> </p>
+
+<p>Implements <a class="el" href="class_game_arena_listener.html#a355f11478301730cd148872d816808a1">GameArenaListener</a>.</p>
+
+<p>Definition at line <a class="el" href="_render_model_8cpp_source.html#l00393">393</a> of file <a class="el" href="_render_model_8cpp_source.html">RenderModel.cpp</a>.</p>
+
+</div>
+</div>
+<a class="anchor" id="a9535d877871991cfbece6839775d92ef"></a><!-- doxytag: member="RenderModel::newGameObject" ref="a9535d877871991cfbece6839775d92ef" args="(GameObject *object)" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void RenderModel::newGameObject </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="class_game_object.html">GameObject</a> *&nbsp;</td>
+          <td class="paramname"> <em>object</em></td>
+          <td>&nbsp;)&nbsp;</td>
+          <td><code> [virtual]</code></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+<p>Called whenever a new <a class="el" href="class_game_object.html">GameObject</a> is created by the observed <a class="el" href="class_game_arena.html">GameArena</a> </p>
+
+<p>Implements <a class="el" href="class_game_arena_listener.html#aa6edb755879f0268c883c6bde98baf72">GameArenaListener</a>.</p>
+
+<p>Definition at line <a class="el" href="_render_model_8cpp_source.html#l00359">359</a> of file <a class="el" href="_render_model_8cpp_source.html">RenderModel.cpp</a>.</p>
 
 </div>
 </div>
@@ -196,9 +202,9 @@ Inheritance diagram for RenderModel:</div>
       </table>
 </div>
 <div class="memdoc">
-<p>Calls the updateNode() method of all RenderObjects stored in the RenderModel's render list </p>
+<p>Calls the updateEffects() method of all RenderObjects stored in the RenderModel's render list </p>
 
-<p>Definition at line <a class="el" href="_render_model_8cpp_source.html#l00119">119</a> of file <a class="el" href="_render_model_8cpp_source.html">RenderModel.cpp</a>.</p>
+<p>Definition at line <a class="el" href="_render_model_8cpp_source.html#l00342">342</a> of file <a class="el" href="_render_model_8cpp_source.html">RenderModel.cpp</a>.</p>
 
 </div>
 </div>
@@ -207,7 +213,7 @@ Inheritance diagram for RenderModel:</div>
 <li>C:/Programming/Personal/OreWar/OreWar/<a class="el" href="_render_model_8cpp_source.html">RenderModel.cpp</a></li>
 </ul>
 </div>
-<hr class="footer"/><address style="text-align: right;"><small>Generated on Thu Apr 21 03:31:28 2011 for OreWar by&nbsp;
+<hr class="footer"/><address style="text-align: right;"><small>Generated on Wed Jun 8 21:25:19 2011 for OreWar by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.6.3 </small></address>
 </body>

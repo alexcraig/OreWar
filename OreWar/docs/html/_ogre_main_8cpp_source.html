@@ -29,374 +29,484 @@
 <a name="l00006"></a>00006 <span class="preprocessor">#include &quot;PhysicsEngine.h&quot;</span>
 <a name="l00007"></a>00007 <span class="preprocessor">#include &quot;GameObjects.h&quot;</span>
 <a name="l00008"></a>00008 <span class="preprocessor">#include &quot;RenderModel.h&quot;</span>
-<a name="l00009"></a>00009  
-<a name="l00010"></a>00010 <span class="keyword">using namespace </span>Ogre;
-<a name="l00011"></a>00011  
-<a name="l00012"></a><a class="code" href="class_keyboard_test_listener.html">00012</a> <span class="keyword">class </span><a class="code" href="class_keyboard_test_listener.html">KeyboardTestListener</a> : <span class="keyword">public</span> FrameListener
-<a name="l00013"></a>00013 {
-<a name="l00014"></a>00014 <span class="keyword">public</span>:
-<a name="l00015"></a>00015     <a class="code" href="class_keyboard_test_listener.html">KeyboardTestListener</a>(OIS::Keyboard *keyboard, SceneManager *mgr, Camera *cam)
-<a name="l00016"></a>00016         : m_Keyboard(keyboard), m_rotateNode(mgr-&gt;getRootSceneNode()-&gt;createChildSceneNode()), m_cam(cam), 
-<a name="l00017"></a>00017         m_camHeight(0), m_camOffset(0), m_arena(5000), m_mgr(mgr),
-<a name="l00018"></a>00018         m_thirdPersonCam(<span class="keyword">true</span>), m_renderModel(m_arena, m_mgr)
-<a name="l00019"></a>00019     {
-<a name="l00020"></a>00020         m_cam-&gt;setFarClipDistance(0);
-<a name="l00021"></a>00021 
-<a name="l00022"></a>00022         <span class="comment">// Generate the keyboard testing entity and attach it to the listener&#39;s scene node</span>
-<a name="l00023"></a>00023         <a class="code" href="class_player_ship.html">PlayerShip</a> playerShip = <a class="code" href="class_player_ship.html">PlayerShip</a>(1, Vector3(0, -2000, 0));
-<a name="l00024"></a>00024         <a class="code" href="class_player_ship.html">PlayerShip</a> * p_playerShip = m_arena.<a class="code" href="class_game_arena.html#abd1ef3dfed74236a7e128ebdf19f4b84">addShip</a>(playerShip);
-<a name="l00025"></a>00025     }
-<a name="l00026"></a>00026  
-<a name="l00027"></a>00027     <span class="keywordtype">bool</span> frameStarted(<span class="keyword">const</span> FrameEvent&amp; evt)
-<a name="l00028"></a>00028     {
-<a name="l00029"></a>00029         <span class="comment">// Capture the keyboard input</span>
-<a name="l00030"></a>00030         m_Keyboard-&gt;capture();
-<a name="l00031"></a>00031         <a class="code" href="class_player_ship.html">PlayerShip</a> * playerShip = m_arena.<a class="code" href="class_game_arena.html#ac6cb4562dda4530d14ee6e5ce2324ad9">getShips</a>()-&gt;front();
+<a name="l00009"></a>00009 <span class="preprocessor">#include &quot;OgreTextAreaOverlayElement.h&quot;</span>
+<a name="l00010"></a>00010 <span class="preprocessor">#include &quot;OgreFontManager.h&quot;</span>
+<a name="l00011"></a>00011 <span class="preprocessor">#include &quot;Gorilla.h&quot;</span>
+<a name="l00012"></a>00012  
+<a name="l00013"></a>00013 <span class="keyword">using namespace </span>Ogre;
+<a name="l00014"></a>00014  
+<a name="l00015"></a><a class="code" href="class_test_frame_listener.html">00015</a> <span class="keyword">class </span><a class="code" href="class_test_frame_listener.html">TestFrameListener</a> : <span class="keyword">public</span> FrameListener
+<a name="l00016"></a>00016 {
+<a name="l00017"></a>00017 <span class="keyword">public</span>:
+<a name="l00018"></a>00018     <a class="code" href="class_test_frame_listener.html">TestFrameListener</a>(OIS::Keyboard *keyboard, OIS::Mouse *mouse, SceneManager *mgr, Camera *cam, RenderWindow * renderWindow)
+<a name="l00019"></a>00019         : m_Keyboard(keyboard), m_mouse(mouse), m_rotateNode(mgr-&gt;getRootSceneNode()-&gt;createChildSceneNode()), m_cam(cam), 
+<a name="l00020"></a>00020         m_camHeight(0), m_camOffset(0), m_arena(30000), m_mgr(mgr),
+<a name="l00021"></a>00021         m_thirdPersonCam(<span class="keyword">true</span>), m_renderModel(m_arena, m_mgr), mp_vp(cam-&gt;getViewport()), mp_fps(NULL), m_timer(0),
+<a name="l00022"></a>00022         mp_renderWindow(renderWindow), m_con(NULL), m_camParticle(NULL), m_camNode(NULL),
+<a name="l00023"></a>00023         mp_healthBar(NULL), mp_energyBar(NULL), mp_speedBar(NULL)
+<a name="l00024"></a>00024     {
+<a name="l00025"></a>00025         m_cam-&gt;setFarClipDistance(0);
+<a name="l00026"></a>00026 
+<a name="l00027"></a>00027         <span class="comment">// Generate the keyboard testing entity and attach it to the listener&#39;s scene node</span>
+<a name="l00028"></a>00028         <a class="code" href="class_space_ship.html">SpaceShip</a> playerShip = <a class="code" href="class_space_ship.html">SpaceShip</a>(ObjectType::SHIP, 1, Vector3(0, -2000, 0), 15);
+<a name="l00029"></a>00029         playerShip.addPlasmaCannon(<a class="code" href="class_plasma_cannon.html">PlasmaCannon</a>());
+<a name="l00030"></a>00030         playerShip.addAnchorLauncher(<a class="code" href="class_anchor_launcher.html">AnchorLauncher</a>());
+<a name="l00031"></a>00031         <a class="code" href="class_space_ship.html">SpaceShip</a> * p_playerShip = m_arena.<a class="code" href="class_game_arena.html#a93fc655043f299186c00abeac6c0e15e">setPlayerShip</a>(playerShip);
 <a name="l00032"></a>00032 
-<a name="l00033"></a>00033         <span class="comment">// Adjust or reset the camera modifiers</span>
-<a name="l00034"></a>00034         <span class="keywordflow">if</span>(m_Keyboard-&gt;isKeyDown(OIS::KC_Z)) {
-<a name="l00035"></a>00035             m_camHeight = 0;
-<a name="l00036"></a>00036             m_camOffset = 0;
-<a name="l00037"></a>00037         }
-<a name="l00038"></a>00038         <span class="keywordflow">if</span>(m_Keyboard-&gt;isKeyDown(OIS::KC_UP)) {
-<a name="l00039"></a>00039             m_camHeight += 2;
-<a name="l00040"></a>00040         }
-<a name="l00041"></a>00041         <span class="keywordflow">if</span>(m_Keyboard-&gt;isKeyDown(OIS::KC_DOWN)) {
-<a name="l00042"></a>00042             m_camHeight -= 2;
-<a name="l00043"></a>00043         }
-<a name="l00044"></a>00044         <span class="keywordflow">if</span>(m_Keyboard-&gt;isKeyDown(OIS::KC_RIGHT)) {
-<a name="l00045"></a>00045             m_camOffset += 2;
-<a name="l00046"></a>00046         }
-<a name="l00047"></a>00047         <span class="keywordflow">if</span>(m_Keyboard-&gt;isKeyDown(OIS::KC_LEFT)) {
-<a name="l00048"></a>00048             m_camOffset -= 2;
-<a name="l00049"></a>00049         }
-<a name="l00050"></a>00050         
-<a name="l00051"></a>00051         <span class="comment">// Clear all existing forces, and add keyboard forces</span>
-<a name="l00052"></a>00052         playerShip-&gt;<a class="code" href="class_physics_object.html#a52671125aa47139b52d5c56debccb7b6">clearForces</a>();
-<a name="l00053"></a>00053         <span class="keywordflow">if</span>(m_Keyboard-&gt;isKeyDown(OIS::KC_W)) {
-<a name="l00054"></a>00054             playerShip-&gt;<a class="code" href="class_base_object.html#a2f134d171dbf68e3a32cbb0ba12cb9a5">pitch</a>(Radian(2 * evt.timeSinceLastFrame));
-<a name="l00055"></a>00055         }
-<a name="l00056"></a>00056         <span class="keywordflow">if</span>(m_Keyboard-&gt;isKeyDown(OIS::KC_S)) {
-<a name="l00057"></a>00057             playerShip-&gt;<a class="code" href="class_base_object.html#a2f134d171dbf68e3a32cbb0ba12cb9a5">pitch</a>(Radian(-2 * evt.timeSinceLastFrame));
-<a name="l00058"></a>00058         }
-<a name="l00059"></a>00059         <span class="keywordflow">if</span>(m_Keyboard-&gt;isKeyDown(OIS::KC_A)) {
-<a name="l00060"></a>00060             playerShip-&gt;<a class="code" href="class_base_object.html#ab05b58df3d85a531da6ec40a3fe4c343">yaw</a>(Radian(2 * evt.timeSinceLastFrame));
-<a name="l00061"></a>00061         }
-<a name="l00062"></a>00062         <span class="keywordflow">if</span>(m_Keyboard-&gt;isKeyDown(OIS::KC_D)) {
-<a name="l00063"></a>00063             playerShip-&gt;<a class="code" href="class_base_object.html#ab05b58df3d85a531da6ec40a3fe4c343">yaw</a>(Radian(-2 * evt.timeSinceLastFrame));
-<a name="l00064"></a>00064         }
-<a name="l00065"></a>00065         <span class="keywordflow">if</span>(m_Keyboard-&gt;isKeyDown(OIS::KC_Q)) {
-<a name="l00066"></a>00066             playerShip-&gt;<a class="code" href="class_base_object.html#ad4f39ea20e390d2e26cd852a1b863eb4">roll</a>(Radian(2 * evt.timeSinceLastFrame));
-<a name="l00067"></a>00067         }
-<a name="l00068"></a>00068         <span class="keywordflow">if</span>(m_Keyboard-&gt;isKeyDown(OIS::KC_E)) {
-<a name="l00069"></a>00069             playerShip-&gt;<a class="code" href="class_base_object.html#ad4f39ea20e390d2e26cd852a1b863eb4">roll</a>(Radian(-2 * evt.timeSinceLastFrame));
-<a name="l00070"></a>00070         }
-<a name="l00071"></a>00071 
-<a name="l00072"></a>00072         <span class="keywordflow">if</span>(m_Keyboard-&gt;isKeyDown(OIS::KC_LCONTROL)) {
-<a name="l00073"></a>00073             playerShip-&gt;<a class="code" href="class_physics_object.html#a493315150370fed69d477ff50b322663">applyForce</a>(playerShip-&gt;<a class="code" href="class_physics_object.html#aa1ee2925ae45f6e8b852e75bee8d7837">getVelocity</a>().normalisedCopy() * (-1) * Vector3(1000, 1000, 1000));
-<a name="l00074"></a>00074         }
-<a name="l00075"></a>00075 
-<a name="l00076"></a>00076         <span class="keywordflow">if</span>(m_Keyboard-&gt;isKeyDown(OIS::KC_UP)) {
-<a name="l00077"></a>00077             playerShip-&gt;<a class="code" href="class_physics_object.html#a493315150370fed69d477ff50b322663">applyForce</a>(playerShip-&gt;<a class="code" href="class_base_object.html#a7c124ce28f101d870680672f62e69ad2">getHeading</a>() * Vector3(1000, 1000, 1000));
-<a name="l00078"></a>00078         }
-<a name="l00079"></a>00079         <span class="keywordflow">if</span>(m_Keyboard-&gt;isKeyDown(OIS::KC_DOWN)) {
-<a name="l00080"></a>00080             playerShip-&gt;<a class="code" href="class_physics_object.html#a493315150370fed69d477ff50b322663">applyForce</a>(playerShip-&gt;<a class="code" href="class_base_object.html#a7c124ce28f101d870680672f62e69ad2">getHeading</a>() * Vector3(-1000, -1000, -1000));
-<a name="l00081"></a>00081         }
-<a name="l00082"></a>00082 
-<a name="l00083"></a>00083         <span class="keywordflow">if</span>(m_Keyboard-&gt;isKeyDown(OIS::KC_C)) {
-<a name="l00084"></a>00084             m_thirdPersonCam = !m_thirdPersonCam; 
-<a name="l00085"></a>00085         }
-<a name="l00086"></a>00086 
-<a name="l00087"></a>00087         <span class="comment">// Generate projectile if required</span>
-<a name="l00088"></a>00088         <span class="keywordflow">if</span>(m_Keyboard-&gt;isKeyDown(OIS::KC_SPACE)) {
-<a name="l00089"></a>00089             <span class="keywordflow">if</span>(playerShip-&gt;<a class="code" href="class_player_ship.html#a7c658a27e7bcd4c5597b0bf1a5797456">canShoot</a>()) {
-<a name="l00090"></a>00090                 m_arena.<a class="code" href="class_game_arena.html#ac0c0eac2ecd9486057e398c6a3e32705">fireProjectileFromShip</a>(playerShip);
-<a name="l00091"></a>00091             }
-<a name="l00092"></a>00092         }
-<a name="l00093"></a>00093 
-<a name="l00094"></a>00094         <span class="comment">// Update the position of the physics object and move the scene node</span>
-<a name="l00095"></a>00095         m_arena.<a class="code" href="class_game_arena.html#a12592872d70e071a3f2c338f906bb93d">updatePhysics</a>(evt.timeSinceLastFrame);
-<a name="l00096"></a>00096         m_renderModel.<a class="code" href="class_render_model.html#a0c4f26a5b128074f73b977387aec990a">updateRenderList</a>(evt.timeSinceLastFrame, m_cam-&gt;getOrientation());
-<a name="l00097"></a>00097 
-<a name="l00098"></a>00098         <span class="comment">// Move the camera</span>
-<a name="l00099"></a>00099         <span class="keywordflow">if</span>(m_thirdPersonCam) {
-<a name="l00100"></a>00100             m_cam-&gt;setPosition(playerShip-&gt;<a class="code" href="class_base_object.html#a097dbe2865e33b5738642438e0a10dbe">getPosition</a>() + Vector3(0, 1000, 1000));
-<a name="l00101"></a>00101             m_cam-&gt;lookAt(playerShip-&gt;<a class="code" href="class_base_object.html#a097dbe2865e33b5738642438e0a10dbe">getPosition</a>());
-<a name="l00102"></a>00102         } <span class="keywordflow">else</span> {
-<a name="l00103"></a>00103             m_cam-&gt;setPosition(playerShip-&gt;<a class="code" href="class_base_object.html#a097dbe2865e33b5738642438e0a10dbe">getPosition</a>() + playerShip-&gt;<a class="code" href="class_base_object.html#a450af981f711e79b2b72488f4383d613">getNormal</a>() * 60 - playerShip-&gt;<a class="code" href="class_base_object.html#a7c124ce28f101d870680672f62e69ad2">getHeading</a>() * 160);
-<a name="l00104"></a>00104             m_cam-&gt;setOrientation(playerShip-&gt;<a class="code" href="class_base_object.html#a6983854d73e5d568eeeb29b180e04b7d">getOrientation</a>());
-<a name="l00105"></a>00105         }
-<a name="l00106"></a>00106 
-<a name="l00107"></a>00107         <span class="keywordflow">return</span> !m_Keyboard-&gt;isKeyDown(OIS::KC_ESCAPE);
-<a name="l00108"></a>00108     }
-<a name="l00109"></a>00109  
-<a name="l00110"></a>00110 <span class="keyword">private</span>:
-<a name="l00111"></a>00111     OIS::Keyboard *m_Keyboard;
-<a name="l00112"></a>00112     SceneNode *m_rotateNode;
-<a name="l00113"></a>00113     Camera *m_cam;
-<a name="l00114"></a>00114     <span class="keywordtype">int</span> m_camHeight;
-<a name="l00115"></a>00115     <span class="keywordtype">int</span> m_camOffset;
-<a name="l00116"></a>00116     <a class="code" href="class_game_arena.html">GameArena</a> m_arena;
-<a name="l00117"></a>00117     <span class="keywordtype">bool</span> m_thirdPersonCam;
-<a name="l00118"></a>00118 
-<a name="l00119"></a>00119     SceneManager * m_mgr;
-<a name="l00120"></a>00120     <a class="code" href="class_render_model.html">RenderModel</a> m_renderModel;
-<a name="l00121"></a>00121 };
-<a name="l00122"></a>00122  
-<a name="l00123"></a><a class="code" href="class_application.html">00123</a> <span class="keyword">class </span><a class="code" href="class_application.html">Application</a>
-<a name="l00124"></a>00124 {
-<a name="l00125"></a>00125 <span class="keyword">public</span>:
-<a name="l00126"></a>00126     <span class="keywordtype">void</span> go()
-<a name="l00127"></a>00127     {
-<a name="l00128"></a>00128         createRoot();
-<a name="l00129"></a>00129         defineResources();
-<a name="l00130"></a>00130         setupRenderSystem();
-<a name="l00131"></a>00131         createRenderWindow();
-<a name="l00132"></a>00132         initializeResourceGroups();
-<a name="l00133"></a>00133         setupScene();
-<a name="l00134"></a>00134         setupInputSystem();
-<a name="l00135"></a>00135         createFrameListener();
-<a name="l00136"></a>00136         startRenderLoop();
-<a name="l00137"></a>00137     }
-<a name="l00138"></a>00138  
-<a name="l00139"></a>00139     ~<a class="code" href="class_application.html">Application</a>()
-<a name="l00140"></a>00140     {
-<a name="l00141"></a>00141         mInputManager-&gt;destroyInputObject(mKeyboard);
-<a name="l00142"></a>00142         OIS::InputManager::destroyInputSystem(mInputManager);
-<a name="l00143"></a>00143         <span class="keyword">delete</span> mListener;
-<a name="l00144"></a>00144         <span class="keyword">delete</span> mRoot;
-<a name="l00145"></a>00145     }
-<a name="l00146"></a>00146  
-<a name="l00147"></a>00147 <span class="keyword">private</span>:
-<a name="l00148"></a>00148     Root *mRoot;
-<a name="l00149"></a>00149     SceneManager* mMgr;
-<a name="l00150"></a>00150     OIS::Keyboard *mKeyboard;
-<a name="l00151"></a>00151     OIS::InputManager *mInputManager;
-<a name="l00152"></a>00152     <a class="code" href="class_keyboard_test_listener.html">KeyboardTestListener</a> *mListener;
-<a name="l00153"></a>00153  
-<a name="l00154"></a>00154     <span class="keywordtype">void</span> createRoot()
-<a name="l00155"></a>00155     {
-<a name="l00156"></a>00156         <span class="comment">// Generate the OGRE Root object</span>
-<a name="l00157"></a>00157 <span class="preprocessor">        #ifdef _DEBUG</span>
-<a name="l00158"></a>00158 <span class="preprocessor"></span>            mRoot = <span class="keyword">new</span> Root(<span class="stringliteral">&quot;plugins_d.cfg&quot;</span>);
-<a name="l00159"></a>00159 <span class="preprocessor">        #else</span>
-<a name="l00160"></a>00160 <span class="preprocessor"></span>            mRoot = <span class="keyword">new</span> Root(<span class="stringliteral">&quot;plugins.cfg&quot;</span>);
-<a name="l00161"></a>00161 <span class="preprocessor">        #endif</span>
-<a name="l00162"></a>00162 <span class="preprocessor"></span>    }
-<a name="l00163"></a>00163  
-<a name="l00164"></a>00164     <span class="keywordtype">void</span> defineResources()
-<a name="l00165"></a>00165     {
-<a name="l00166"></a>00166         String secName, typeName, archName;
-<a name="l00167"></a>00167         
-<a name="l00168"></a>00168         <span class="comment">// Load the resources.cfg resource definition file</span>
-<a name="l00169"></a>00169         ConfigFile cf;
-<a name="l00170"></a>00170 
-<a name="l00171"></a>00171 <span class="preprocessor">        #ifdef _DEBUG</span>
-<a name="l00172"></a>00172 <span class="preprocessor"></span>            cf.load(<span class="stringliteral">&quot;resources_d.cfg&quot;</span>);
-<a name="l00173"></a>00173 <span class="preprocessor">        #else</span>
-<a name="l00174"></a>00174 <span class="preprocessor"></span>            cf.load(<span class="stringliteral">&quot;resources.cfg&quot;</span>);
-<a name="l00175"></a>00175 <span class="preprocessor">        #endif</span>
-<a name="l00176"></a>00176 <span class="preprocessor"></span>
-<a name="l00177"></a>00177         <span class="comment">// Loop through all the provided resource folders and add them</span>
-<a name="l00178"></a>00178         <span class="comment">// to the ResourceGroupManager</span>
-<a name="l00179"></a>00179         ConfigFile::SectionIterator seci = cf.getSectionIterator();
-<a name="l00180"></a>00180         <span class="keywordflow">while</span> (seci.hasMoreElements())  {
-<a name="l00181"></a>00181             <span class="comment">// Loop through the provided sections</span>
-<a name="l00182"></a>00182             secName = seci.peekNextKey();
-<a name="l00183"></a>00183             ConfigFile::SettingsMultiMap *settings = seci.getNext();
-<a name="l00184"></a>00184             ConfigFile::SettingsMultiMap::iterator i;
-<a name="l00185"></a>00185     
-<a name="l00186"></a>00186             <span class="keywordflow">for</span> (i = settings-&gt;begin(); i != settings-&gt;end(); ++i) {
-<a name="l00187"></a>00187                 <span class="comment">// Add each provided directory path to the GroupResourceManager</span>
-<a name="l00188"></a>00188                 typeName = i-&gt;first;
-<a name="l00189"></a>00189                 archName = i-&gt;second;
-<a name="l00190"></a>00190                 ResourceGroupManager::getSingleton().addResourceLocation(archName, typeName, secName);
-<a name="l00191"></a>00191             }
-<a name="l00192"></a>00192         }
-<a name="l00193"></a>00193     }
-<a name="l00194"></a>00194  
-<a name="l00195"></a>00195     <span class="keywordtype">void</span> setupRenderSystem()
-<a name="l00196"></a>00196     {
-<a name="l00197"></a>00197         <span class="comment">// Restore the last configuration settings, or provide a dialogue if no prior</span>
-<a name="l00198"></a>00198         <span class="comment">// settings are stored</span>
-<a name="l00199"></a>00199         <span class="comment">//if (!mRoot-&gt;restoreConfig() &amp;&amp; !mRoot-&gt;showConfigDialog()) // Only show config if no existing config is found</span>
-<a name="l00200"></a>00200         <span class="keywordflow">if</span> (!mRoot-&gt;showConfigDialog()) <span class="comment">// Always show config</span>
-<a name="l00201"></a>00201             <span class="keywordflow">throw</span> Exception(52, <span class="stringliteral">&quot;User canceled the config dialog!&quot;</span>, <span class="stringliteral">&quot;Application::setupRenderSystem()&quot;</span>);
-<a name="l00202"></a>00202     }
-<a name="l00203"></a>00203  
-<a name="l00204"></a>00204     <span class="keywordtype">void</span> createRenderWindow()
-<a name="l00205"></a>00205     {
-<a name="l00206"></a>00206         <span class="comment">// Create the render window (first parameter determines whether OGRE should generate</span>
-<a name="l00207"></a>00207         <span class="comment">// the render window)</span>
-<a name="l00208"></a>00208         mRoot-&gt;initialise(<span class="keyword">true</span>, <span class="stringliteral">&quot;Ore War&quot;</span>);
-<a name="l00209"></a>00209     }
-<a name="l00210"></a>00210  
-<a name="l00211"></a>00211     <span class="keywordtype">void</span> initializeResourceGroups()
-<a name="l00212"></a>00212     {
-<a name="l00213"></a>00213         <span class="comment">// Mipmaps setting must be set before resource groups are initialized</span>
-<a name="l00214"></a>00214         TextureManager::getSingleton().setDefaultNumMipmaps(5);
-<a name="l00215"></a>00215         ResourceGroupManager::getSingleton().initialiseAllResourceGroups();
-<a name="l00216"></a>00216     }
-<a name="l00217"></a>00217  
-<a name="l00218"></a>00218     <span class="keywordtype">void</span> setupScene()
-<a name="l00219"></a>00219     {
-<a name="l00220"></a>00220         <span class="comment">// Create the SceneManager</span>
-<a name="l00221"></a>00221         SceneManager *mgr = mRoot-&gt;createSceneManager(ST_GENERIC, <span class="stringliteral">&quot;Default SceneManager&quot;</span>);
-<a name="l00222"></a>00222         
-<a name="l00223"></a>00223         <span class="comment">// Create a camera</span>
-<a name="l00224"></a>00224         Camera *cam = mgr-&gt;createCamera(<span class="stringliteral">&quot;Camera&quot;</span>);
-<a name="l00225"></a>00225         cam-&gt;setPosition(Ogre::Vector3(0,0,1000));
-<a name="l00226"></a>00226         cam-&gt;lookAt(Ogre::Vector3(0,0,0));
-<a name="l00227"></a>00227 
-<a name="l00228"></a>00228         <span class="comment">// Create a viewport</span>
-<a name="l00229"></a>00229         Viewport *vp = mRoot-&gt;getAutoCreatedWindow()-&gt;addViewport(cam);
-<a name="l00230"></a>00230         cam-&gt;setAspectRatio(Real(vp-&gt;getActualWidth()) / Real(vp-&gt;getActualHeight()));
-<a name="l00231"></a>00231 
-<a name="l00232"></a>00232         <span class="comment">// Setup ambient light and shadows</span>
-<a name="l00233"></a>00233         mgr-&gt;setAmbientLight(Ogre::ColourValue(0.15, 0.15, 0.3));
-<a name="l00234"></a>00234         mgr-&gt;setShadowTechnique(Ogre::SHADOWTYPE_STENCIL_MODULATIVE);
-<a name="l00235"></a>00235 
-<a name="l00236"></a>00236         <span class="comment">// Add planes for the arena boundaries</span>
-<a name="l00237"></a>00237         Plane plane(Ogre::Vector3::UNIT_Y, 0);
-<a name="l00238"></a>00238         MeshManager::getSingleton().createPlane(<span class="stringliteral">&quot;starwall&quot;</span>, Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME,
-<a name="l00239"></a>00239         plane, 10000, 10000, 100, 100, <span class="keyword">true</span>, 1, 1, 1, Ogre::Vector3::UNIT_Z);
-<a name="l00240"></a>00240 
-<a name="l00241"></a>00241         Ogre::Entity* wallEnt = mgr-&gt;createEntity(<span class="stringliteral">&quot;BottomWall&quot;</span>, <span class="stringliteral">&quot;starwall&quot;</span>);
-<a name="l00242"></a>00242         SceneNode * wallNode = mgr-&gt;getRootSceneNode()-&gt;createChildSceneNode();
-<a name="l00243"></a>00243         wallNode-&gt;attachObject(wallEnt);
-<a name="l00244"></a>00244         wallNode-&gt;setPosition(Vector3(0, -5000, 0));
-<a name="l00245"></a>00245         wallEnt-&gt;setMaterialName(<span class="stringliteral">&quot;Orewar/Starfield&quot;</span>);
-<a name="l00246"></a>00246         wallEnt-&gt;setCastShadows(<span class="keyword">false</span>);
-<a name="l00247"></a>00247 
-<a name="l00248"></a>00248         wallEnt = mgr-&gt;createEntity(<span class="stringliteral">&quot;TopWall&quot;</span>, <span class="stringliteral">&quot;starwall&quot;</span>);
-<a name="l00249"></a>00249         wallNode = mgr-&gt;getRootSceneNode()-&gt;createChildSceneNode();
-<a name="l00250"></a>00250         wallNode-&gt;attachObject(wallEnt);
-<a name="l00251"></a>00251         wallNode-&gt;setPosition(Vector3(0, 5000, 0));
-<a name="l00252"></a>00252         wallNode-&gt;setOrientation(Quaternion(Degree(180), Vector3::UNIT_X));
-<a name="l00253"></a>00253         wallEnt-&gt;setMaterialName(<span class="stringliteral">&quot;Orewar/Starfield&quot;</span>);
-<a name="l00254"></a>00254         wallEnt-&gt;setCastShadows(<span class="keyword">false</span>);
-<a name="l00255"></a>00255 
-<a name="l00256"></a>00256         wallEnt = mgr-&gt;createEntity(<span class="stringliteral">&quot;LeftWall&quot;</span>, <span class="stringliteral">&quot;starwall&quot;</span>);
-<a name="l00257"></a>00257         wallNode = mgr-&gt;getRootSceneNode()-&gt;createChildSceneNode();
-<a name="l00258"></a>00258         wallNode-&gt;attachObject(wallEnt);
-<a name="l00259"></a>00259         wallNode-&gt;setPosition(Vector3(-5000, 0, 0));
-<a name="l00260"></a>00260         wallNode-&gt;setOrientation(Quaternion(Degree(-90), Vector3::UNIT_Z));
-<a name="l00261"></a>00261         wallEnt-&gt;setMaterialName(<span class="stringliteral">&quot;Orewar/Starfield&quot;</span>);
-<a name="l00262"></a>00262         wallEnt-&gt;setCastShadows(<span class="keyword">false</span>);
-<a name="l00263"></a>00263 
-<a name="l00264"></a>00264         wallEnt = mgr-&gt;createEntity(<span class="stringliteral">&quot;RightWall&quot;</span>, <span class="stringliteral">&quot;starwall&quot;</span>);
-<a name="l00265"></a>00265         wallNode = mgr-&gt;getRootSceneNode()-&gt;createChildSceneNode();
-<a name="l00266"></a>00266         wallNode-&gt;attachObject(wallEnt);
-<a name="l00267"></a>00267         wallNode-&gt;setOrientation(Quaternion(Degree(90), Vector3::UNIT_Z));
-<a name="l00268"></a>00268         wallNode-&gt;setPosition(Vector3(5000, 0, 0));
-<a name="l00269"></a>00269         wallEnt-&gt;setMaterialName(<span class="stringliteral">&quot;Orewar/Starfield&quot;</span>);
-<a name="l00270"></a>00270         wallEnt-&gt;setCastShadows(<span class="keyword">false</span>);
-<a name="l00271"></a>00271 
-<a name="l00272"></a>00272         wallEnt = mgr-&gt;createEntity(<span class="stringliteral">&quot;FrontWall&quot;</span>, <span class="stringliteral">&quot;starwall&quot;</span>);
-<a name="l00273"></a>00273         wallNode = mgr-&gt;getRootSceneNode()-&gt;createChildSceneNode();
-<a name="l00274"></a>00274         wallNode-&gt;attachObject(wallEnt);
-<a name="l00275"></a>00275         wallNode-&gt;setPosition(Vector3(0, 0, 5000));
-<a name="l00276"></a>00276         wallNode-&gt;setOrientation(Quaternion(Degree(-90), Vector3::UNIT_X));
-<a name="l00277"></a>00277         wallEnt-&gt;setMaterialName(<span class="stringliteral">&quot;Orewar/Starfield&quot;</span>);
-<a name="l00278"></a>00278         wallEnt-&gt;setCastShadows(<span class="keyword">false</span>);
-<a name="l00279"></a>00279 
-<a name="l00280"></a>00280         wallEnt = mgr-&gt;createEntity(<span class="stringliteral">&quot;BackWall&quot;</span>, <span class="stringliteral">&quot;starwall&quot;</span>);
-<a name="l00281"></a>00281         wallNode = mgr-&gt;getRootSceneNode()-&gt;createChildSceneNode();
-<a name="l00282"></a>00282         wallNode-&gt;attachObject(wallEnt);
-<a name="l00283"></a>00283         wallNode-&gt;setOrientation(Quaternion(Degree(90), Vector3::UNIT_X));
-<a name="l00284"></a>00284         wallNode-&gt;setPosition(Vector3(0, 0, -5000));
-<a name="l00285"></a>00285         wallEnt-&gt;setMaterialName(<span class="stringliteral">&quot;Orewar/Starfield&quot;</span>);
-<a name="l00286"></a>00286         wallEnt-&gt;setCastShadows(<span class="keyword">false</span>);
-<a name="l00287"></a>00287 
-<a name="l00288"></a>00288 
-<a name="l00289"></a>00289         <span class="comment">// Put a giant ship in the middle of the arena</span>
-<a name="l00290"></a>00290         SceneNode * shipNode = mgr-&gt;getRootSceneNode()-&gt;createChildSceneNode();
-<a name="l00291"></a>00291         Entity * shipEntity = mgr-&gt;createEntity(<span class="stringliteral">&quot;GiantShip&quot;</span>, <span class="stringliteral">&quot;RZR-002.mesh&quot;</span>);
-<a name="l00292"></a>00292         shipEntity-&gt;setCastShadows(<span class="keyword">true</span>);
-<a name="l00293"></a>00293         shipNode-&gt;attachObject(shipEntity);
-<a name="l00294"></a>00294         shipNode-&gt;setScale(100, 100, 100);
-<a name="l00295"></a>00295 
-<a name="l00296"></a>00296         <span class="comment">// Add a skybox</span>
-<a name="l00297"></a>00297         <span class="comment">// mgr-&gt;setSkyBox(true, &quot;Orewar/SpaceSkyBox&quot;, 20000, false);</span>
-<a name="l00298"></a>00298     }
-<a name="l00299"></a>00299  
-<a name="l00300"></a>00300     <span class="keywordtype">void</span> setupInputSystem()
-<a name="l00301"></a>00301     {
-<a name="l00302"></a>00302         <span class="comment">// Initialize OIS</span>
-<a name="l00303"></a>00303         <span class="keywordtype">size_t</span> windowHnd = 0;
-<a name="l00304"></a>00304         std::ostringstream windowHndStr;
-<a name="l00305"></a>00305         OIS::ParamList pl;
-<a name="l00306"></a>00306         RenderWindow *win = mRoot-&gt;getAutoCreatedWindow();
-<a name="l00307"></a>00307  
-<a name="l00308"></a>00308         win-&gt;getCustomAttribute(<span class="stringliteral">&quot;WINDOW&quot;</span>, &amp;windowHnd);
-<a name="l00309"></a>00309         windowHndStr &lt;&lt; windowHnd;
-<a name="l00310"></a>00310         pl.insert(std::make_pair(std::string(<span class="stringliteral">&quot;WINDOW&quot;</span>), windowHndStr.str()));
-<a name="l00311"></a>00311         mInputManager = OIS::InputManager::createInputSystem(pl);
-<a name="l00312"></a>00312 
-<a name="l00313"></a>00313 
-<a name="l00314"></a>00314         <span class="comment">// Setup (Unbuffered in this case) input objects</span>
-<a name="l00315"></a>00315         <span class="keywordflow">try</span> {
-<a name="l00316"></a>00316             mKeyboard = <span class="keyword">static_cast&lt;</span>OIS::Keyboard*<span class="keyword">&gt;</span>(mInputManager-&gt;createInputObject(OIS::OISKeyboard, <span class="keyword">false</span>));
-<a name="l00317"></a>00317             <span class="comment">//mMouse = static_cast&lt;OIS::Mouse*&gt;(mInputManager-&gt;createInputObject(OIS::OISMouse, false));</span>
-<a name="l00318"></a>00318             <span class="comment">//mJoy = static_cast&lt;OIS::JoyStick*&gt;(mInputManager-&gt;createInputObject(OIS::OISJoyStick, false));</span>
-<a name="l00319"></a>00319         }
-<a name="l00320"></a>00320         <span class="keywordflow">catch</span> (<span class="keyword">const</span> OIS::Exception &amp;e) {
-<a name="l00321"></a>00321             <span class="keywordflow">throw</span> Exception(42, e.eText, <span class="stringliteral">&quot;Application::setupInputSystem&quot;</span>);
-<a name="l00322"></a>00322         }
-<a name="l00323"></a>00323     }
-<a name="l00324"></a>00324  
-<a name="l00325"></a>00325     <span class="keywordtype">void</span> createFrameListener()
-<a name="l00326"></a>00326     {
-<a name="l00327"></a>00327         <span class="comment">// Create and add a listener for the keyboard</span>
-<a name="l00328"></a>00328         <span class="comment">// Note: Input devices can have only one listener</span>
-<a name="l00329"></a>00329         mListener = <span class="keyword">new</span> <a class="code" href="class_keyboard_test_listener.html">KeyboardTestListener</a>(mKeyboard, mRoot-&gt;getSceneManager(<span class="stringliteral">&quot;Default SceneManager&quot;</span>), 
-<a name="l00330"></a>00330             mRoot-&gt;getSceneManager(<span class="stringliteral">&quot;Default SceneManager&quot;</span>)-&gt;getCamera(<span class="stringliteral">&quot;Camera&quot;</span>));
-<a name="l00331"></a>00331         mRoot-&gt;addFrameListener(mListener);
-<a name="l00332"></a>00332     }
-<a name="l00333"></a>00333  
-<a name="l00334"></a>00334     <span class="keywordtype">void</span> startRenderLoop()
-<a name="l00335"></a>00335     {
-<a name="l00336"></a>00336         mRoot-&gt;startRendering();
-<a name="l00337"></a>00337     }
-<a name="l00338"></a>00338 };
-<a name="l00339"></a>00339 
-<a name="l00340"></a>00340 <span class="preprocessor">#if OGRE_PLATFORM == OGRE_PLATFORM_WIN32</span>
-<a name="l00341"></a>00341 <span class="preprocessor"></span><span class="preprocessor">#define WIN32_LEAN_AND_MEAN</span>
-<a name="l00342"></a>00342 <span class="preprocessor"></span><span class="preprocessor">#include &quot;windows.h&quot;</span>
-<a name="l00343"></a>00343 <span class="preprocessor">#endif</span>
-<a name="l00344"></a>00344 <span class="preprocessor"></span>
-<a name="l00345"></a>00345 <span class="preprocessor">#ifdef __cplusplus</span>
-<a name="l00346"></a>00346 <span class="preprocessor"></span>    <span class="keyword">extern</span> <span class="stringliteral">&quot;C&quot;</span> {
-<a name="l00347"></a>00347 <span class="preprocessor">#endif</span>
-<a name="l00348"></a>00348 <span class="preprocessor"></span>
-<a name="l00349"></a>00349 <span class="preprocessor">#if OGRE_PLATFORM == OGRE_PLATFORM_WIN32</span>
-<a name="l00350"></a>00350 <span class="preprocessor"></span>        INT WINAPI WinMain( HINSTANCE hInst, HINSTANCE, LPSTR strCmdLine, INT )
-<a name="l00351"></a>00351 <span class="preprocessor">#else</span>
-<a name="l00352"></a>00352 <span class="preprocessor"></span>        <span class="keywordtype">int</span> main(<span class="keywordtype">int</span> argc, <span class="keywordtype">char</span> *argv[])
-<a name="l00353"></a>00353 <span class="preprocessor">#endif</span>
-<a name="l00354"></a>00354 <span class="preprocessor"></span>        {
-<a name="l00355"></a>00355             <span class="comment">// Create application object</span>
-<a name="l00356"></a>00356             <a class="code" href="class_application.html">Application</a> app;
-<a name="l00357"></a>00357 
-<a name="l00358"></a>00358             <span class="keywordflow">try</span> {
-<a name="l00359"></a>00359                 app.go();
-<a name="l00360"></a>00360             } <span class="keywordflow">catch</span>( Ogre::Exception&amp; e ) {
-<a name="l00361"></a>00361 <span class="preprocessor">#if OGRE_PLATFORM == OGRE_PLATFORM_WIN32</span>
-<a name="l00362"></a>00362 <span class="preprocessor"></span>                MessageBox( NULL, e.getFullDescription().c_str(), <span class="stringliteral">&quot;An exception has occured!&quot;</span>, MB_OK | MB_ICONERROR | MB_TASKMODAL);
-<a name="l00363"></a>00363 <span class="preprocessor">#else</span>
-<a name="l00364"></a>00364 <span class="preprocessor"></span>                std::cerr &lt;&lt; <span class="stringliteral">&quot;An exception has occured: &quot;</span> &lt;&lt;
-<a name="l00365"></a>00365                     e.getFullDescription().c_str() &lt;&lt; std::endl;
-<a name="l00366"></a>00366 <span class="preprocessor">#endif</span>
-<a name="l00367"></a>00367 <span class="preprocessor"></span>            }
-<a name="l00368"></a>00368 
-<a name="l00369"></a>00369             <span class="keywordflow">return</span> 0;
-<a name="l00370"></a>00370         }
-<a name="l00371"></a>00371 
-<a name="l00372"></a>00372 <span class="preprocessor">#ifdef __cplusplus</span>
-<a name="l00373"></a>00373 <span class="preprocessor"></span>    }
-<a name="l00374"></a>00374 <span class="preprocessor">#endif</span>
+<a name="l00033"></a>00033         <span class="comment">// Generate GUI elements</span>
+<a name="l00034"></a>00034         <a class="code" href="class_gorilla_1_1_silverback.html">Gorilla::Silverback</a> * gorilla = Gorilla::Silverback::getSingletonPtr();
+<a name="l00035"></a>00035         <a class="code" href="class_gorilla_1_1_screen.html">Gorilla::Screen</a> * screen = gorilla-&gt;<a class="code" href="class_gorilla_1_1_silverback.html#aea736c34b584dce837c55d550c11d030">createScreen</a>(mp_vp, <span class="stringliteral">&quot;dejavu&quot;</span>);
+<a name="l00036"></a>00036         <a class="code" href="class_gorilla_1_1_layer.html">Gorilla::Layer</a> * layer = screen-&gt;<a class="code" href="class_gorilla_1_1_layer_container.html#a94f6214aa3793fab6783627d594248b7">createLayer</a>(10);
+<a name="l00037"></a>00037 
+<a name="l00038"></a>00038         layer-&gt;<a class="code" href="class_gorilla_1_1_layer.html#a9ccfd1028425b66a58550168cb8ec0d9">createCaption</a>(14, 5, 5, <span class="stringliteral">&quot;OreWar Alpha v0.02&quot;</span>);
+<a name="l00039"></a>00039         <a class="code" href="class_gorilla_1_1_rectangle.html">Gorilla::Rectangle</a> * crosshair = layer-&gt;<a class="code" href="class_gorilla_1_1_layer.html#ae92bfd3aca9f157cacc61df915dc71ce">createRectangle</a>(Vector2(mp_vp-&gt;getActualWidth() / 2.0f - 6, mp_vp-&gt;getActualHeight() / 2.0f - 6),
+<a name="l00040"></a>00040             Vector2(12, 12));
+<a name="l00041"></a>00041         crosshair-&gt;<a class="code" href="class_gorilla_1_1_rectangle.html#a8e7d81de93048cb1e9beeeb9560457ab">background_image</a>(<span class="stringliteral">&quot;crosshair&quot;</span>);
+<a name="l00042"></a>00042 
+<a name="l00043"></a>00043         mp_fps = layer-&gt;<a class="code" href="class_gorilla_1_1_layer.html#a9ccfd1028425b66a58550168cb8ec0d9">createCaption</a>(14, 5, mp_vp-&gt;getActualHeight() - 24, <span class="stringliteral">&quot;FPS Counter&quot;</span>);
+<a name="l00044"></a>00044 
+<a name="l00045"></a>00045         mp_healthBar = layer-&gt;<a class="code" href="class_gorilla_1_1_layer.html#ae92bfd3aca9f157cacc61df915dc71ce">createRectangle</a>(Vector2(14, mp_vp-&gt;getActualHeight() - 66), Vector2(mp_vp-&gt;getActualWidth() * 0.25, 12));
+<a name="l00046"></a>00046         mp_healthBar-&gt;<a class="code" href="class_gorilla_1_1_rectangle.html#aa4a2663124e234b7053e6907702835b0">background_colour</a>(Gorilla::Colours::Red);
+<a name="l00047"></a>00047         mp_healthBar-&gt;<a class="code" href="class_gorilla_1_1_rectangle.html#a195a91057deedeb5324cae5cf5827c4f">border_colour</a>(Gorilla::Colours::Red);
+<a name="l00048"></a>00048 
+<a name="l00049"></a>00049         <a class="code" href="class_gorilla_1_1_rectangle.html">Gorilla::Rectangle</a> * healthBarBorder = layer-&gt;<a class="code" href="class_gorilla_1_1_layer.html#ae92bfd3aca9f157cacc61df915dc71ce">createRectangle</a>(Vector2(14, mp_vp-&gt;getActualHeight() - 66), Vector2(mp_vp-&gt;getActualWidth() * 0.25, 12));
+<a name="l00050"></a>00050         healthBarBorder-&gt;<a class="code" href="class_gorilla_1_1_rectangle.html#a203c875fa26a99bf1d66bd30927f23b8">no_background</a>();
+<a name="l00051"></a>00051         healthBarBorder-&gt;<a class="code" href="class_gorilla_1_1_rectangle.html#a195a91057deedeb5324cae5cf5827c4f">border_colour</a>(Gorilla::Colours::Red);
+<a name="l00052"></a>00052         healthBarBorder-&gt;<a class="code" href="class_gorilla_1_1_rectangle.html#a30978be2f099700760dc3dc13977cbe2">border_width</a>(1);
+<a name="l00053"></a>00053 
+<a name="l00054"></a>00054         mp_energyBar = layer-&gt;<a class="code" href="class_gorilla_1_1_layer.html#ae92bfd3aca9f157cacc61df915dc71ce">createRectangle</a>(Vector2(14, mp_vp-&gt;getActualHeight() - 82), Vector2(mp_vp-&gt;getActualWidth() * 0.25, 12));
+<a name="l00055"></a>00055         mp_energyBar-&gt;<a class="code" href="class_gorilla_1_1_rectangle.html#aa4a2663124e234b7053e6907702835b0">background_colour</a>(Gorilla::Colours::Blue);
+<a name="l00056"></a>00056         mp_energyBar-&gt;<a class="code" href="class_gorilla_1_1_rectangle.html#a195a91057deedeb5324cae5cf5827c4f">border_colour</a>(Gorilla::Colours::Blue);
+<a name="l00057"></a>00057 
+<a name="l00058"></a>00058         <a class="code" href="class_gorilla_1_1_rectangle.html">Gorilla::Rectangle</a> * energyBarBorder = layer-&gt;<a class="code" href="class_gorilla_1_1_layer.html#ae92bfd3aca9f157cacc61df915dc71ce">createRectangle</a>(Vector2(14, mp_vp-&gt;getActualHeight() - 82), Vector2(mp_vp-&gt;getActualWidth() * 0.25, 12));
+<a name="l00059"></a>00059         energyBarBorder-&gt;<a class="code" href="class_gorilla_1_1_rectangle.html#a203c875fa26a99bf1d66bd30927f23b8">no_background</a>();
+<a name="l00060"></a>00060         energyBarBorder-&gt;<a class="code" href="class_gorilla_1_1_rectangle.html#a195a91057deedeb5324cae5cf5827c4f">border_colour</a>(Gorilla::Colours::Blue);
+<a name="l00061"></a>00061         energyBarBorder-&gt;<a class="code" href="class_gorilla_1_1_rectangle.html#a30978be2f099700760dc3dc13977cbe2">border_width</a>(1);
+<a name="l00062"></a>00062 
+<a name="l00063"></a>00063         mp_speedBar = layer-&gt;<a class="code" href="class_gorilla_1_1_layer.html#ae92bfd3aca9f157cacc61df915dc71ce">createRectangle</a>(Vector2(14, mp_vp-&gt;getActualHeight() - 98), Vector2(mp_vp-&gt;getActualWidth() * 0.25, 12));
+<a name="l00064"></a>00064         mp_speedBar-&gt;<a class="code" href="class_gorilla_1_1_rectangle.html#aa4a2663124e234b7053e6907702835b0">background_colour</a>(Gorilla::Colours::Orange);
+<a name="l00065"></a>00065         mp_energyBar-&gt;<a class="code" href="class_gorilla_1_1_rectangle.html#a195a91057deedeb5324cae5cf5827c4f">border_colour</a>(Gorilla::Colours::Orange);
+<a name="l00066"></a>00066 
+<a name="l00067"></a>00067         m_camNode = m_mgr-&gt;getRootSceneNode()-&gt;createChildSceneNode();
+<a name="l00068"></a>00068         m_camNode-&gt;attachObject(m_cam);
+<a name="l00069"></a>00069         m_cam-&gt;setPosition(0, 0, 0);
+<a name="l00070"></a>00070         m_camParticle = m_mgr-&gt;createParticleSystem(<span class="stringliteral">&quot;CamStars&quot;</span>, <span class="stringliteral">&quot;Orewar/CamStarField&quot;</span>);
+<a name="l00071"></a>00071         m_camParticle-&gt;setEmitting(<span class="keyword">true</span>);
+<a name="l00072"></a>00072         m_camNode-&gt;attachObject(m_camParticle);
+<a name="l00073"></a>00073     }
+<a name="l00074"></a>00074  
+<a name="l00075"></a>00075     <span class="keywordtype">bool</span> frameStarted(<span class="keyword">const</span> FrameEvent&amp; evt)
+<a name="l00076"></a>00076     {
+<a name="l00077"></a>00077         <span class="comment">// Capture the keyboard input</span>
+<a name="l00078"></a>00078         m_Keyboard-&gt;capture();
+<a name="l00079"></a>00079         <a class="code" href="class_space_ship.html">SpaceShip</a> * playerShip = m_arena.<a class="code" href="class_game_arena.html#a547106597fc3d55431bbf3c6ef01ec12">playerShip</a>();
+<a name="l00080"></a>00080         <a class="code" href="class_sphere_collision_object.html">SphereCollisionObject</a> * playerShipPhys = playerShip-&gt;<a class="code" href="class_game_object.html#a809ff1100dcc9d813efdef07b5da4592">phys</a>();
+<a name="l00081"></a>00081 
+<a name="l00082"></a>00082         <span class="comment">// Add random NPC ships to shoot</span>
+<a name="l00083"></a>00083         <span class="keywordflow">for</span>(<span class="keywordtype">int</span> i = 0; i &lt; m_arena.<a class="code" href="class_game_arena.html#a218548dfb38633db91b8202e40a5de7a">npcShips</a>()-&gt;size() - 6; i++) {
+<a name="l00084"></a>00084             <span class="comment">// Add some NPC ships</span>
+<a name="l00085"></a>00085             <a class="code" href="class_space_ship.html">SpaceShip</a> npcShip = <a class="code" href="class_space_ship.html">SpaceShip</a>(ObjectType::NPC_SHIP, 1, 
+<a name="l00086"></a>00086                 Vector3(Math::RangeRandom(0, m_arena.size()),
+<a name="l00087"></a>00087                 Math::RangeRandom(0, m_arena.size()),
+<a name="l00088"></a>00088                 Math::RangeRandom(0, m_arena.size())),
+<a name="l00089"></a>00089                 5);
+<a name="l00090"></a>00090             <a class="code" href="class_sphere_collision_object.html">SphereCollisionObject</a> * npcShipPhysics = npcShip.<a class="code" href="class_game_object.html#a809ff1100dcc9d813efdef07b5da4592">phys</a>();
+<a name="l00091"></a>00091             <span class="comment">// npcShip.velocity(Vector3(0, 0, 0));</span>
+<a name="l00092"></a>00092             npcShipPhysics-&gt;<a class="code" href="class_physics_object.html#a7804c67b7896c1c8ce4b5efee6ecef9c">velocity</a>(Vector3(Math::RangeRandom(0, 2000),
+<a name="l00093"></a>00093                 Math::RangeRandom(0, 2000),
+<a name="l00094"></a>00094                 Math::RangeRandom(0, 2000)));
+<a name="l00095"></a>00095 
+<a name="l00096"></a>00096             npcShipPhysics-&gt;orientation(Vector3(0, 0, -1).getRotationTo(npcShipPhysics-&gt;getVelocity()));
+<a name="l00097"></a>00097             m_arena.addNpcShip(npcShip);
+<a name="l00098"></a>00098         }
+<a name="l00099"></a>00099 
+<a name="l00100"></a>00100         <span class="comment">// Adjust or reset the camera modifiers</span>
+<a name="l00101"></a>00101         <span class="keywordflow">if</span>(m_Keyboard-&gt;isKeyDown(OIS::KC_Z)) {
+<a name="l00102"></a>00102             m_camHeight = 0;
+<a name="l00103"></a>00103             m_camOffset = 0;
+<a name="l00104"></a>00104         }
+<a name="l00105"></a>00105         <span class="keywordflow">if</span>(m_Keyboard-&gt;isKeyDown(OIS::KC_UP)) {
+<a name="l00106"></a>00106             m_camHeight += 2;
+<a name="l00107"></a>00107         }
+<a name="l00108"></a>00108         <span class="keywordflow">if</span>(m_Keyboard-&gt;isKeyDown(OIS::KC_DOWN)) {
+<a name="l00109"></a>00109             m_camHeight -= 2;
+<a name="l00110"></a>00110         }
+<a name="l00111"></a>00111         <span class="keywordflow">if</span>(m_Keyboard-&gt;isKeyDown(OIS::KC_RIGHT)) {
+<a name="l00112"></a>00112             m_camOffset += 2;
+<a name="l00113"></a>00113         }
+<a name="l00114"></a>00114         <span class="keywordflow">if</span>(m_Keyboard-&gt;isKeyDown(OIS::KC_LEFT)) {
+<a name="l00115"></a>00115             m_camOffset -= 2;
+<a name="l00116"></a>00116         }
+<a name="l00117"></a>00117 
+<a name="l00118"></a>00118         <span class="comment">// Mouse control</span>
+<a name="l00119"></a>00119         m_mouse-&gt;capture();
+<a name="l00120"></a>00120         playerShipPhys-&gt;<a class="code" href="class_base_object.html#a2f134d171dbf68e3a32cbb0ba12cb9a5">pitch</a>(Radian(m_mouse-&gt;getMouseState().Y.rel * -0.25 * evt.timeSinceLastFrame));
+<a name="l00121"></a>00121         playerShipPhys-&gt;<a class="code" href="class_base_object.html#ab05b58df3d85a531da6ec40a3fe4c343">yaw</a>(Radian(m_mouse-&gt;getMouseState().X.rel * -0.25 * evt.timeSinceLastFrame));
+<a name="l00122"></a>00122         
+<a name="l00123"></a>00123         <span class="comment">// Clear all existing forces, and add keyboard forces</span>
+<a name="l00124"></a>00124         Real energyDrain = 10;
+<a name="l00125"></a>00125         <span class="keywordflow">if</span>(m_Keyboard-&gt;isKeyDown(OIS::KC_W)) {
+<a name="l00126"></a>00126             playerShipPhys-&gt;<a class="code" href="class_physics_object.html#a5a7fbcfacf83f5b6b01d73deda3f8811">applyTempForce</a>(playerShipPhys-&gt;<a class="code" href="class_base_object.html#ad1e27f4a8b70a633a2ca3ab3049504c5">heading</a>() * Real(2000));
+<a name="l00127"></a>00127             playerShip-&gt;drainEnergy(energyDrain * evt.timeSinceLastFrame);
+<a name="l00128"></a>00128         }
+<a name="l00129"></a>00129         <span class="keywordflow">if</span>(m_Keyboard-&gt;isKeyDown(OIS::KC_S)) {
+<a name="l00130"></a>00130             playerShipPhys-&gt;<a class="code" href="class_physics_object.html#a5a7fbcfacf83f5b6b01d73deda3f8811">applyTempForce</a>(playerShipPhys-&gt;<a class="code" href="class_base_object.html#ad1e27f4a8b70a633a2ca3ab3049504c5">heading</a>() * Real(-2000));
+<a name="l00131"></a>00131             playerShip-&gt;drainEnergy(energyDrain * evt.timeSinceLastFrame);
+<a name="l00132"></a>00132         }
+<a name="l00133"></a>00133         <span class="keywordflow">if</span>(m_Keyboard-&gt;isKeyDown(OIS::KC_A)) {
+<a name="l00134"></a>00134             playerShipPhys-&gt;<a class="code" href="class_physics_object.html#a5a7fbcfacf83f5b6b01d73deda3f8811">applyTempForce</a>((playerShipPhys-&gt;<a class="code" href="class_base_object.html#a90e7522833181ec5598dc6bf7cca9422">orientation</a>() * Quaternion(Degree(90), Vector3::UNIT_Y)) 
+<a name="l00135"></a>00135                 * Vector3(0, 0, -1500));
+<a name="l00136"></a>00136             playerShip-&gt;drainEnergy(energyDrain * evt.timeSinceLastFrame);
+<a name="l00137"></a>00137         }
+<a name="l00138"></a>00138         <span class="keywordflow">if</span>(m_Keyboard-&gt;isKeyDown(OIS::KC_D)) {
+<a name="l00139"></a>00139             playerShipPhys-&gt;<a class="code" href="class_physics_object.html#a5a7fbcfacf83f5b6b01d73deda3f8811">applyTempForce</a>((playerShipPhys-&gt;<a class="code" href="class_base_object.html#a90e7522833181ec5598dc6bf7cca9422">orientation</a>() * Quaternion(Degree(-90), Vector3::UNIT_Y)) 
+<a name="l00140"></a>00140                 * Vector3(0, 0, -1500));
+<a name="l00141"></a>00141             playerShip-&gt;drainEnergy(energyDrain * evt.timeSinceLastFrame);
+<a name="l00142"></a>00142         }
+<a name="l00143"></a>00143 
+<a name="l00144"></a>00144         <span class="keywordflow">if</span>(m_Keyboard-&gt;isKeyDown(OIS::KC_Q)) {
+<a name="l00145"></a>00145             playerShipPhys-&gt;<a class="code" href="class_base_object.html#ad4f39ea20e390d2e26cd852a1b863eb4">roll</a>(Radian(2 * evt.timeSinceLastFrame));
+<a name="l00146"></a>00146         }
+<a name="l00147"></a>00147         <span class="keywordflow">if</span>(m_Keyboard-&gt;isKeyDown(OIS::KC_E)) {
+<a name="l00148"></a>00148             playerShipPhys-&gt;<a class="code" href="class_base_object.html#ad4f39ea20e390d2e26cd852a1b863eb4">roll</a>(Radian(-2 * evt.timeSinceLastFrame));
+<a name="l00149"></a>00149         }
+<a name="l00150"></a>00150 
+<a name="l00151"></a>00151         <span class="keywordflow">if</span>(m_Keyboard-&gt;isKeyDown(OIS::KC_LCONTROL)) {
+<a name="l00152"></a>00152             playerShipPhys-&gt;<a class="code" href="class_physics_object.html#a5a7fbcfacf83f5b6b01d73deda3f8811">applyTempForce</a>(playerShipPhys-&gt;<a class="code" href="class_physics_object.html#aa1ee2925ae45f6e8b852e75bee8d7837">getVelocity</a>().normalisedCopy() * (-1) * Vector3(2000, 2000, 2000));
+<a name="l00153"></a>00153             playerShip-&gt;drainEnergy(energyDrain * evt.timeSinceLastFrame);
+<a name="l00154"></a>00154         }
+<a name="l00155"></a>00155 
+<a name="l00156"></a>00156         <span class="keywordflow">if</span>(m_Keyboard-&gt;isKeyDown(OIS::KC_C)) {
+<a name="l00157"></a>00157             m_thirdPersonCam = !m_thirdPersonCam; 
+<a name="l00158"></a>00158         }
+<a name="l00159"></a>00159 
+<a name="l00160"></a>00160         <span class="comment">// Generate projectile if required</span>
+<a name="l00161"></a>00161         <span class="keywordflow">if</span>(m_mouse-&gt;getMouseState().buttonDown(OIS::MB_Left)) {
+<a name="l00162"></a>00162             m_arena.<a class="code" href="class_game_arena.html#a2a0f5115afee91013210839ef367c6bc">fireProjectileFromShip</a>(playerShip, 0);
+<a name="l00163"></a>00163         }
+<a name="l00164"></a>00164 
+<a name="l00165"></a>00165         <span class="keywordflow">if</span>(m_mouse-&gt;getMouseState().buttonDown(OIS::MB_Right)) {
+<a name="l00166"></a>00166             m_arena.<a class="code" href="class_game_arena.html#a2a0f5115afee91013210839ef367c6bc">fireProjectileFromShip</a>(playerShip, 1);
+<a name="l00167"></a>00167         }
+<a name="l00168"></a>00168 
+<a name="l00169"></a>00169         <span class="comment">// Generate constraint - TESTING</span>
+<a name="l00170"></a>00170         <span class="keywordflow">if</span>(m_Keyboard-&gt;isKeyDown(OIS::KC_RCONTROL) || m_Keyboard-&gt;isKeyDown(OIS::KC_SPACE))
+<a name="l00171"></a>00171         {
+<a name="l00172"></a>00172             <span class="keywordflow">if</span>(m_con == NULL) 
+<a name="l00173"></a>00173             {
+<a name="l00174"></a>00174                 <a class="code" href="class_projectile.html">Projectile</a> * closestAnchor = NULL;
+<a name="l00175"></a>00175                 <span class="keywordflow">for</span>(std::vector&lt;Projectile * &gt;::iterator projIter = m_arena.<a class="code" href="class_game_arena.html#aafb2031a2f65b2e322b45fb3e89088c1">projectiles</a>()-&gt;begin(); 
+<a name="l00176"></a>00176                     projIter != m_arena.<a class="code" href="class_game_arena.html#aafb2031a2f65b2e322b45fb3e89088c1">projectiles</a>()-&gt;end();
+<a name="l00177"></a>00177                     projIter++) 
+<a name="l00178"></a>00178                 {
+<a name="l00179"></a>00179                     <span class="keywordflow">if</span>((*projIter)-&gt;type() != ANCHOR_PROJECTILE) {
+<a name="l00180"></a>00180                         <span class="keywordflow">continue</span>;
+<a name="l00181"></a>00181                     }
+<a name="l00182"></a>00182 
+<a name="l00183"></a>00183                     <span class="keywordflow">if</span>(closestAnchor == NULL ||
+<a name="l00184"></a>00184                         (playerShipPhys-&gt;<a class="code" href="class_base_object.html#a2a560ffefd82677a669c6d0e86a2afe2">position</a>().squaredDistance((*projIter)-&gt;phys()-&gt;position()) &lt;
+<a name="l00185"></a>00185                         playerShipPhys-&gt;<a class="code" href="class_base_object.html#a2a560ffefd82677a669c6d0e86a2afe2">position</a>().squaredDistance(closestAnchor-&gt;<a class="code" href="class_game_object.html#a809ff1100dcc9d813efdef07b5da4592">phys</a>()-&gt;<a class="code" href="class_base_object.html#a2a560ffefd82677a669c6d0e86a2afe2">position</a>()))) 
+<a name="l00186"></a>00186                     {
+<a name="l00187"></a>00187                         closestAnchor = *projIter;
+<a name="l00188"></a>00188                     }
+<a name="l00189"></a>00189                 }
+<a name="l00190"></a>00190 
+<a name="l00191"></a>00191                 <span class="keywordflow">if</span>(closestAnchor != NULL) {
+<a name="l00192"></a>00192                     closestAnchor-&gt;<a class="code" href="class_game_object.html#a809ff1100dcc9d813efdef07b5da4592">phys</a>()-&gt;<a class="code" href="class_physics_object.html#a7804c67b7896c1c8ce4b5efee6ecef9c">velocity</a>(Vector3(0, 0, 0));
+<a name="l00193"></a>00193                     m_con = m_arena.addConstraint(<a class="code" href="class_constraint.html">Constraint</a>(playerShip-&gt;<a class="code" href="class_game_object.html#a809ff1100dcc9d813efdef07b5da4592">phys</a>(), 
+<a name="l00194"></a>00194                         closestAnchor-&gt;<a class="code" href="class_game_object.html#a809ff1100dcc9d813efdef07b5da4592">phys</a>()));
+<a name="l00195"></a>00195                 }
+<a name="l00196"></a>00196             }
+<a name="l00197"></a>00197         } <span class="keywordflow">else</span> {
+<a name="l00198"></a>00198             <span class="keywordflow">if</span>(m_con != NULL) {
+<a name="l00199"></a>00199                 <a class="code" href="class_physics_object.html">PhysicsObject</a> * deadAnchor = m_con-&gt;<a class="code" href="class_constraint.html#a50f128d52a156c2d5652b40bb2152bf7">getTarget</a>();
+<a name="l00200"></a>00200                 m_arena.destroyConstraint(m_con);
+<a name="l00201"></a>00201                 <span class="keywordflow">for</span>(std::vector&lt;Projectile * &gt;::iterator projIter = m_arena.<a class="code" href="class_game_arena.html#aafb2031a2f65b2e322b45fb3e89088c1">projectiles</a>()-&gt;begin(); 
+<a name="l00202"></a>00202                     projIter != m_arena.<a class="code" href="class_game_arena.html#aafb2031a2f65b2e322b45fb3e89088c1">projectiles</a>()-&gt;end();
+<a name="l00203"></a>00203                     projIter++) 
+<a name="l00204"></a>00204                 {
+<a name="l00205"></a>00205                     <span class="keywordflow">if</span>((*projIter)-&gt;phys() == deadAnchor) {
+<a name="l00206"></a>00206                         m_arena.<a class="code" href="class_game_arena.html#a8574b2242103960d6c3a897459ae86ce">destroyProjectile</a>(*projIter);
+<a name="l00207"></a>00207                         <span class="keywordflow">break</span>;
+<a name="l00208"></a>00208                     }
+<a name="l00209"></a>00209                 }
+<a name="l00210"></a>00210                 m_con = NULL;
+<a name="l00211"></a>00211             }
+<a name="l00212"></a>00212         }
+<a name="l00213"></a>00213 
+<a name="l00214"></a>00214         <span class="comment">// Update FPS counter</span>
+<a name="l00215"></a>00215         m_timer += evt.timeSinceLastFrame;
+<a name="l00216"></a>00216         <span class="keywordflow">if</span> (m_timer &gt; 1.0f / 60.0f) 
+<a name="l00217"></a>00217         {
+<a name="l00218"></a>00218             m_timer = 0;
+<a name="l00219"></a>00219             mp_fps-&gt;<a class="code" href="class_gorilla_1_1_caption.html#ae4035a999e01b63b41ed7cc0119b32d9">text</a>(<span class="stringliteral">&quot;FPS: &quot;</span> + Ogre::StringConverter::toString(mp_renderWindow-&gt;getLastFPS())
+<a name="l00220"></a>00220                 + <span class="stringliteral">&quot; - RenderObjects: &quot;</span> + Ogre::StringConverter::toString(m_renderModel.getNumObjects())
+<a name="l00221"></a>00221                 + <span class="stringliteral">&quot; - Health: &quot;</span> + Ogre::StringConverter::toString(playerShip-&gt;health())
+<a name="l00222"></a>00222                 + <span class="stringliteral">&quot; - Speed: &quot;</span> + Ogre::StringConverter::toString(playerShipPhys-&gt;<a class="code" href="class_physics_object.html#aa1ee2925ae45f6e8b852e75bee8d7837">getVelocity</a>().length())
+<a name="l00223"></a>00223                 + <span class="stringliteral">&quot; - Force: &quot;</span> + Ogre::StringConverter::toString((playerShipPhys-&gt;<a class="code" href="class_physics_object.html#a07d88657f04e54a23207a6e815cc20c1">sumForces</a>() + playerShipPhys-&gt;<a class="code" href="class_physics_object.html#af213f1a65c4491a68c0954588a517663">sumTempForces</a>()).length()));
+<a name="l00224"></a>00224         }
+<a name="l00225"></a>00225 
+<a name="l00226"></a>00226         <span class="comment">// Update UI</span>
+<a name="l00227"></a>00227         mp_healthBar-&gt;<a class="code" href="class_gorilla_1_1_rectangle.html#a002b75184c9941ea46259f17608aa9d2">width</a>((mp_vp-&gt;getActualWidth() * 0.25) * (playerShip-&gt;health() / playerShip-&gt;maxHealth()));
+<a name="l00228"></a>00228         mp_energyBar-&gt;<a class="code" href="class_gorilla_1_1_rectangle.html#a002b75184c9941ea46259f17608aa9d2">width</a>((mp_vp-&gt;getActualWidth() * 0.25) * (playerShip-&gt;energy() / playerShip-&gt;maxEnergy()));
+<a name="l00229"></a>00229         mp_speedBar-&gt;<a class="code" href="class_gorilla_1_1_rectangle.html#a002b75184c9941ea46259f17608aa9d2">width</a>((mp_vp-&gt;getActualWidth() * 0.25) * (playerShipPhys-&gt;<a class="code" href="class_physics_object.html#aa1ee2925ae45f6e8b852e75bee8d7837">getVelocity</a>().length() / Real(6000)));
+<a name="l00230"></a>00230 
+<a name="l00231"></a>00231         <span class="comment">// Update the position of the physics object and move the scene node</span>
+<a name="l00232"></a>00232         m_arena.<a class="code" href="class_game_arena.html#a12592872d70e071a3f2c338f906bb93d">updatePhysics</a>(evt.timeSinceLastFrame);
+<a name="l00233"></a>00233         m_renderModel.<a class="code" href="class_render_model.html#a0c4f26a5b128074f73b977387aec990a">updateRenderList</a>(evt.timeSinceLastFrame, m_camNode-&gt;getOrientation());
+<a name="l00234"></a>00234 
+<a name="l00235"></a>00235         <span class="comment">// Move the camera</span>
+<a name="l00236"></a>00236         <span class="keywordflow">if</span>(m_thirdPersonCam) {
+<a name="l00237"></a>00237             m_camNode-&gt;setPosition(playerShipPhys-&gt;<a class="code" href="class_base_object.html#a2a560ffefd82677a669c6d0e86a2afe2">position</a>() + Vector3(0, 1000, 1000));
+<a name="l00238"></a>00238             m_camNode-&gt;lookAt(playerShipPhys-&gt;<a class="code" href="class_base_object.html#a2a560ffefd82677a669c6d0e86a2afe2">position</a>(), Node::TS_WORLD);
+<a name="l00239"></a>00239         } <span class="keywordflow">else</span> {
+<a name="l00240"></a>00240             m_camNode-&gt;setPosition(playerShipPhys-&gt;<a class="code" href="class_base_object.html#a2a560ffefd82677a669c6d0e86a2afe2">position</a>() + playerShipPhys-&gt;<a class="code" href="class_base_object.html#a5a8a9d729ce4cb30d8b5d68965d35730">normal</a>() * 80 - playerShipPhys-&gt;<a class="code" href="class_base_object.html#ad1e27f4a8b70a633a2ca3ab3049504c5">heading</a>() * 200);
+<a name="l00241"></a>00241             m_camNode-&gt;setOrientation(playerShipPhys-&gt;<a class="code" href="class_base_object.html#a90e7522833181ec5598dc6bf7cca9422">orientation</a>());
+<a name="l00242"></a>00242         }
+<a name="l00243"></a>00243 
+<a name="l00244"></a>00244         <span class="keywordflow">return</span> !m_Keyboard-&gt;isKeyDown(OIS::KC_ESCAPE);
+<a name="l00245"></a>00245     }
+<a name="l00246"></a>00246  
+<a name="l00247"></a>00247 <span class="keyword">private</span>:
+<a name="l00248"></a>00248     OIS::Keyboard *m_Keyboard;
+<a name="l00249"></a>00249     OIS::Mouse *m_mouse;
+<a name="l00250"></a>00250     SceneNode *m_rotateNode;
+<a name="l00251"></a>00251     Camera *m_cam;
+<a name="l00252"></a>00252     <span class="keywordtype">int</span> m_camHeight;
+<a name="l00253"></a>00253     <span class="keywordtype">int</span> m_camOffset;
+<a name="l00254"></a>00254     <a class="code" href="class_game_arena.html">GameArena</a> m_arena;
+<a name="l00255"></a>00255     <span class="keywordtype">bool</span> m_thirdPersonCam;
+<a name="l00256"></a>00256 
+<a name="l00257"></a>00257     SceneManager * m_mgr;
+<a name="l00258"></a>00258     <a class="code" href="class_render_model.html">RenderModel</a> m_renderModel;
+<a name="l00259"></a>00259     Viewport * mp_vp;
+<a name="l00260"></a>00260     <a class="code" href="class_gorilla_1_1_caption.html">Gorilla::Caption</a> * mp_fps;
+<a name="l00261"></a>00261     Real m_timer;
+<a name="l00262"></a>00262     RenderWindow * mp_renderWindow;
+<a name="l00263"></a>00263     <a class="code" href="class_constraint.html">Constraint</a> * m_con;
+<a name="l00264"></a>00264     ParticleSystem * m_camParticle;
+<a name="l00265"></a>00265     SceneNode * m_camNode;
+<a name="l00266"></a>00266 
+<a name="l00267"></a>00267     <a class="code" href="class_gorilla_1_1_rectangle.html">Gorilla::Rectangle</a> * mp_healthBar;
+<a name="l00268"></a>00268     <a class="code" href="class_gorilla_1_1_rectangle.html">Gorilla::Rectangle</a> * mp_energyBar;
+<a name="l00269"></a>00269     <a class="code" href="class_gorilla_1_1_rectangle.html">Gorilla::Rectangle</a> * mp_speedBar;
+<a name="l00270"></a>00270 };
+<a name="l00271"></a>00271  
+<a name="l00272"></a><a class="code" href="class_application.html">00272</a> <span class="keyword">class </span><a class="code" href="class_application.html">Application</a>
+<a name="l00273"></a>00273 {
+<a name="l00274"></a>00274 <span class="keyword">public</span>:
+<a name="l00275"></a>00275     <span class="keywordtype">void</span> go()
+<a name="l00276"></a>00276     {
+<a name="l00277"></a>00277         createRoot();
+<a name="l00278"></a>00278         defineResources();
+<a name="l00279"></a>00279         setupRenderSystem();
+<a name="l00280"></a>00280         createRenderWindow();
+<a name="l00281"></a>00281         initializeResourceGroups();
+<a name="l00282"></a>00282         setupScene();
+<a name="l00283"></a>00283         setupInputSystem();
+<a name="l00284"></a>00284         createFrameListener();
+<a name="l00285"></a>00285         startRenderLoop();
+<a name="l00286"></a>00286     }
+<a name="l00287"></a>00287  
+<a name="l00288"></a>00288     ~<a class="code" href="class_application.html">Application</a>()
+<a name="l00289"></a>00289     {
+<a name="l00290"></a>00290         mInputManager-&gt;destroyInputObject(mKeyboard);
+<a name="l00291"></a>00291         OIS::InputManager::destroyInputSystem(mInputManager);
+<a name="l00292"></a>00292         <span class="keyword">delete</span> mListener;
+<a name="l00293"></a>00293         <span class="keyword">delete</span> mRoot;
+<a name="l00294"></a>00294     }
+<a name="l00295"></a>00295  
+<a name="l00296"></a>00296 <span class="keyword">private</span>:
+<a name="l00297"></a>00297     Root *mRoot;
+<a name="l00298"></a>00298     SceneManager* mMgr;
+<a name="l00299"></a>00299     OIS::Keyboard * mKeyboard;
+<a name="l00300"></a>00300     OIS::Mouse * mMouse;
+<a name="l00301"></a>00301     OIS::InputManager *mInputManager;
+<a name="l00302"></a>00302     <a class="code" href="class_test_frame_listener.html">TestFrameListener</a> *mListener;
+<a name="l00303"></a>00303  
+<a name="l00304"></a>00304     <span class="keywordtype">void</span> createRoot()
+<a name="l00305"></a>00305     {
+<a name="l00306"></a>00306         <span class="comment">// Generate the OGRE Root object</span>
+<a name="l00307"></a>00307 <span class="preprocessor">        #ifdef _DEBUG</span>
+<a name="l00308"></a>00308 <span class="preprocessor"></span>            mRoot = <span class="keyword">new</span> Root(<span class="stringliteral">&quot;plugins_d.cfg&quot;</span>);
+<a name="l00309"></a>00309 <span class="preprocessor">        #else</span>
+<a name="l00310"></a>00310 <span class="preprocessor"></span>            mRoot = <span class="keyword">new</span> Root(<span class="stringliteral">&quot;plugins.cfg&quot;</span>);
+<a name="l00311"></a>00311 <span class="preprocessor">        #endif</span>
+<a name="l00312"></a>00312 <span class="preprocessor"></span>    }
+<a name="l00313"></a>00313  
+<a name="l00314"></a>00314     <span class="keywordtype">void</span> defineResources()
+<a name="l00315"></a>00315     {
+<a name="l00316"></a>00316         String secName, typeName, archName;
+<a name="l00317"></a>00317         
+<a name="l00318"></a>00318         <span class="comment">// Load the resources.cfg resource definition file</span>
+<a name="l00319"></a>00319         ConfigFile cf;
+<a name="l00320"></a>00320 
+<a name="l00321"></a>00321 <span class="preprocessor">        #ifdef _DEBUG</span>
+<a name="l00322"></a>00322 <span class="preprocessor"></span>            cf.load(<span class="stringliteral">&quot;resources_d.cfg&quot;</span>);
+<a name="l00323"></a>00323 <span class="preprocessor">        #else</span>
+<a name="l00324"></a>00324 <span class="preprocessor"></span>            cf.load(<span class="stringliteral">&quot;resources.cfg&quot;</span>);
+<a name="l00325"></a>00325 <span class="preprocessor">        #endif</span>
+<a name="l00326"></a>00326 <span class="preprocessor"></span>
+<a name="l00327"></a>00327         <span class="comment">// Loop through all the provided resource folders and add them</span>
+<a name="l00328"></a>00328         <span class="comment">// to the ResourceGroupManager</span>
+<a name="l00329"></a>00329         ConfigFile::SectionIterator seci = cf.getSectionIterator();
+<a name="l00330"></a>00330         <span class="keywordflow">while</span> (seci.hasMoreElements())  {
+<a name="l00331"></a>00331             <span class="comment">// Loop through the provided sections</span>
+<a name="l00332"></a>00332             secName = seci.peekNextKey();
+<a name="l00333"></a>00333             ConfigFile::SettingsMultiMap *settings = seci.getNext();
+<a name="l00334"></a>00334             ConfigFile::SettingsMultiMap::iterator i;
+<a name="l00335"></a>00335     
+<a name="l00336"></a>00336             <span class="keywordflow">for</span> (i = settings-&gt;begin(); i != settings-&gt;end(); ++i) {
+<a name="l00337"></a>00337                 <span class="comment">// Add each provided directory path to the GroupResourceManager</span>
+<a name="l00338"></a>00338                 typeName = i-&gt;first;
+<a name="l00339"></a>00339                 archName = i-&gt;second;
+<a name="l00340"></a>00340                 ResourceGroupManager::getSingleton().addResourceLocation(archName, typeName, secName);
+<a name="l00341"></a>00341             }
+<a name="l00342"></a>00342         }
+<a name="l00343"></a>00343     }
+<a name="l00344"></a>00344  
+<a name="l00345"></a>00345     <span class="keywordtype">void</span> setupRenderSystem()
+<a name="l00346"></a>00346     {
+<a name="l00347"></a>00347         <span class="comment">// Restore the last configuration settings, or provide a dialogue if no prior</span>
+<a name="l00348"></a>00348         <span class="comment">// settings are stored</span>
+<a name="l00349"></a>00349         <span class="comment">//if (!mRoot-&gt;restoreConfig() &amp;&amp; !mRoot-&gt;showConfigDialog()) // Only show config if no existing config is found</span>
+<a name="l00350"></a>00350         <span class="keywordflow">if</span> (!mRoot-&gt;showConfigDialog()) <span class="comment">// Always show config</span>
+<a name="l00351"></a>00351             <span class="keywordflow">throw</span> Exception(52, <span class="stringliteral">&quot;User canceled the config dialog!&quot;</span>, <span class="stringliteral">&quot;Application::setupRenderSystem()&quot;</span>);
+<a name="l00352"></a>00352     }
+<a name="l00353"></a>00353  
+<a name="l00354"></a>00354     <span class="keywordtype">void</span> createRenderWindow()
+<a name="l00355"></a>00355     {
+<a name="l00356"></a>00356         <span class="comment">// Create the render window (first parameter determines whether OGRE should generate</span>
+<a name="l00357"></a>00357         <span class="comment">// the render window)</span>
+<a name="l00358"></a>00358         mRoot-&gt;initialise(<span class="keyword">true</span>, <span class="stringliteral">&quot;Ore War&quot;</span>);
+<a name="l00359"></a>00359     }
+<a name="l00360"></a>00360  
+<a name="l00361"></a>00361     <span class="keywordtype">void</span> initializeResourceGroups()
+<a name="l00362"></a>00362     {
+<a name="l00363"></a>00363         <span class="comment">// Mipmaps setting must be set before resource groups are initialized</span>
+<a name="l00364"></a>00364         TextureManager::getSingleton().setDefaultNumMipmaps(5);
+<a name="l00365"></a>00365         ResourceGroupManager::getSingleton().initialiseAllResourceGroups();
+<a name="l00366"></a>00366     }
+<a name="l00367"></a>00367  
+<a name="l00368"></a>00368     <span class="keywordtype">void</span> setupScene()
+<a name="l00369"></a>00369     {
+<a name="l00370"></a>00370         <span class="comment">// Create the SceneManager</span>
+<a name="l00371"></a>00371         SceneManager *mgr = mRoot-&gt;createSceneManager(ST_GENERIC, <span class="stringliteral">&quot;Default SceneManager&quot;</span>);
+<a name="l00372"></a>00372 
+<a name="l00373"></a>00373         <span class="comment">// Initialize Gorilla</span>
+<a name="l00374"></a>00374         <a class="code" href="class_gorilla_1_1_silverback.html">Gorilla::Silverback</a> * gorilla = <span class="keyword">new</span> <a class="code" href="class_gorilla_1_1_silverback.html">Gorilla::Silverback</a>();
+<a name="l00375"></a>00375         gorilla-&gt;<a class="code" href="class_gorilla_1_1_silverback.html#a702ca7f5a82ea99e7467bba54e6aa3e7">loadAtlas</a>(<span class="stringliteral">&quot;dejavu&quot;</span>);
+<a name="l00376"></a>00376         
+<a name="l00377"></a>00377         <span class="comment">// Setup ambient light and shadows</span>
+<a name="l00378"></a>00378         mgr-&gt;setShadowTechnique(Ogre::SHADOWTYPE_TEXTURE_ADDITIVE);
+<a name="l00379"></a>00379         mgr-&gt;setAmbientLight(Ogre::ColourValue(0.4, 0.4, 0.5));
+<a name="l00380"></a>00380 
+<a name="l00381"></a>00381         <span class="comment">// Create a camera</span>
+<a name="l00382"></a>00382         Camera *cam = mgr-&gt;createCamera(<span class="stringliteral">&quot;Camera&quot;</span>);
+<a name="l00383"></a>00383         cam-&gt;setPosition(Ogre::Vector3(0,0,1000));
+<a name="l00384"></a>00384         cam-&gt;lookAt(Ogre::Vector3(0,0,0));
+<a name="l00385"></a>00385 
+<a name="l00386"></a>00386         <span class="comment">// Create a viewport</span>
+<a name="l00387"></a>00387         Viewport *vp = mRoot-&gt;getAutoCreatedWindow()-&gt;addViewport(cam);
+<a name="l00388"></a>00388         cam-&gt;setAspectRatio(Real(vp-&gt;getActualWidth()) / Real(vp-&gt;getActualHeight()));
+<a name="l00389"></a>00389 
+<a name="l00390"></a>00390         <span class="comment">// Add planes for the arena boundaries</span>
+<a name="l00391"></a>00391         mgr-&gt;setSkyBox(<span class="keyword">true</span>, <span class="stringliteral">&quot;Orewar/SpaceSkyBox&quot;</span>, 40000, <span class="keyword">true</span>);
+<a name="l00392"></a>00392 
+<a name="l00393"></a>00393         <span class="comment">// Put a star in the middle of the arena</span>
+<a name="l00394"></a>00394         SceneNode * starNode = mgr-&gt;getRootSceneNode()-&gt;createChildSceneNode();
+<a name="l00395"></a>00395         Entity * starEntity = mgr-&gt;createEntity(<span class="stringliteral">&quot;Sphere&quot;</span>, <span class="stringliteral">&quot;sphere.mesh&quot;</span>);
+<a name="l00396"></a>00396         starEntity-&gt;setMaterialName(<span class="stringliteral">&quot;Orewar/Star&quot;</span>);
+<a name="l00397"></a>00397         starNode-&gt;attachObject(starEntity);
+<a name="l00398"></a>00398         starNode-&gt;setScale(15, 15, 15);
+<a name="l00399"></a>00399         
+<a name="l00400"></a>00400         Light * starLight = mgr-&gt;createLight(<span class="stringliteral">&quot;StarLight&quot;</span>);
+<a name="l00401"></a>00401         starLight-&gt;setType(Ogre::Light::LT_POINT);
+<a name="l00402"></a>00402         starLight-&gt;setDiffuseColour(0.9, 0.6, 0.05);
+<a name="l00403"></a>00403         starLight-&gt;setSpecularColour(1, 1, 1);
+<a name="l00404"></a>00404         starLight-&gt;setAttenuation(40000, 1.0, 0.007, 0.00014);
+<a name="l00405"></a>00405         starLight-&gt;setCastShadows(<span class="keyword">false</span>);
+<a name="l00406"></a>00406         starNode-&gt;attachObject(starLight);
+<a name="l00407"></a>00407     }
+<a name="l00408"></a>00408  
+<a name="l00409"></a>00409     <span class="keywordtype">void</span> setupInputSystem()
+<a name="l00410"></a>00410     {
+<a name="l00411"></a>00411         <span class="comment">// Initialize OIS</span>
+<a name="l00412"></a>00412         <span class="keywordtype">size_t</span> windowHnd = 0;
+<a name="l00413"></a>00413         std::ostringstream windowHndStr;
+<a name="l00414"></a>00414         OIS::ParamList pl;
+<a name="l00415"></a>00415         RenderWindow *win = mRoot-&gt;getAutoCreatedWindow();
+<a name="l00416"></a>00416  
+<a name="l00417"></a>00417         win-&gt;getCustomAttribute(<span class="stringliteral">&quot;WINDOW&quot;</span>, &amp;windowHnd);
+<a name="l00418"></a>00418         windowHndStr &lt;&lt; windowHnd;
+<a name="l00419"></a>00419         pl.insert(std::make_pair(std::string(<span class="stringliteral">&quot;WINDOW&quot;</span>), windowHndStr.str()));
+<a name="l00420"></a>00420         mInputManager = OIS::InputManager::createInputSystem(pl);
+<a name="l00421"></a>00421 
+<a name="l00422"></a>00422 
+<a name="l00423"></a>00423         <span class="comment">// Setup (Unbuffered in this case) input objects</span>
+<a name="l00424"></a>00424         <span class="keywordflow">try</span> {
+<a name="l00425"></a>00425             mKeyboard = <span class="keyword">static_cast&lt;</span>OIS::Keyboard*<span class="keyword">&gt;</span>(mInputManager-&gt;createInputObject(OIS::OISKeyboard, <span class="keyword">false</span>));
+<a name="l00426"></a>00426             mMouse = <span class="keyword">static_cast&lt;</span>OIS::Mouse*<span class="keyword">&gt;</span>(mInputManager-&gt;createInputObject(OIS::OISMouse, <span class="keyword">false</span>));
+<a name="l00427"></a>00427             <span class="comment">//mJoy = static_cast&lt;OIS::JoyStick*&gt;(mInputManager-&gt;createInputObject(OIS::OISJoyStick, false));</span>
+<a name="l00428"></a>00428         }
+<a name="l00429"></a>00429         <span class="keywordflow">catch</span> (<span class="keyword">const</span> OIS::Exception &amp;e) {
+<a name="l00430"></a>00430             <span class="keywordflow">throw</span> Exception(42, e.eText, <span class="stringliteral">&quot;Application::setupInputSystem&quot;</span>);
+<a name="l00431"></a>00431         }
+<a name="l00432"></a>00432     }
+<a name="l00433"></a>00433  
+<a name="l00434"></a>00434     <span class="keywordtype">void</span> createFrameListener()
+<a name="l00435"></a>00435     {
+<a name="l00436"></a>00436         <span class="comment">// Create and add a listener for the keyboard</span>
+<a name="l00437"></a>00437         <span class="comment">// Note: Input devices can have only one listener</span>
+<a name="l00438"></a>00438         mListener = <span class="keyword">new</span> <a class="code" href="class_test_frame_listener.html">TestFrameListener</a>(mKeyboard, mMouse, mRoot-&gt;getSceneManager(<span class="stringliteral">&quot;Default SceneManager&quot;</span>), 
+<a name="l00439"></a>00439             mRoot-&gt;getSceneManager(<span class="stringliteral">&quot;Default SceneManager&quot;</span>)-&gt;getCamera(<span class="stringliteral">&quot;Camera&quot;</span>),
+<a name="l00440"></a>00440             mRoot-&gt;getAutoCreatedWindow());
+<a name="l00441"></a>00441         mRoot-&gt;addFrameListener(mListener);
+<a name="l00442"></a>00442     }
+<a name="l00443"></a>00443  
+<a name="l00444"></a>00444     <span class="keywordtype">void</span> startRenderLoop()
+<a name="l00445"></a>00445     {
+<a name="l00446"></a>00446         mRoot-&gt;startRendering();
+<a name="l00447"></a>00447     }
+<a name="l00448"></a>00448 };
+<a name="l00449"></a>00449 
+<a name="l00450"></a>00450 <span class="preprocessor">#if OGRE_PLATFORM == OGRE_PLATFORM_WIN32</span>
+<a name="l00451"></a>00451 <span class="preprocessor"></span><span class="preprocessor">#define WIN32_LEAN_AND_MEAN</span>
+<a name="l00452"></a>00452 <span class="preprocessor"></span><span class="preprocessor">#include &quot;windows.h&quot;</span>
+<a name="l00453"></a>00453 <span class="preprocessor">#endif</span>
+<a name="l00454"></a>00454 <span class="preprocessor"></span>
+<a name="l00455"></a>00455 <span class="preprocessor">#ifdef __cplusplus</span>
+<a name="l00456"></a>00456 <span class="preprocessor"></span>    <span class="keyword">extern</span> <span class="stringliteral">&quot;C&quot;</span> {
+<a name="l00457"></a>00457 <span class="preprocessor">#endif</span>
+<a name="l00458"></a>00458 <span class="preprocessor"></span>
+<a name="l00459"></a>00459 <span class="preprocessor">#if OGRE_PLATFORM == OGRE_PLATFORM_WIN32</span>
+<a name="l00460"></a>00460 <span class="preprocessor"></span>        INT WINAPI WinMain( HINSTANCE hInst, HINSTANCE, LPSTR strCmdLine, INT )
+<a name="l00461"></a>00461 <span class="preprocessor">#else</span>
+<a name="l00462"></a>00462 <span class="preprocessor"></span>        <span class="keywordtype">int</span> main(<span class="keywordtype">int</span> argc, <span class="keywordtype">char</span> *argv[])
+<a name="l00463"></a>00463 <span class="preprocessor">#endif</span>
+<a name="l00464"></a>00464 <span class="preprocessor"></span>        {
+<a name="l00465"></a>00465             <span class="comment">// Create application object</span>
+<a name="l00466"></a>00466             <a class="code" href="class_application.html">Application</a> app;
+<a name="l00467"></a>00467 
+<a name="l00468"></a>00468             <span class="keywordflow">try</span> {
+<a name="l00469"></a>00469                 app.go();
+<a name="l00470"></a>00470             } <span class="keywordflow">catch</span>( Ogre::Exception&amp; e ) {
+<a name="l00471"></a>00471 <span class="preprocessor">#if OGRE_PLATFORM == OGRE_PLATFORM_WIN32</span>
+<a name="l00472"></a>00472 <span class="preprocessor"></span>                MessageBox( NULL, e.getFullDescription().c_str(), <span class="stringliteral">&quot;An exception has occured!&quot;</span>, MB_OK | MB_ICONERROR | MB_TASKMODAL);
+<a name="l00473"></a>00473 <span class="preprocessor">#else</span>
+<a name="l00474"></a>00474 <span class="preprocessor"></span>                std::cerr &lt;&lt; <span class="stringliteral">&quot;An exception has occured: &quot;</span> &lt;&lt;
+<a name="l00475"></a>00475                     e.getFullDescription().c_str() &lt;&lt; std::endl;
+<a name="l00476"></a>00476 <span class="preprocessor">#endif</span>
+<a name="l00477"></a>00477 <span class="preprocessor"></span>            }
+<a name="l00478"></a>00478 
+<a name="l00479"></a>00479             <span class="keywordflow">return</span> 0;
+<a name="l00480"></a>00480         }
+<a name="l00481"></a>00481 
+<a name="l00482"></a>00482 <span class="preprocessor">#ifdef __cplusplus</span>
+<a name="l00483"></a>00483 <span class="preprocessor"></span>    }
+<a name="l00484"></a>00484 <span class="preprocessor">#endif</span>
 </pre></div></div>
-<hr class="footer"/><address style="text-align: right;"><small>Generated on Thu Apr 21 03:31:28 2011 for OreWar by&nbsp;
+<hr class="footer"/><address style="text-align: right;"><small>Generated on Wed Jun 8 21:25:19 2011 for OreWar by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.6.3 </small></address>
 </body>

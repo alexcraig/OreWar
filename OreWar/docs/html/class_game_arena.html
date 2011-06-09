@@ -34,18 +34,32 @@
 <tr><td class="memItemLeft" align="right" valign="top">&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_game_arena.html#a06d1bca25340509a98c8ad6d86137bf3">GameArena</a> (Real size)</td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_game_arena.html#ad37980dc97a049225baf5292e9850690">addGameArenaListener</a> (<a class="el" href="class_game_arena_listener.html">GameArenaListener</a> *listener)</td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_game_arena.html#a1deea4095b82ea7ff6efbcbce3814982">removeGameArenaListener</a> (<a class="el" href="class_game_arena_listener.html">GameArenaListener</a> *listener)</td></tr>
-<tr><td class="memItemLeft" align="right" valign="top"><a class="el" href="class_player_ship.html">PlayerShip</a> *&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_game_arena.html#abd1ef3dfed74236a7e128ebdf19f4b84">addShip</a> (<a class="el" href="class_player_ship.html">PlayerShip</a> ship)</td></tr>
-<tr><td class="memItemLeft" align="right" valign="top"><a class="el" href="class_physics_object.html">PhysicsObject</a> *&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_game_arena.html#a75182d75c60182361090dfc653f0c5f8">addProjectile</a> (<a class="el" href="class_physics_object.html">PhysicsObject</a> projectile)</td></tr>
-<tr><td class="memItemLeft" align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_game_arena.html#ac9039eb18e9e6c4c2f7f39c3a223723f">destroyProjectile</a> (<a class="el" href="class_physics_object.html">PhysicsObject</a> *projectile)</td></tr>
-<tr><td class="memItemLeft" align="right" valign="top">std::vector&lt; <a class="el" href="class_physics_object.html">PhysicsObject</a> * &gt; *&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_game_arena.html#a96a3ff86aa4fca517f03da8d957e10fe">getProjectiles</a> ()</td></tr>
-<tr><td class="memItemLeft" align="right" valign="top">std::vector&lt; <a class="el" href="class_player_ship.html">PlayerShip</a> * &gt; *&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_game_arena.html#ac6cb4562dda4530d14ee6e5ce2324ad9">getShips</a> ()</td></tr>
-<tr><td class="memItemLeft" align="right" valign="top"><a class="el" href="class_physics_object.html">PhysicsObject</a> *&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_game_arena.html#ac0c0eac2ecd9486057e398c6a3e32705">fireProjectileFromShip</a> (<a class="el" href="class_player_ship.html">PlayerShip</a> *ship)</td></tr>
+<tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a79dc153cc9db3ed5bafc442200a1d5aa"></a><!-- doxytag: member="GameArena::size" ref="a79dc153cc9db3ed5bafc442200a1d5aa" args="() const " -->
+Real&nbsp;</td><td class="memItemRight" valign="bottom"><b>size</b> () const </td></tr>
+<tr><td class="memItemLeft" align="right" valign="top"><a class="el" href="class_space_ship.html">SpaceShip</a> *&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_game_arena.html#a93fc655043f299186c00abeac6c0e15e">setPlayerShip</a> (const <a class="el" href="class_space_ship.html">SpaceShip</a> &amp;ship)</td></tr>
+<tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a9ea06f46754b3f95e89108e24440df0b"></a><!-- doxytag: member="GameArena::addConstraint" ref="a9ea06f46754b3f95e89108e24440df0b" args="(const Constraint &amp;constraint)" -->
+<a class="el" href="class_constraint.html">Constraint</a> *&nbsp;</td><td class="memItemRight" valign="bottom"><b>addConstraint</b> (const <a class="el" href="class_constraint.html">Constraint</a> &amp;constraint)</td></tr>
+<tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aed7916a0ddf1a856c3fb17ac5ec14465"></a><!-- doxytag: member="GameArena::destroyConstraint" ref="aed7916a0ddf1a856c3fb17ac5ec14465" args="(Constraint *constraint)" -->
+std::vector&lt; <a class="el" href="class_constraint.html">Constraint</a> * &gt;<br class="typebreak"/>
+::iterator&nbsp;</td><td class="memItemRight" valign="bottom"><b>destroyConstraint</b> (<a class="el" href="class_constraint.html">Constraint</a> *constraint)</td></tr>
+<tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a0a1e3081434c55b2679fd0c3b52a9ec7"></a><!-- doxytag: member="GameArena::addNpcShip" ref="a0a1e3081434c55b2679fd0c3b52a9ec7" args="(const SpaceShip &amp;ship)" -->
+<a class="el" href="class_space_ship.html">SpaceShip</a> *&nbsp;</td><td class="memItemRight" valign="bottom"><b>addNpcShip</b> (const <a class="el" href="class_space_ship.html">SpaceShip</a> &amp;ship)</td></tr>
+<tr><td class="memItemLeft" align="right" valign="top"><a class="el" href="class_projectile.html">Projectile</a> *&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_game_arena.html#a6b5e3d3e0f3f7c858965837599d7749b">addProjectile</a> (const <a class="el" href="class_projectile.html">Projectile</a> &amp;projectile)</td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">std::vector&lt; <a class="el" href="class_projectile.html">Projectile</a> * &gt;<br class="typebreak"/>
+::iterator&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_game_arena.html#a8574b2242103960d6c3a897459ae86ce">destroyProjectile</a> (<a class="el" href="class_projectile.html">Projectile</a> *projectile)</td></tr>
+<tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a4deb542c6f41b0bdb8733981afa02a91"></a><!-- doxytag: member="GameArena::destroyNpcShip" ref="a4deb542c6f41b0bdb8733981afa02a91" args="(SpaceShip *npcShip)" -->
+std::vector&lt; <a class="el" href="class_space_ship.html">SpaceShip</a> * &gt;<br class="typebreak"/>
+::iterator&nbsp;</td><td class="memItemRight" valign="bottom"><b>destroyNpcShip</b> (<a class="el" href="class_space_ship.html">SpaceShip</a> *npcShip)</td></tr>
+<tr><td class="memItemLeft" align="right" valign="top"><a class="el" href="class_space_ship.html">SpaceShip</a> *&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_game_arena.html#a547106597fc3d55431bbf3c6ef01ec12">playerShip</a> ()</td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">std::vector&lt; <a class="el" href="class_projectile.html">Projectile</a> * &gt; *&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_game_arena.html#aafb2031a2f65b2e322b45fb3e89088c1">projectiles</a> ()</td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">std::vector&lt; <a class="el" href="class_space_ship.html">SpaceShip</a> * &gt; *&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_game_arena.html#a218548dfb38633db91b8202e40a5de7a">npcShips</a> ()</td></tr>
+<tr><td class="memItemLeft" align="right" valign="top"><a class="el" href="class_projectile.html">Projectile</a> *&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_game_arena.html#a2a0f5115afee91013210839ef367c6bc">fireProjectileFromShip</a> (<a class="el" href="class_space_ship.html">SpaceShip</a> *ship, int weaponIndex)</td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_game_arena.html#a12592872d70e071a3f2c338f906bb93d">updatePhysics</a> (Real timeElapsed)</td></tr>
 </table>
 <hr/><a name="_details"></a><h2>Detailed Description</h2>
 <p><a class="el" href="class_game_arena.html">GameArena</a> represents a cube of space in which ships, projectiles, and other objects should undergo physics simulation. The <a class="el" href="class_game_arena.html">GameArena</a> is responsible for storing references to all involved PhysicsObjects, and notifying listeners when new objects are created and destroyed. </p>
 
-<p>Definition at line <a class="el" href="_game_objects_8h_source.html#l00072">72</a> of file <a class="el" href="_game_objects_8h_source.html">GameObjects.h</a>.</p>
+<p>Definition at line <a class="el" href="_game_objects_8h_source.html#l00198">198</a> of file <a class="el" href="_game_objects_8h_source.html">GameObjects.h</a>.</p>
 <hr/><h2>Constructor &amp; Destructor Documentation</h2>
 <a class="anchor" id="a06d1bca25340509a98c8ad6d86137bf3"></a><!-- doxytag: member="GameArena::GameArena" ref="a06d1bca25340509a98c8ad6d86137bf3" args="(Real size)" -->
 <div class="memitem">
@@ -64,7 +78,7 @@
 <div class="memdoc">
 <p>Constructs a new, empty <a class="el" href="class_game_arena.html">GameArena</a> with the specified size. </p>
 
-<p>Definition at line <a class="el" href="_game_objects_8cpp_source.html#l00068">68</a> of file <a class="el" href="_game_objects_8cpp_source.html">GameObjects.cpp</a>.</p>
+<p>Definition at line <a class="el" href="_game_objects_8cpp_source.html#l00281">281</a> of file <a class="el" href="_game_objects_8cpp_source.html">GameObjects.cpp</a>.</p>
 
 </div>
 </div>
@@ -86,18 +100,18 @@
 <div class="memdoc">
 <p>Registers a <a class="el" href="class_game_arena_listener.html">GameArenaListener</a> with the <a class="el" href="class_game_arena.html">GameArena</a> </p>
 
-<p>Definition at line <a class="el" href="_game_objects_8cpp_source.html#l00073">73</a> of file <a class="el" href="_game_objects_8cpp_source.html">GameObjects.cpp</a>.</p>
+<p>Definition at line <a class="el" href="_game_objects_8cpp_source.html#l00326">326</a> of file <a class="el" href="_game_objects_8cpp_source.html">GameObjects.cpp</a>.</p>
 
 </div>
 </div>
-<a class="anchor" id="a75182d75c60182361090dfc653f0c5f8"></a><!-- doxytag: member="GameArena::addProjectile" ref="a75182d75c60182361090dfc653f0c5f8" args="(PhysicsObject projectile)" -->
+<a class="anchor" id="a6b5e3d3e0f3f7c858965837599d7749b"></a><!-- doxytag: member="GameArena::addProjectile" ref="a6b5e3d3e0f3f7c858965837599d7749b" args="(const Projectile &amp;projectile)" -->
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="class_physics_object.html">PhysicsObject</a> * GameArena::addProjectile </td>
+          <td class="memname"><a class="el" href="class_projectile.html">Projectile</a> * GameArena::addProjectile </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="class_physics_object.html">PhysicsObject</a>&nbsp;</td>
+          <td class="paramtype">const <a class="el" href="class_projectile.html">Projectile</a> &amp;&nbsp;</td>
           <td class="paramname"> <em>projectile</em></td>
           <td>&nbsp;)&nbsp;</td>
           <td></td>
@@ -108,40 +122,18 @@
 <p>Adds a projectile to the <a class="el" href="class_game_arena.html">GameArena</a>. Note: A copy of the passed <a class="el" href="class_physics_object.html">PhysicsObject</a> is created and stored in dynamic memory. </p>
 <dl class="return"><dt><b>Returns:</b></dt><dd>A pointer to the new copy of the <a class="el" href="class_physics_object.html">PhysicsObject</a>. This pointer will remain valuid for the lifetime of the <a class="el" href="class_game_arena.html">GameArena</a>. </dd></dl>
 
-<p>Definition at line <a class="el" href="_game_objects_8cpp_source.html#l00097">97</a> of file <a class="el" href="_game_objects_8cpp_source.html">GameObjects.cpp</a>.</p>
+<p>Definition at line <a class="el" href="_game_objects_8cpp_source.html#l00363">363</a> of file <a class="el" href="_game_objects_8cpp_source.html">GameObjects.cpp</a>.</p>
 
 </div>
 </div>
-<a class="anchor" id="abd1ef3dfed74236a7e128ebdf19f4b84"></a><!-- doxytag: member="GameArena::addShip" ref="abd1ef3dfed74236a7e128ebdf19f4b84" args="(PlayerShip ship)" -->
+<a class="anchor" id="a8574b2242103960d6c3a897459ae86ce"></a><!-- doxytag: member="GameArena::destroyProjectile" ref="a8574b2242103960d6c3a897459ae86ce" args="(Projectile *projectile)" -->
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="class_player_ship.html">PlayerShip</a> * GameArena::addShip </td>
+          <td class="memname">std::vector&lt; <a class="el" href="class_projectile.html">Projectile</a> * &gt;::iterator GameArena::destroyProjectile </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="class_player_ship.html">PlayerShip</a>&nbsp;</td>
-          <td class="paramname"> <em>ship</em></td>
-          <td>&nbsp;)&nbsp;</td>
-          <td></td>
-        </tr>
-      </table>
-</div>
-<div class="memdoc">
-<p>Adds a <a class="el" href="class_player_ship.html">PlayerShip</a> to the <a class="el" href="class_game_arena.html">GameArena</a>. Note: A copy of the passed <a class="el" href="class_player_ship.html">PlayerShip</a> is created and stored in dynamic memory. </p>
-<dl class="return"><dt><b>Returns:</b></dt><dd>A pointer to the new copy of the <a class="el" href="class_player_ship.html">PlayerShip</a>. This pointer will remain valuid for the lifetime of the <a class="el" href="class_game_arena.html">GameArena</a>. </dd></dl>
-
-<p>Definition at line <a class="el" href="_game_objects_8cpp_source.html#l00087">87</a> of file <a class="el" href="_game_objects_8cpp_source.html">GameObjects.cpp</a>.</p>
-
-</div>
-</div>
-<a class="anchor" id="ac9039eb18e9e6c4c2f7f39c3a223723f"></a><!-- doxytag: member="GameArena::destroyProjectile" ref="ac9039eb18e9e6c4c2f7f39c3a223723f" args="(PhysicsObject *projectile)" -->
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">bool GameArena::destroyProjectile </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="class_physics_object.html">PhysicsObject</a> *&nbsp;</td>
+          <td class="paramtype"><a class="el" href="class_projectile.html">Projectile</a> *&nbsp;</td>
           <td class="paramname"> <em>projectile</em></td>
           <td>&nbsp;)&nbsp;</td>
           <td></td>
@@ -151,57 +143,46 @@
 <div class="memdoc">
 <p>Destroys a projectile, erasing it from the vector of stored PhysicsObjects </p>
 
-<p>Definition at line <a class="el" href="_game_objects_8cpp_source.html#l00107">107</a> of file <a class="el" href="_game_objects_8cpp_source.html">GameObjects.cpp</a>.</p>
+<p>Definition at line <a class="el" href="_game_objects_8cpp_source.html#l00396">396</a> of file <a class="el" href="_game_objects_8cpp_source.html">GameObjects.cpp</a>.</p>
 
 </div>
 </div>
-<a class="anchor" id="ac0c0eac2ecd9486057e398c6a3e32705"></a><!-- doxytag: member="GameArena::fireProjectileFromShip" ref="ac0c0eac2ecd9486057e398c6a3e32705" args="(PlayerShip *ship)" -->
+<a class="anchor" id="a2a0f5115afee91013210839ef367c6bc"></a><!-- doxytag: member="GameArena::fireProjectileFromShip" ref="a2a0f5115afee91013210839ef367c6bc" args="(SpaceShip *ship, int weaponIndex)" -->
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="class_physics_object.html">PhysicsObject</a> * GameArena::fireProjectileFromShip </td>
+          <td class="memname"><a class="el" href="class_projectile.html">Projectile</a> * GameArena::fireProjectileFromShip </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="class_player_ship.html">PlayerShip</a> *&nbsp;</td>
-          <td class="paramname"> <em>ship</em></td>
-          <td>&nbsp;)&nbsp;</td>
+          <td class="paramtype"><a class="el" href="class_space_ship.html">SpaceShip</a> *&nbsp;</td>
+          <td class="paramname"> <em>ship</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
           <td></td>
+          <td class="paramtype">int&nbsp;</td>
+          <td class="paramname"> <em>weaponIndex</em></td><td>&nbsp;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td><td></td>
         </tr>
       </table>
 </div>
 <div class="memdoc">
 <dl class="return"><dt><b>Returns:</b></dt><dd>A pointer to the <a class="el" href="class_physics_object.html">PhysicsObject</a> produced by generating a projectile from the passed ship and stored in dynamic memory. </dd></dl>
 
-<p>Definition at line <a class="el" href="_game_objects_8cpp_source.html#l00119">119</a> of file <a class="el" href="_game_objects_8cpp_source.html">GameObjects.cpp</a>.</p>
+<p>Definition at line <a class="el" href="_game_objects_8cpp_source.html#l00448">448</a> of file <a class="el" href="_game_objects_8cpp_source.html">GameObjects.cpp</a>.</p>
 
 </div>
 </div>
-<a class="anchor" id="a96a3ff86aa4fca517f03da8d957e10fe"></a><!-- doxytag: member="GameArena::getProjectiles" ref="a96a3ff86aa4fca517f03da8d957e10fe" args="()" -->
+<a class="anchor" id="a218548dfb38633db91b8202e40a5de7a"></a><!-- doxytag: member="GameArena::npcShips" ref="a218548dfb38633db91b8202e40a5de7a" args="()" -->
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">std::vector&lt; <a class="el" href="class_physics_object.html">PhysicsObject</a> * &gt; * GameArena::getProjectiles </td>
-          <td>(</td>
-          <td class="paramname"></td>
-          <td>&nbsp;)&nbsp;</td>
-          <td></td>
-        </tr>
-      </table>
-</div>
-<div class="memdoc">
-<dl class="return"><dt><b>Returns:</b></dt><dd>The list of pointers to all active projectiles </dd></dl>
-
-<p>Definition at line <a class="el" href="_game_objects_8cpp_source.html#l00125">125</a> of file <a class="el" href="_game_objects_8cpp_source.html">GameObjects.cpp</a>.</p>
-
-</div>
-</div>
-<a class="anchor" id="ac6cb4562dda4530d14ee6e5ce2324ad9"></a><!-- doxytag: member="GameArena::getShips" ref="ac6cb4562dda4530d14ee6e5ce2324ad9" args="()" -->
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">std::vector&lt; <a class="el" href="class_player_ship.html">PlayerShip</a> * &gt; * GameArena::getShips </td>
+          <td class="memname">std::vector&lt; <a class="el" href="class_space_ship.html">SpaceShip</a> * &gt; * GameArena::npcShips </td>
           <td>(</td>
           <td class="paramname"></td>
           <td>&nbsp;)&nbsp;</td>
@@ -212,7 +193,47 @@
 <div class="memdoc">
 <dl class="return"><dt><b>Returns:</b></dt><dd>The list of pointers to all active ships </dd></dl>
 
-<p>Definition at line <a class="el" href="_game_objects_8cpp_source.html#l00129">129</a> of file <a class="el" href="_game_objects_8cpp_source.html">GameObjects.cpp</a>.</p>
+<p>Definition at line <a class="el" href="_game_objects_8cpp_source.html#l00457">457</a> of file <a class="el" href="_game_objects_8cpp_source.html">GameObjects.cpp</a>.</p>
+
+</div>
+</div>
+<a class="anchor" id="a547106597fc3d55431bbf3c6ef01ec12"></a><!-- doxytag: member="GameArena::playerShip" ref="a547106597fc3d55431bbf3c6ef01ec12" args="()" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="class_space_ship.html">SpaceShip</a> * GameArena::playerShip </td>
+          <td>(</td>
+          <td class="paramname"></td>
+          <td>&nbsp;)&nbsp;</td>
+          <td></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+<dl class="return"><dt><b>Returns:</b></dt><dd>A pointer to the player's ship </dd></dl>
+
+<p>Definition at line <a class="el" href="_game_objects_8cpp_source.html#l00443">443</a> of file <a class="el" href="_game_objects_8cpp_source.html">GameObjects.cpp</a>.</p>
+
+</div>
+</div>
+<a class="anchor" id="aafb2031a2f65b2e322b45fb3e89088c1"></a><!-- doxytag: member="GameArena::projectiles" ref="aafb2031a2f65b2e322b45fb3e89088c1" args="()" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::vector&lt; <a class="el" href="class_projectile.html">Projectile</a> * &gt; * GameArena::projectiles </td>
+          <td>(</td>
+          <td class="paramname"></td>
+          <td>&nbsp;)&nbsp;</td>
+          <td></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+<dl class="return"><dt><b>Returns:</b></dt><dd>The list of pointers to all active projectiles </dd></dl>
+
+<p>Definition at line <a class="el" href="_game_objects_8cpp_source.html#l00453">453</a> of file <a class="el" href="_game_objects_8cpp_source.html">GameObjects.cpp</a>.</p>
 
 </div>
 </div>
@@ -233,7 +254,29 @@
 <div class="memdoc">
 <p>Unregisters a <a class="el" href="class_game_arena_listener.html">GameArenaListener</a> from the <a class="el" href="class_game_arena.html">GameArena</a> </p>
 
-<p>Definition at line <a class="el" href="_game_objects_8cpp_source.html#l00078">78</a> of file <a class="el" href="_game_objects_8cpp_source.html">GameObjects.cpp</a>.</p>
+<p>Definition at line <a class="el" href="_game_objects_8cpp_source.html#l00331">331</a> of file <a class="el" href="_game_objects_8cpp_source.html">GameObjects.cpp</a>.</p>
+
+</div>
+</div>
+<a class="anchor" id="a93fc655043f299186c00abeac6c0e15e"></a><!-- doxytag: member="GameArena::setPlayerShip" ref="a93fc655043f299186c00abeac6c0e15e" args="(const SpaceShip &amp;ship)" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="class_space_ship.html">SpaceShip</a> * GameArena::setPlayerShip </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="class_space_ship.html">SpaceShip</a> &amp;&nbsp;</td>
+          <td class="paramname"> <em>ship</em></td>
+          <td>&nbsp;)&nbsp;</td>
+          <td></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+<p>Adds a <a class="el" href="class_space_ship.html">SpaceShip</a> to the <a class="el" href="class_game_arena.html">GameArena</a>. Note: A copy of the passed <a class="el" href="class_space_ship.html">SpaceShip</a> is created and stored in dynamic memory. </p>
+<dl class="return"><dt><b>Returns:</b></dt><dd>A pointer to the new copy of the <a class="el" href="class_space_ship.html">SpaceShip</a>. This pointer will remain valuid for the lifetime of the <a class="el" href="class_game_arena.html">GameArena</a>. </dd></dl>
+
+<p>Definition at line <a class="el" href="_game_objects_8cpp_source.html#l00340">340</a> of file <a class="el" href="_game_objects_8cpp_source.html">GameObjects.cpp</a>.</p>
 
 </div>
 </div>
@@ -254,7 +297,7 @@
 <div class="memdoc">
 <p>Updates the physics of all ships and projectiles in the arena </p>
 
-<p>Definition at line <a class="el" href="_game_objects_8cpp_source.html#l00133">133</a> of file <a class="el" href="_game_objects_8cpp_source.html">GameObjects.cpp</a>.</p>
+<p>Definition at line <a class="el" href="_game_objects_8cpp_source.html#l00461">461</a> of file <a class="el" href="_game_objects_8cpp_source.html">GameObjects.cpp</a>.</p>
 
 </div>
 </div>
@@ -263,7 +306,7 @@
 <li>C:/Programming/Personal/OreWar/OreWar/<a class="el" href="_game_objects_8cpp_source.html">GameObjects.cpp</a></li>
 </ul>
 </div>
-<hr class="footer"/><address style="text-align: right;"><small>Generated on Thu Apr 21 03:31:28 2011 for OreWar by&nbsp;
+<hr class="footer"/><address style="text-align: right;"><small>Generated on Wed Jun 8 21:25:19 2011 for OreWar by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.6.3 </small></address>
 </body>

@@ -41,22 +41,24 @@ Inheritance diagram for GameArenaListener:</div>
 <p><a href="class_game_arena_listener-members.html">List of all members.</a></p>
 <table border="0" cellpadding="0" cellspacing="0">
 <tr><td colspan="2"><h2>Public Member Functions</h2></td></tr>
-<tr><td class="memItemLeft" align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_game_arena_listener.html#a74bb28dbf6632a96a08465e81ceab616">newPhysicsObject</a> (<a class="el" href="class_physics_object.html">PhysicsObject</a> *object)=0</td></tr>
-<tr><td class="memItemLeft" align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_game_arena_listener.html#a970b85aec3f773192b43f01671b1bc85">destroyedPhysicsObject</a> (<a class="el" href="class_physics_object.html">PhysicsObject</a> *object)=0</td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_game_arena_listener.html#aa6edb755879f0268c883c6bde98baf72">newGameObject</a> (<a class="el" href="class_game_object.html">GameObject</a> *object)=0</td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_game_arena_listener.html#a31e068f6fd3a40c1bddc55fd8b47745c">destroyedGameObject</a> (<a class="el" href="class_game_object.html">GameObject</a> *object)=0</td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_game_arena_listener.html#a355f11478301730cd148872d816808a1">newConstraint</a> (<a class="el" href="class_constraint.html">Constraint</a> *object)=0</td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_game_arena_listener.html#a73839f2e21eec4706d2e5085eed193eb">destroyedConstraint</a> (<a class="el" href="class_constraint.html">Constraint</a> *object)=0</td></tr>
 </table>
 <hr/><a name="_details"></a><h2>Detailed Description</h2>
 <p>Interface for listening on a <a class="el" href="class_game_arena.html">GameArena</a> instance. This interface should be extended by classes which are interested in being notified whenever an object is added to or removed from the game arena </p>
 
-<p>Definition at line <a class="el" href="_game_objects_8h_source.html#l00056">56</a> of file <a class="el" href="_game_objects_8h_source.html">GameObjects.h</a>.</p>
+<p>Definition at line <a class="el" href="_game_objects_8h_source.html#l00176">176</a> of file <a class="el" href="_game_objects_8h_source.html">GameObjects.h</a>.</p>
 <hr/><h2>Member Function Documentation</h2>
-<a class="anchor" id="a970b85aec3f773192b43f01671b1bc85"></a><!-- doxytag: member="GameArenaListener::destroyedPhysicsObject" ref="a970b85aec3f773192b43f01671b1bc85" args="(PhysicsObject *object)=0" -->
+<a class="anchor" id="a73839f2e21eec4706d2e5085eed193eb"></a><!-- doxytag: member="GameArenaListener::destroyedConstraint" ref="a73839f2e21eec4706d2e5085eed193eb" args="(Constraint *object)=0" -->
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">virtual void GameArenaListener::destroyedPhysicsObject </td>
+          <td class="memname">virtual void GameArenaListener::destroyedConstraint </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="class_physics_object.html">PhysicsObject</a> *&nbsp;</td>
+          <td class="paramtype"><a class="el" href="class_constraint.html">Constraint</a> *&nbsp;</td>
           <td class="paramname"> <em>object</em></td>
           <td>&nbsp;)&nbsp;</td>
           <td><code> [pure virtual]</code></td>
@@ -64,20 +66,20 @@ Inheritance diagram for GameArenaListener:</div>
       </table>
 </div>
 <div class="memdoc">
-<p>Called just before a <a class="el" href="class_physics_object.html">PhysicsObject</a> is destroyed in the <a class="el" href="class_game_arena.html">GameArena</a> </p>
+<p>Called just before a <a class="el" href="class_constraint.html">Constraint</a> is destroyed in the <a class="el" href="class_game_arena.html">GameArena</a> </p>
 
-<p>Implemented in <a class="el" href="class_render_model.html#aa2c2e52075359bfa268396479292abdf">RenderModel</a>.</p>
+<p>Implemented in <a class="el" href="class_render_model.html#a734926c9b22541e6a853953686144901">RenderModel</a>.</p>
 
 </div>
 </div>
-<a class="anchor" id="a74bb28dbf6632a96a08465e81ceab616"></a><!-- doxytag: member="GameArenaListener::newPhysicsObject" ref="a74bb28dbf6632a96a08465e81ceab616" args="(PhysicsObject *object)=0" -->
+<a class="anchor" id="a31e068f6fd3a40c1bddc55fd8b47745c"></a><!-- doxytag: member="GameArenaListener::destroyedGameObject" ref="a31e068f6fd3a40c1bddc55fd8b47745c" args="(GameObject *object)=0" -->
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">virtual void GameArenaListener::newPhysicsObject </td>
+          <td class="memname">virtual void GameArenaListener::destroyedGameObject </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="class_physics_object.html">PhysicsObject</a> *&nbsp;</td>
+          <td class="paramtype"><a class="el" href="class_game_object.html">GameObject</a> *&nbsp;</td>
           <td class="paramname"> <em>object</em></td>
           <td>&nbsp;)&nbsp;</td>
           <td><code> [pure virtual]</code></td>
@@ -85,9 +87,51 @@ Inheritance diagram for GameArenaListener:</div>
       </table>
 </div>
 <div class="memdoc">
-<p>Called whenever a new <a class="el" href="class_physics_object.html">PhysicsObject</a> is generated in the <a class="el" href="class_game_arena.html">GameArena</a> </p>
+<p>Called just before a <a class="el" href="class_game_object.html">GameObject</a> is destroyed in the <a class="el" href="class_game_arena.html">GameArena</a> </p>
 
-<p>Implemented in <a class="el" href="class_render_model.html#a50b93bc34e08418531c3534ca7acaf4b">RenderModel</a>.</p>
+<p>Implemented in <a class="el" href="class_render_model.html#aace9eb490220bbb13b1a5bae25642428">RenderModel</a>.</p>
+
+</div>
+</div>
+<a class="anchor" id="a355f11478301730cd148872d816808a1"></a><!-- doxytag: member="GameArenaListener::newConstraint" ref="a355f11478301730cd148872d816808a1" args="(Constraint *object)=0" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual void GameArenaListener::newConstraint </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="class_constraint.html">Constraint</a> *&nbsp;</td>
+          <td class="paramname"> <em>object</em></td>
+          <td>&nbsp;)&nbsp;</td>
+          <td><code> [pure virtual]</code></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+<p>Called whenever a new <a class="el" href="class_constraint.html">Constraint</a> is generated in the <a class="el" href="class_game_arena.html">GameArena</a> </p>
+
+<p>Implemented in <a class="el" href="class_render_model.html#af85d1bc5471284532806e3c0642f2835">RenderModel</a>.</p>
+
+</div>
+</div>
+<a class="anchor" id="aa6edb755879f0268c883c6bde98baf72"></a><!-- doxytag: member="GameArenaListener::newGameObject" ref="aa6edb755879f0268c883c6bde98baf72" args="(GameObject *object)=0" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual void GameArenaListener::newGameObject </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="class_game_object.html">GameObject</a> *&nbsp;</td>
+          <td class="paramname"> <em>object</em></td>
+          <td>&nbsp;)&nbsp;</td>
+          <td><code> [pure virtual]</code></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+<p>Called whenever a new <a class="el" href="class_game_object.html">GameObject</a> is generated in the <a class="el" href="class_game_arena.html">GameArena</a> </p>
+
+<p>Implemented in <a class="el" href="class_render_model.html#a9535d877871991cfbece6839775d92ef">RenderModel</a>.</p>
 
 </div>
 </div>
@@ -95,7 +139,7 @@ Inheritance diagram for GameArenaListener:</div>
 <li>C:/Programming/Personal/OreWar/OreWar/<a class="el" href="_game_objects_8h_source.html">GameObjects.h</a></li>
 </ul>
 </div>
-<hr class="footer"/><address style="text-align: right;"><small>Generated on Thu Apr 21 03:31:28 2011 for OreWar by&nbsp;
+<hr class="footer"/><address style="text-align: right;"><small>Generated on Wed Jun 8 21:25:19 2011 for OreWar by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.6.3 </small></address>
 </body>
