@@ -32,7 +32,7 @@ public:
 	RenderObject(SceneManager * mgr);
 
 	/** @return The OGRE scene manager used to manage resources for this object */
-	SceneManager * getSceneManager();
+	SceneManager * sceneManager();
 
 	/** @return The unique render identifier of this RenderObject */
 	int renderId() const;
@@ -75,7 +75,7 @@ public:
 	ConstraintRenderObject(Constraint * constraint, SceneManager * mgr);
 
 	/** @return A pointer to the model object */
-	Constraint * getConstraint();
+	Constraint * constraint();
 
 	/** #see RenderObject::updateEffects() */
 	virtual void updateEffects(Real elapsedTime, Quaternion camOrientation);
@@ -106,7 +106,7 @@ public:
 	PhysicsRenderObject(SphereCollisionObject * object, SceneManager * mgr);
 
 	/** @return A pointer to the model object */
-	SphereCollisionObject * getObject();
+	SphereCollisionObject * physics();
 
 	/** Updates the node based on passed time and camera orientation (useful for sprites) */
 	virtual void updateEffects(Real elapsedTime, Quaternion camOrientation) = 0;
@@ -211,7 +211,7 @@ private:
 public:
 	ProjectileRO(Projectile * proj, SceneManager * mgr);
 
-	Projectile * getProjectile() const;
+	Projectile * projectile() const;
 
 	/** Updates the node based on passed time and camera orientation (useful for sprites) */
 	virtual void updateEffects(Real elapsedTime, Quaternion camOrientation);

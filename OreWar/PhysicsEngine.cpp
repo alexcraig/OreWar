@@ -80,26 +80,21 @@ void BaseObject::orientation(Quaternion orientation) {
 // PhysicsObject Implementation
 // ========================================================================
 
-PhysicsObject::PhysicsObject(ObjectType type, Real mass, Vector3 position) :
-	BaseObject(position), m_type(type), m_mass(mass), m_velocity(0, 0, 0),
+PhysicsObject::PhysicsObject(Real mass, Vector3 position) :
+	BaseObject(position), m_mass(mass), m_velocity(0, 0, 0),
 	m_acceleration(0, 0, 0), m_force(0, 0, 0), m_tempForce(0, 0, 0)
 {
 }
 
-PhysicsObject::PhysicsObject(ObjectType type, Real mass) : BaseObject(), m_type(type), m_mass(mass), 
+PhysicsObject::PhysicsObject(Real mass) : BaseObject(), m_mass(mass), 
 	m_velocity(0, 0, 0), m_acceleration(0, 0, 0), m_force(0, 0 ,0), m_tempForce(0, 0, 0)
 {
 }
 
-PhysicsObject::PhysicsObject(const PhysicsObject& copy) : BaseObject(copy), m_type(copy.m_type), 
+PhysicsObject::PhysicsObject(const PhysicsObject& copy) : BaseObject(copy), 
 	m_mass(copy.m_mass), m_velocity(copy.m_velocity), m_acceleration(copy.m_acceleration),
 	m_force(copy.m_force), m_tempForce(copy.m_tempForce)
 {
-}
-
-ObjectType PhysicsObject::type() const
-{
-	return m_type;
 }
 
 Real PhysicsObject::mass() const
@@ -225,13 +220,13 @@ void Constraint::applyForces(Real timeElapsed)
 // SphereCollisionObject Implementation
 // ========================================================================
 
-SphereCollisionObject::SphereCollisionObject(ObjectType type, Real radius, Real mass, Vector3 position)
-	: PhysicsObject(type, mass, position), m_radius(radius)
+SphereCollisionObject::SphereCollisionObject(Real radius, Real mass, Vector3 position)
+	: PhysicsObject(mass, position), m_radius(radius)
 {
 }
 
-SphereCollisionObject::SphereCollisionObject(ObjectType type, Real radius, Real mass)
-	: PhysicsObject(type, mass), m_radius(radius)
+SphereCollisionObject::SphereCollisionObject(Real radius, Real mass)
+	: PhysicsObject(mass), m_radius(radius)
 {
 }
 

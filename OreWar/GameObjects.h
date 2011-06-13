@@ -12,7 +12,16 @@ using namespace Ogre;
 
 class GameArena;
 
+/**
+ * Enumeration used for differentiating between different types of GameObjects
+ */
+enum ObjectType { SHIP, NPC_SHIP, PROJECTILE, ANCHOR_PROJECTILE };
 
+
+/**
+ * The GameObject class represents any distinct entity in the game world, which
+ * may or may not require physics simulation.
+ */
 class GameObject
 {
 private:
@@ -31,8 +40,12 @@ private:
 	// Note: Not implemented in this class, should be used in subclasses
 	// implementation of updatePhysics
 	Real m_energyRechargeRate;
+
+	/** The type of the object (used for differentiating among derived classes) */
+	ObjectType m_type;
+
 public: 
-	GameObject(const SphereCollisionObject& object, Real maxHealth, 
+	GameObject(const SphereCollisionObject& object, ObjectType type, Real maxHealth, 
 		Real maxEnergy, Real energyRechargeRate);
 
 	GameObject(const GameObject& copy);
@@ -41,6 +54,7 @@ public:
 	/** @return The collision object which encapsulates all physics data for this object */
 	SphereCollisionObject * phys() const;
 
+	/** @return The type of the object (used for differentiating among derived classes) */
 	ObjectType type() const;
 
 	Real health() const;
@@ -65,7 +79,7 @@ private:
 	Real m_damage;
 
 public:
-	Projectile(const SphereCollisionObject& physModel, Real damage);
+	Projectile(const SphereCollisionObject& physModel, ObjectType type, Real damage);
 
 	void updatePhysics(Real timeElapsed);
 

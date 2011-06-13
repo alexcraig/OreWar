@@ -15,7 +15,7 @@ RenderObject::RenderObject(SceneManager * mgr)
 	m_nextRenderId++;
 }
 
-SceneManager * RenderObject::getSceneManager()
+SceneManager * RenderObject::sceneManager()
 {
 	return mp_mgr;
 }
@@ -41,7 +41,7 @@ ConstraintRenderObject::ConstraintRenderObject(Constraint * constraint, SceneMan
 {
 }
 
-Constraint * ConstraintRenderObject::getConstraint()
+Constraint * ConstraintRenderObject::constraint()
 {
 	return mp_constraint;
 }
@@ -62,11 +62,11 @@ void ConstraintRenderObject::loadSceneResources()
  
 void ConstraintRenderObject::createEffects()
 {
-	mp_node = getSceneManager()->getRootSceneNode()->createChildSceneNode();
+	mp_node = sceneManager()->getRootSceneNode()->createChildSceneNode();
 
 	std::stringstream oss;
 	oss << "Constraint" << renderId();
-	mp_particle = getSceneManager()->createParticleSystem(oss.str(), "Orewar/ConstraintStream");
+	mp_particle = sceneManager()->createParticleSystem(oss.str(), "Orewar/ConstraintStream");
 	mp_particle->setEmitting(true);
 	mp_node->attachObject(mp_particle);
 }
@@ -75,8 +75,8 @@ void ConstraintRenderObject::destroyEffects()
 {
 	mp_node->detachAllObjects();
 	mp_node->removeAllChildren();
-	getSceneManager()->destroyParticleSystem(mp_particle);
-	getSceneManager()->destroySceneNode(mp_node);
+	sceneManager()->destroyParticleSystem(mp_particle);
+	sceneManager()->destroySceneNode(mp_node);
 }
 
 
@@ -88,7 +88,7 @@ PhysicsRenderObject::PhysicsRenderObject(SphereCollisionObject * object, SceneMa
 {
 }
 
-SphereCollisionObject * PhysicsRenderObject::getObject() {
+SphereCollisionObject * PhysicsRenderObject::physics() {
 	return mp_object;
 }
 
@@ -111,8 +111,8 @@ SpaceShip * ShipRO::ship() const
 /** Updates the node based on passed time and camera orientation (useful for sprites) */
 void ShipRO::updateEffects(Real elapsedTime, Quaternion camOrientation)
 {
-	mp_shipNode->setPosition(getObject()->position());
-	mp_shipNode->setOrientation(getObject()->orientation());
+	mp_shipNode->setPosition(physics()->position());
+	mp_shipNode->setOrientation(physics()->orientation());
 }
 
 void ShipRO::loadSceneResources() 
@@ -124,10 +124,10 @@ void ShipRO::loadSceneResources()
 
 void ShipRO::createEffects()
 {
-	mp_shipNode = getSceneManager()->getRootSceneNode()->createChildSceneNode();
+	mp_shipNode = sceneManager()->getRootSceneNode()->createChildSceneNode();
 	std::stringstream oss;
 	oss << "Ship" << renderId();
-	mp_shipEntity = getSceneManager()->createEntity(oss.str(), "RZR-002.mesh");
+	mp_shipEntity = sceneManager()->createEntity(oss.str(), "RZR-002.mesh");
 	mp_shipEntity->setCastShadows(true);
 	mp_shipNode->setScale(10, 10, 10);
 	mp_shipRotateNode = mp_shipNode->createChildSceneNode();
@@ -136,7 +136,7 @@ void ShipRO::createEffects()
 
 	// Add a spot light to the ship of it's the player ship
 	oss << "L";
-	mp_spotLight = getSceneManager()->createLight(oss.str());
+	mp_spotLight = sceneManager()->createLight(oss.str());
 	mp_spotLight->setType(Light::LT_SPOTLIGHT);
 	mp_spotLight->setDiffuseColour(0.8, 0.8, 1.0);
 	mp_spotLight->setSpecularColour(0.2, 0.2, 1.0);
@@ -147,10 +147,10 @@ void ShipRO::createEffects()
 
 	// Add a point light above the ship
 	oss << "L";
-	mp_pointLight = getSceneManager()->createLight(oss.str());
+	mp_pointLight = sceneManager()->createLight(oss.str());
 	mp_pointLight->setType(Ogre::Light::LT_POINT);
 	mp_pointLight->setPosition(Ogre::Vector3(0, 30, 0));
-	if (getObject()->type() == ObjectType::SHIP) {
+	if (ship()->type() == ObjectType::SHIP) {
 		mp_pointLight->setDiffuseColour(0.4, 0.1, 0.1);
 		mp_pointLight->setSpecularColour(0.4, 0.4, 0.4);
 	} else {
@@ -161,7 +161,7 @@ void ShipRO::createEffects()
 
 	// Add the engine particle stream
 	oss << "P";
-	mp_engineParticles = getSceneManager()->createParticleSystem(oss.str(), "Orewar/EngineStream");
+	mp_engineParticles = sceneManager()->createParticleSystem(oss.str(), "Orewar/EngineStream");
 	mp_engineParticles->setEmitting(true);
 	mp_shipNode->attachObject(mp_engineParticles);
 }
@@ -172,11 +172,11 @@ void ShipRO::destroyEffects()
 	mp_shipNode->detachAllObjects();
 	mp_shipRotateNode->removeAllChildren();
 	mp_shipRotateNode->detachAllObjects();
-	getSceneManager()->destroyMovableObject(mp_shipEntity);
+	sceneManager()->destroyMovableObject(mp_shipEntity);
 
-	getSceneManager()->destroyLight(mp_spotLight);
-	getSceneManager()->destroyLight(mp_pointLight);
-	getSceneManager()->destroyParticleSystem(mp_engineParticles);
+	sceneManager()->destroyLight(mp_spotLight);
+	sceneManager()->destroyLight(mp_pointLight);
+	sceneManager()->destroyParticleSystem(mp_engineParticles);
 }
 
 
@@ -194,7 +194,7 @@ NpcShipRO::NpcShipRO(SpaceShip * ship, SceneManager * mgr)
 void NpcShipRO::updateEffects(Real elapsedTime, Quaternion camOrientation)
 {
 	ShipRO::updateEffects(elapsedTime, camOrientation);
-	mp_frameNode->setPosition(getObject()->position());
+	mp_frameNode->setPosition(physics()->position());
 	mp_frameNode->setOrientation(camOrientation);
 
 	mp_healthBar->width((ship()->health() / ship()->maxHealth()) * 25000);
@@ -215,17 +215,17 @@ void NpcShipRO::loadSceneResources()
 void NpcShipRO::createEffects()
 {
 	ShipRO::createEffects();
-	mp_frameNode = getSceneManager()->getRootSceneNode()->createChildSceneNode();
+	mp_frameNode = sceneManager()->getRootSceneNode()->createChildSceneNode();
 
 	std::stringstream oss;
 	oss << "TargetFrame" << renderId();
-	mp_frameSprite = getSceneManager()->createEntity(oss.str(), "targetFrameSprite");
+	mp_frameSprite = sceneManager()->createEntity(oss.str(), "targetFrameSprite");
 	mp_frameSprite->setMaterialName("Orewar/TargetFrame");
 	mp_frameSprite->setCastShadows(false);
 	mp_frameNode->attachObject(mp_frameSprite);
 
 	
-	Viewport * p_vp = getSceneManager()->getCamera("Camera")->getViewport();
+	Viewport * p_vp = sceneManager()->getCamera("Camera")->getViewport();
 	Gorilla::Silverback * gorilla = Gorilla::Silverback::getSingletonPtr();
 	mp_screen = gorilla->createScreenRenderable(Vector2(250, 440), "dejavu");
 	mp_frameNode->attachObject(mp_screen);
@@ -256,8 +256,8 @@ void NpcShipRO::destroyEffects()
 	ShipRO::destroyEffects();
 	mp_frameNode->detachAllObjects();
 	mp_frameNode->removeAllChildren();
-	getSceneManager()->destroyMovableObject(mp_frameSprite);
-	getSceneManager()->destroySceneNode(mp_frameNode);
+	sceneManager()->destroyMovableObject(mp_frameSprite);
+	sceneManager()->destroySceneNode(mp_frameNode);
 	Gorilla::Silverback::getSingletonPtr()->destroyScreenRenderable(mp_screen);
 }
 
@@ -272,15 +272,15 @@ ProjectileRO::ProjectileRO(Projectile * proj, SceneManager * mgr)
 {
 }
 
-Projectile * ProjectileRO::getProjectile() const
+Projectile * ProjectileRO::projectile() const
 {
 	return mp_projectile;
 }
 
 void ProjectileRO::updateEffects(Real elapsedTime, Quaternion camOrientation)
 {
-	mp_projNode->setPosition(getObject()->position());
-	mp_projNode->setOrientation(Vector3(0, 0, -1).getRotationTo(getObject()->getVelocity()));
+	mp_projNode->setPosition(physics()->position());
+	mp_projNode->setOrientation(Vector3(0, 0, -1).getRotationTo(physics()->getVelocity()));
 }
 
 
@@ -293,13 +293,13 @@ void ProjectileRO::loadSceneResources()
 
 void ProjectileRO::createEffects()
 {
-	mp_projNode = getSceneManager()->getRootSceneNode()->createChildSceneNode();
+	mp_projNode = sceneManager()->getRootSceneNode()->createChildSceneNode();
 
 	std::stringstream oss;
 	oss << "Projectile" << renderId();
 
 	// Dynamic point lights on projectiles
-	mp_pointLight = getSceneManager()->createLight(oss.str());
+	mp_pointLight = sceneManager()->createLight(oss.str());
 	mp_pointLight->setType(Ogre::Light::LT_POINT);
 	mp_pointLight->setPosition(Ogre::Vector3(0, 60, 0));
 	mp_pointLight->setAttenuation(3250, 1.0, 0.0014, 0.000007);
@@ -308,11 +308,11 @@ void ProjectileRO::createEffects()
 
 	oss << "P";
 	if(mp_projectile->type() == ObjectType::PROJECTILE) {
-		mp_particle = getSceneManager()->createParticleSystem(oss.str(), "Orewar/PlasmaStream");
+		mp_particle = sceneManager()->createParticleSystem(oss.str(), "Orewar/PlasmaStream");
 		mp_pointLight->setDiffuseColour(0.0, 1, 0.0);
 		mp_pointLight->setSpecularColour(0.2, 0.7, 0.2);
 	} else if (mp_projectile->type() == ObjectType::ANCHOR_PROJECTILE) {
-		mp_particle = getSceneManager()->createParticleSystem(oss.str(), "Orewar/Anchor");
+		mp_particle = sceneManager()->createParticleSystem(oss.str(), "Orewar/Anchor");
 		mp_pointLight->setDiffuseColour(1, 0.0, 0.0);
 		mp_pointLight->setSpecularColour(0.7, 0.2, 0.2);
 	}
@@ -324,9 +324,9 @@ void ProjectileRO::destroyEffects()
 {
 	mp_projNode->detachAllObjects();
 	mp_projNode->removeAllChildren();
-	getSceneManager()->destroyLight(mp_pointLight);
-	getSceneManager()->destroySceneNode(mp_projNode);
-	getSceneManager()->destroyParticleSystem(mp_particle);
+	sceneManager()->destroyLight(mp_pointLight);
+	sceneManager()->destroySceneNode(mp_projNode);
+	sceneManager()->destroyParticleSystem(mp_particle);
 }
 
 // ========================================================================
@@ -380,7 +380,7 @@ void RenderModel::destroyedGameObject(GameObject * object)
 		renderIter != m_physicsRenderList.end();
 		renderIter++) {
 
-			if((*(*renderIter)).getObject() == object->phys()) {
+			if((*(*renderIter)).physics() == object->phys()) {
 			(*(*renderIter)).destroyEffects();
 			delete (*renderIter);
 			m_physicsRenderList.erase(std::remove(m_physicsRenderList.begin(), 
@@ -405,7 +405,7 @@ void RenderModel::destroyedConstraint(Constraint * constraint)
 		renderIter != m_constraintRenderList.end();
 		renderIter++) {
 
-		if((*(*renderIter)).getConstraint() == constraint) {
+		if((*(*renderIter)).constraint() == constraint) {
 			(*(*renderIter)).destroyEffects();
 			delete (*renderIter);
 			m_constraintRenderList.erase(std::remove(m_constraintRenderList.begin(), 

@@ -5,16 +5,17 @@ using namespace Ogre;
 // ========================================================================
 // GameObject Implementation
 // ========================================================================
-GameObject::GameObject(const SphereCollisionObject& object, Real maxHealth, Real maxEnergy, Real energyRechargeRate)
+GameObject::GameObject(const SphereCollisionObject& object, ObjectType type, Real maxHealth, Real maxEnergy, Real energyRechargeRate)
 	: mp_physModel(NULL), m_maxHealth(maxHealth), m_health(maxHealth), m_maxEnergy(maxEnergy), m_energy(maxEnergy),
-	m_energyRechargeRate(energyRechargeRate)
+	m_energyRechargeRate(energyRechargeRate), m_type(type)
 {
 	mp_physModel = new SphereCollisionObject(object);
 }
 
 GameObject::GameObject(const GameObject& copy)
 	: mp_physModel(NULL), m_maxHealth(copy.m_maxHealth), m_health(copy.m_maxHealth), 
-	m_maxEnergy(copy.m_maxEnergy), m_energy(copy.m_maxEnergy), m_energyRechargeRate(copy.m_energyRechargeRate)
+	m_maxEnergy(copy.m_maxEnergy), m_energy(copy.m_maxEnergy), m_energyRechargeRate(copy.m_energyRechargeRate),
+	m_type(copy.m_type)
 {
 	mp_physModel = new SphereCollisionObject(*copy.phys());
 }
@@ -32,7 +33,7 @@ SphereCollisionObject * GameObject::phys() const
 
 ObjectType GameObject::type() const
 {
-	return mp_physModel->type();
+	return m_type;
 }
 
 Real GameObject::health() const
@@ -101,8 +102,8 @@ void GameObject::drainEnergy(Real energy)
 // Projectile Implementation
 // ========================================================================
 
-Projectile::Projectile(const SphereCollisionObject& physModel, Real damage)
-	: GameObject(physModel, 1, 0, 0), m_damage(damage)
+Projectile::Projectile(const SphereCollisionObject& physModel, ObjectType type, Real damage)
+	: GameObject(physModel, type, 1, 0, 0), m_damage(damage)
 {
 }
 
@@ -174,7 +175,7 @@ PlasmaCannon::PlasmaCannon(const PlasmaCannon& copy) : Weapon(copy), m_shootLeft
 
 Projectile PlasmaCannon::fireWeapon(PhysicsObject& origin)
 {
-	SphereCollisionObject projectilePhysics = SphereCollisionObject(ObjectType::PROJECTILE, 75, 1, origin.position());
+	SphereCollisionObject projectilePhysics = SphereCollisionObject(75, 1, origin.position());
 	projectilePhysics.velocity(origin.getVelocity() + origin.heading() * 4000);
 	projectilePhysics.applyForce(origin.heading() * 4000);
 	projectilePhysics.orientation(origin.orientation());
@@ -189,7 +190,7 @@ Projectile PlasmaCannon::fireWeapon(PhysicsObject& origin)
 
 	m_shootLeft = !m_shootLeft;
 	resetShotCounter();
-	return Projectile(projectilePhysics, 35);
+	return Projectile(projectilePhysics, ObjectType::PROJECTILE, 35);
 }
 
 
@@ -206,12 +207,12 @@ AnchorLauncher::AnchorLauncher(const AnchorLauncher& copy) : Weapon(copy)
 
 Projectile AnchorLauncher::fireWeapon(PhysicsObject& origin)
 {
-	SphereCollisionObject projectilePhysics = SphereCollisionObject(ObjectType::ANCHOR_PROJECTILE, 75, 1, origin.position());
+	SphereCollisionObject projectilePhysics = SphereCollisionObject(75, 1, origin.position());
 	projectilePhysics.velocity(origin.getVelocity() + origin.heading() * 4000);
 	projectilePhysics.orientation(origin.orientation());
 
 	resetShotCounter();
-	return Projectile(projectilePhysics, 0);
+	return Projectile(projectilePhysics, ObjectType::ANCHOR_PROJECTILE, 0);
 }
 
 
@@ -219,17 +220,17 @@ Projectile AnchorLauncher::fireWeapon(PhysicsObject& origin)
 // SpaceShip Implementation
 // ========================================================================
 SpaceShip::SpaceShip(ObjectType type, Real mass, Vector3 position, Real energyRecharge) : 
-	GameObject(SphereCollisionObject(type, 150, mass, position), 100, 100, energyRecharge), mp_weapons()
+	GameObject(SphereCollisionObject(150, mass, position), type, 100, 100, energyRecharge), mp_weapons()
 {
 }
 
 SpaceShip::SpaceShip(ObjectType type, Real mass, Vector3 position) : 
-	GameObject(SphereCollisionObject(type, 150, mass, position), 100, 100, 5), mp_weapons()
+	GameObject(SphereCollisionObject(150, mass, position), type, 100, 100, 5), mp_weapons()
 {
 }
 
 SpaceShip::SpaceShip(ObjectType type, Real mass) :
-	GameObject(SphereCollisionObject(type, 150, mass), 100, 100, 5), mp_weapons()
+	GameObject(SphereCollisionObject(150, mass), type, 100, 100, 5), mp_weapons()
 {
 }
 

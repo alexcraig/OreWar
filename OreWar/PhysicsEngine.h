@@ -8,13 +8,6 @@
 using namespace Ogre;
 
 /**
- * Enumeration used for differentiating between different types of PhysicsObjects
- * TODO: This should probably be handled through subclassing
- */
-enum ObjectType { SHIP, NPC_SHIP, PROJECTILE, ANCHOR_PROJECTILE };
-
-
-/**
  * The BaseObject class represents an entity in the OreWar game world.
  * BaseObjects use an X, Y, Z coordinate system following Ogre's axis conventions.
  * (see http://www.ogre3d.org/tikiwiki/Basic+Tutorial+1&structure=Tutorials)
@@ -83,9 +76,6 @@ public:
 class PhysicsObject : public BaseObject
 {
 private:
-	/** The type of the object (see ObjectType enum) */
-	ObjectType m_type;
-
 	/** The mass of the object */
 	Real m_mass;
 
@@ -109,19 +99,16 @@ public:
 	 * Construct a PhysicsObject at the given position coordinates with the
 	 * specified mass and default heading (<0, 0, -1>).
 	 */
-	PhysicsObject(ObjectType type, Real mass, Vector3 position);
+	PhysicsObject(Real mass, Vector3 position);
 
 	/**
 	 * Construct a PhysicsObject at the origin with the specified mass 
 	 * with default heading (<0, 0, -1>)
 	 */
-	PhysicsObject(ObjectType type, Real mass);
+	PhysicsObject(Real mass);
 
 	/** Copy constructor */
 	PhysicsObject(const PhysicsObject& copy);
-
-	/** @return The type of the object (see ObjectType enum) */
-	ObjectType type() const;
 
 	/** @return The mass of the object */
 	Real mass() const;
@@ -216,13 +203,13 @@ public:
 	 * Construct a SphereCollisionObject at the given position coordinates with the
 	 * specified mass and default heading (<0, 0, -1>).
 	 */
-	SphereCollisionObject(ObjectType type, Real radius, Real mass, Vector3 position);
+	SphereCollisionObject( Real radius, Real mass, Vector3 position);
 
 	/**
 	 * Construct a SphereCollisionObject at the origin with the specified mass 
 	 * with default heading (<0, 0, -1>)
 	 */
-	SphereCollisionObject(ObjectType type, Real radius, Real mass);
+	SphereCollisionObject(Real radius, Real mass);
 
 	/** Copy constructor */
 	SphereCollisionObject(const SphereCollisionObject& copy);
