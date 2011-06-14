@@ -239,18 +239,33 @@ CelestialBody::CelestialBody(ObjectType type, Real mass, Real radius, CelestialB
 	Real randMu = Math::RangeRandom(-0.1, 0.1);
 	Vector3 pointOnUnitSphere = Vector3(
 		Math::Cos(randAngle) * Math::Sqrt(1 - Math::Sqr(randMu)),
-		Math::Sin(randAngle) * Math::Sqrt(1 - Math::Sqr(randMu)),
-		randMu);
+		randMu,
+		Math::Sin(randAngle) * Math::Sqrt(1 - Math::Sqr(randMu)));
 	Vector3 relPosition = pointOnUnitSphere * totalDistance;
 
 	phys()->position(relPosition + center->phys()->position());
 
+	// Generate a velocity for the orbit by taking the cross product of the Y unit vector
+	// and the normal vector to the center of the orbit (results in a vector tangent to
+	// the sphere)
+	Vector3 unitNormal = (center->phys()->position() - phys()->position()).normalisedCopy();
+	// Randomize the direction of the orbit
+	int reverse = rand() % 2;
+	if(reverse) {
+		unitNormal = unitNormal * -1;
+	}
+	Vector3 velocity = (unitNormal.crossProduct(Vector3::UNIT_Y).normalisedCopy() * speed) + center->phys()->velocity();
+	phys()->velocity(velocity);
+
+
 	// Generate a random velocity by generating a random vector lieing in a plane
 	// tangent to the sphere around the orbital center
-	Vector3 unitNormal = (center->phys()->position() - phys()->position()).normalisedCopy();
+	/*
 	Vector3 randomUnitTangent = unitNormal.randomDeviant(Radian(Degree(90))).normalisedCopy();
 	Vector3 velocity = (randomUnitTangent * speed) + center->phys()->velocity();
 	phys()->velocity(velocity);
+	*/
+
 }
 
 CelestialBody::CelestialBody(const CelestialBody & copy)
@@ -731,7 +746,7 @@ void GameArena::generateSolarSystem()
 		for(int j = 0; j < 2; j++) {
 			Real moon_radius = Math::RangeRandom(planet_radius * 0.1, planet_radius * 0.7);
 			distance = Math::RangeRandom(planet_radius * 0.5, planet_radius * 2);
-			speed = Math::RangeRandom(1000, 4000);
+			speed = Math::RangeRandom(1, 3) * distance;
 			CelestialBody * moon = addBody(CelestialBody(ObjectType::MOON, 1000, moon_radius,
 				planet, distance, speed));
 		}

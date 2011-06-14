@@ -221,7 +221,10 @@ public:
 				+ " - RenderObjects: " + Ogre::StringConverter::toString(m_renderModel.getNumObjects())
 				+ " - Health: " + Ogre::StringConverter::toString(playerShip->health())
 				+ " - Speed: " + Ogre::StringConverter::toString(playerShipPhys->velocity().length())
-				+ " - Force: " + Ogre::StringConverter::toString((playerShipPhys->sumForces() + playerShipPhys->sumTempForces()).length()));
+				+ " - Force: " + Ogre::StringConverter::toString((playerShipPhys->sumForces() + playerShipPhys->sumTempForces()).length())
+				+ " - Normal: <" + Ogre::StringConverter::toString(playerShipPhys->normal().x)
+				+ ", " + Ogre::StringConverter::toString(playerShipPhys->normal().y)
+				+ ", " + Ogre::StringConverter::toString(playerShipPhys->normal().z) + ">");
 		}
 
 		// Update UI
