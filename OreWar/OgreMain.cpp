@@ -17,12 +17,13 @@ class TestFrameListener : public FrameListener
 public:
 	TestFrameListener(OIS::Keyboard *keyboard, OIS::Mouse *mouse, SceneManager *mgr, Camera *cam, RenderWindow * renderWindow)
         : m_Keyboard(keyboard), m_mouse(mouse), m_rotateNode(mgr->getRootSceneNode()->createChildSceneNode()), m_cam(cam), 
-		m_camHeight(0), m_camOffset(0), m_arena(30000), m_mgr(mgr),
+		m_camHeight(0), m_camOffset(0), m_arena(50000), m_mgr(mgr),
 		m_thirdPersonCam(true), m_renderModel(m_arena, m_mgr), mp_vp(cam->getViewport()), mp_fps(NULL), m_timer(0),
 		mp_renderWindow(renderWindow), m_con(NULL), m_camParticle(NULL), m_camNode(NULL),
 		mp_healthBar(NULL), mp_energyBar(NULL), mp_speedBar(NULL)
 	{
 		m_cam->setFarClipDistance(0);
+		m_arena.generateSolarSystem();
 
 		// Generate the keyboard testing entity and attach it to the listener's scene node
 		SpaceShip playerShip = SpaceShip(ObjectType::SHIP, 1, Vector3(0, -2000, 0), 15);
@@ -35,7 +36,7 @@ public:
 		Gorilla::Screen * screen = gorilla->createScreen(mp_vp, "dejavu");
 		Gorilla::Layer * layer = screen->createLayer(10);
 
-		layer->createCaption(14, 5, 5, "OreWar Alpha v0.02");
+		layer->createCaption(14, 5, 5, "OreWar Alpha v0.03");
 		Gorilla::Rectangle * crosshair = layer->createRectangle(Vector2(mp_vp->getActualWidth() / 2.0f - 6, mp_vp->getActualHeight() / 2.0f - 6),
 			Vector2(12, 12));
 		crosshair->background_image("crosshair");
@@ -80,7 +81,7 @@ public:
 		SphereCollisionObject * playerShipPhys = playerShip->phys();
 
 		// Add random NPC ships to shoot
-		for(int i = 0; i < m_arena.npcShips()->size() - 6; i++) {
+		for(int i = 0; i < m_arena.npcShips()->size() - 5; i++) {
 			// Add some NPC ships
 			SpaceShip npcShip = SpaceShip(ObjectType::NPC_SHIP, 1, 
 				Vector3(Math::RangeRandom(0, m_arena.size()),
@@ -93,7 +94,7 @@ public:
 				Math::RangeRandom(0, 2000),
 				Math::RangeRandom(0, 2000)));
 
-			npcShipPhysics->orientation(Vector3(0, 0, -1).getRotationTo(npcShipPhysics->getVelocity()));
+			npcShipPhysics->orientation(Vector3(0, 0, -1).getRotationTo(npcShipPhysics->velocity()));
 			m_arena.addNpcShip(npcShip);
 		}
 
@@ -149,7 +150,7 @@ public:
 		}
 
 		if(m_Keyboard->isKeyDown(OIS::KC_LCONTROL)) {
-			playerShipPhys->applyTempForce(playerShipPhys->getVelocity().normalisedCopy() * (-1) * Vector3(2000, 2000, 2000));
+			playerShipPhys->applyTempForce(playerShipPhys->velocity().normalisedCopy() * (-1) * Vector3(2000, 2000, 2000));
 			playerShip->drainEnergy(energyDrain * evt.timeSinceLastFrame);
 		}
 
@@ -191,7 +192,7 @@ public:
 				if(closestAnchor != NULL) {
 					closestAnchor->phys()->velocity(Vector3(0, 0, 0));
 					m_con = m_arena.addConstraint(Constraint(playerShip->phys(), 
-						closestAnchor->phys()));
+						closestAnchor->phys(), false));
 				}
 			}
 		} else {
@@ -219,14 +220,14 @@ public:
 			mp_fps->text("FPS: " + Ogre::StringConverter::toString(mp_renderWindow->getLastFPS())
 				+ " - RenderObjects: " + Ogre::StringConverter::toString(m_renderModel.getNumObjects())
 				+ " - Health: " + Ogre::StringConverter::toString(playerShip->health())
-				+ " - Speed: " + Ogre::StringConverter::toString(playerShipPhys->getVelocity().length())
+				+ " - Speed: " + Ogre::StringConverter::toString(playerShipPhys->velocity().length())
 				+ " - Force: " + Ogre::StringConverter::toString((playerShipPhys->sumForces() + playerShipPhys->sumTempForces()).length()));
 		}
 
 		// Update UI
 		mp_healthBar->width((mp_vp->getActualWidth() * 0.25) * (playerShip->health() / playerShip->maxHealth()));
 		mp_energyBar->width((mp_vp->getActualWidth() * 0.25) * (playerShip->energy() / playerShip->maxEnergy()));
-		mp_speedBar->width((mp_vp->getActualWidth() * 0.25) * (playerShipPhys->getVelocity().length() / Real(6000)));
+		mp_speedBar->width((mp_vp->getActualWidth() * 0.25) * (playerShipPhys->velocity().length() / Real(6000)));
 
 		// Update the position of the physics object and move the scene node
 		m_arena.updatePhysics(evt.timeSinceLastFrame);
@@ -389,21 +390,6 @@ private:
 
 		// Add planes for the arena boundaries
 		mgr->setSkyBox(true, "Orewar/SpaceSkyBox", 40000, true);
-
-		// Put a star in the middle of the arena
-		SceneNode * starNode = mgr->getRootSceneNode()->createChildSceneNode();
-		Entity * starEntity = mgr->createEntity("Sphere", "sphere.mesh");
-		starEntity->setMaterialName("Orewar/Star");
-		starNode->attachObject(starEntity);
-		starNode->setScale(15, 15, 15);
-		
-		Light * starLight = mgr->createLight("StarLight");
-		starLight->setType(Ogre::Light::LT_POINT);
-		starLight->setDiffuseColour(0.9, 0.6, 0.05);
-		starLight->setSpecularColour(1, 1, 1);
-		starLight->setAttenuation(40000, 1.0, 0.007, 0.00014);
-		starLight->setCastShadows(false);
-		starNode->attachObject(starLight);
     }
  
     void setupInputSystem()

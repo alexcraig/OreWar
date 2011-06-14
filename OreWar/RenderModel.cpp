@@ -67,7 +67,13 @@ void ConstraintRenderObject::createEffects()
 	std::stringstream oss;
 	oss << "Constraint" << renderId();
 	mp_particle = sceneManager()->createParticleSystem(oss.str(), "Orewar/ConstraintStream");
-	mp_particle->setEmitting(true);
+
+	if(mp_constraint->isRigid()) {
+		mp_particle->setEmitting(false);
+	} else {
+		mp_particle->setEmitting(true);
+	}
+
 	mp_node->attachObject(mp_particle);
 }
 
@@ -173,7 +179,7 @@ void ShipRO::destroyEffects()
 	mp_shipRotateNode->removeAllChildren();
 	mp_shipRotateNode->detachAllObjects();
 	sceneManager()->destroyMovableObject(mp_shipEntity);
-
+	sceneManager()->destroySceneNode(mp_shipNode);
 	sceneManager()->destroyLight(mp_spotLight);
 	sceneManager()->destroyLight(mp_pointLight);
 	sceneManager()->destroyParticleSystem(mp_engineParticles);
@@ -261,6 +267,95 @@ void NpcShipRO::destroyEffects()
 	Gorilla::Silverback::getSingletonPtr()->destroyScreenRenderable(mp_screen);
 }
 
+
+// ========================================================================
+// CelestialBodyRO Implementation
+// ========================================================================
+bool CelestialBodyRO::m_resourcesLoaded = false;
+
+/** Constructor */
+CelestialBodyRO::CelestialBodyRO(CelestialBody * body, SceneManager * mgr) 
+	: PhysicsRenderObject(body->phys(), mgr), mp_body(body), mp_bodyNode(NULL),
+	mp_model(NULL), mp_pointLight(NULL), mp_particles(NULL)
+{
+}
+
+/** @return The CelestialBody game object represented by this entity */
+CelestialBody * CelestialBodyRO::body() const
+{
+	return mp_body;
+}
+
+/** Updates the node based on passed time and camera orientation (useful for sprites) */
+void CelestialBodyRO::updateEffects(Real elapsedTime, Quaternion camOrientation)
+{
+	mp_bodyNode->setPosition(mp_body->phys()->position());
+}
+
+/** @see RenderObject::loadSceneResources() */ 
+void CelestialBodyRO::loadSceneResources()
+{
+	if(!m_resourcesLoaded) {
+		m_resourcesLoaded = true;
+	}
+}
+
+/** @see RenderObject::createEffects() */ 
+void CelestialBodyRO::createEffects()
+{
+	Real modelSizeScale = 1.0 / 100;
+	std::stringstream oss;
+	oss << "CelestialBody" << renderId();
+
+	mp_bodyNode = sceneManager()->getRootSceneNode()->createChildSceneNode();
+	mp_bodyNode->setPosition(mp_body->phys()->position());
+
+	mp_model = sceneManager()->createEntity(oss.str(), "sphere.mesh");
+
+	if(mp_body->type() == ObjectType::STAR) {
+		mp_model->setMaterialName("Orewar/Star");
+	} else if(mp_body->type() == ObjectType::PLANET) {
+		mp_model->setMaterialName("Orewar/Planet");
+	} if(mp_body->type() == ObjectType::MOON) {
+		mp_model->setMaterialName("Orewar/Moon");
+	}
+
+	mp_bodyNode->attachObject(mp_model);
+	mp_bodyNode->setScale(
+		mp_body->radius() * modelSizeScale,
+		mp_body->radius() * modelSizeScale, 
+		mp_body->radius() * modelSizeScale);
+	
+	if(mp_body->type() == ObjectType::STAR) {
+		oss << "L";
+		mp_pointLight = sceneManager()->createLight(oss.str());
+		mp_pointLight->setType(Ogre::Light::LT_POINT);
+		mp_pointLight->setDiffuseColour(0.9, 0.6, 0.05);
+		mp_pointLight->setSpecularColour(1, 1, 1);
+		mp_pointLight->setAttenuation(40000, 1.0, 0.007, 0.00014);
+		mp_pointLight->setCastShadows(false);
+		mp_bodyNode->attachObject(mp_pointLight);
+
+		oss << "P";
+		mp_particles = sceneManager()->createParticleSystem(oss.str(), "Orewar/StarFlare");
+		mp_bodyNode->attachObject(mp_particles);
+	}
+}
+
+/** @see RenderObject::destroyEffects() */ 
+void CelestialBodyRO::destroyEffects()
+{
+	mp_bodyNode->removeAllChildren();
+	mp_bodyNode->detachAllObjects();
+	sceneManager()->destroyMovableObject(mp_model);
+	sceneManager()->destroySceneNode(mp_bodyNode);
+
+	if(mp_body->type() == ObjectType::STAR) {
+		sceneManager()->destroyLight(mp_pointLight);
+		sceneManager()->destroyParticleSystem(mp_particles);
+	}
+}
+
 // ========================================================================
 // ProjectileRO Implementation
 // ========================================================================
@@ -280,7 +375,7 @@ Projectile * ProjectileRO::projectile() const
 void ProjectileRO::updateEffects(Real elapsedTime, Quaternion camOrientation)
 {
 	mp_projNode->setPosition(physics()->position());
-	mp_projNode->setOrientation(Vector3(0, 0, -1).getRotationTo(physics()->getVelocity()));
+	mp_projNode->setOrientation(Vector3(0, 0, -1).getRotationTo(physics()->velocity()));
 }
 
 
@@ -329,6 +424,7 @@ void ProjectileRO::destroyEffects()
 	sceneManager()->destroyParticleSystem(mp_particle);
 }
 
+
 // ========================================================================
 // RenderModel Implementation
 // ========================================================================
@@ -367,6 +463,11 @@ void RenderModel::newGameObject(GameObject * object)
 		|| object->type() == ObjectType::ANCHOR_PROJECTILE) 
 	{
 		p_renderObj = new ProjectileRO((Projectile*)object, mp_mgr);
+	} else if (object->type() == ObjectType::STAR
+		|| object->type() == ObjectType::PLANET
+		|| object->type() == ObjectType::MOON) 
+	{
+		p_renderObj = new CelestialBodyRO((CelestialBody*)object, mp_mgr);
 	}
 
 	p_renderObj->loadSceneResources();

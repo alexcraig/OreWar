@@ -1,3 +1,36 @@
+particle_system Orewar/StarFlare
+{
+    material Orewar/Flare
+    particle_width 100
+    particle_height 100
+    cull_each false
+    quota 50
+    billboard_type point
+    local_space true
+
+    // Area emitter
+    emitter Point
+    {
+        angle 360
+        emission_rate 25
+        time_to_live 1
+        direction 1 1 1
+        velocity_min 100
+        velocity_max 200
+        colour_range_start 1 0.8 0.4
+        colour_range_end 1 1 1
+    }
+
+    // Fader
+    affector ColourFader
+    {
+        red -1
+        green -1
+        blue -1
+    }
+}
+
+
 particle_system Orewar/CamStarField
 {
     material Orewar/Flare
@@ -69,8 +102,8 @@ particle_system Orewar/EngineStream
 particle_system Orewar/ConstraintStream
 {
     material Orewar/Flare
-    particle_width 60
-    particle_height 60
+    particle_width 260
+    particle_height 260
     cull_each false
     quota 100
     billboard_type point

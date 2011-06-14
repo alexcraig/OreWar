@@ -195,6 +195,51 @@ public:
 	virtual void destroyEffects();
 };
 
+/**
+ * The CelestialBodyRO (CelestialBodyObject) class manages the graphical representation
+ * of any instance of a CelestialBody
+ */
+class CelestialBodyRO : public PhysicsRenderObject
+{
+private:
+	/** The celestial body represented by this render object */
+	CelestialBody * mp_body;
+
+	/** The scene node to anchor effects onto */
+	SceneNode * mp_bodyNode;
+	
+	/** Entity for star/planet/moon model */
+	Entity * mp_model;
+
+	/** Point light to use for stars */
+	Light * mp_pointLight;
+
+	/** Particle system to use for stars */
+	ParticleSystem * mp_particles;
+
+	/** @see RenderObject::m_resourcesLoaded */
+	static bool m_resourcesLoaded;
+
+public:
+	/** Constructor */
+	CelestialBodyRO(CelestialBody * body, SceneManager * mgr);
+
+	/** @return The CelestialBody game object represented by this entity */
+	CelestialBody * body() const;
+
+	/** Updates the node based on passed time and camera orientation (useful for sprites) */
+	virtual void updateEffects(Real elapsedTime, Quaternion camOrientation);
+
+	/** @see RenderObject::loadSceneResources() */ 
+	virtual void loadSceneResources();
+
+	/** @see RenderObject::createEffects() */ 
+	virtual void createEffects();
+
+	/** @see RenderObject::destroyEffects() */ 
+	virtual void destroyEffects();
+};
+
 
 class ProjectileRO : public PhysicsRenderObject
 {

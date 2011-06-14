@@ -1,4 +1,5 @@
 #include "GameObjects.h"
+#include "OgreMath.h"
 
 using namespace Ogre;
 
@@ -176,7 +177,7 @@ PlasmaCannon::PlasmaCannon(const PlasmaCannon& copy) : Weapon(copy), m_shootLeft
 Projectile PlasmaCannon::fireWeapon(PhysicsObject& origin)
 {
 	SphereCollisionObject projectilePhysics = SphereCollisionObject(75, 1, origin.position());
-	projectilePhysics.velocity(origin.getVelocity() + origin.heading() * 4000);
+	projectilePhysics.velocity(origin.velocity() + origin.heading() * 4000);
 	projectilePhysics.applyForce(origin.heading() * 4000);
 	projectilePhysics.orientation(origin.orientation());
 
@@ -208,11 +209,76 @@ AnchorLauncher::AnchorLauncher(const AnchorLauncher& copy) : Weapon(copy)
 Projectile AnchorLauncher::fireWeapon(PhysicsObject& origin)
 {
 	SphereCollisionObject projectilePhysics = SphereCollisionObject(75, 1, origin.position());
-	projectilePhysics.velocity(origin.getVelocity() + origin.heading() * 4000);
+	projectilePhysics.velocity(origin.velocity() + origin.heading() * 4000);
 	projectilePhysics.orientation(origin.orientation());
 
 	resetShotCounter();
 	return Projectile(projectilePhysics, ObjectType::ANCHOR_PROJECTILE, 0);
+}
+
+
+// ========================================================================
+// CelestialBody Implementation
+// ========================================================================
+CelestialBody::CelestialBody(ObjectType type, Real mass, Real radius, Vector3 position)
+	: GameObject(SphereCollisionObject(radius, mass, position), type, 10000, 10000,
+		1000), mp_center(NULL), m_radius(0)
+{
+}
+
+CelestialBody::CelestialBody(ObjectType type, Real mass, Real radius, CelestialBody * center, 
+	Real distance, Real speed)
+	: GameObject(SphereCollisionObject(radius, mass, Vector3(0,0,0)), type, 10000, 10000,
+		1000), mp_center(center), m_radius(radius)
+{
+	Real totalDistance = distance + radius + center->radius();
+	
+	// Generate a random position on a sphere around the center with a radius
+	// equal to the specified distance
+	Real randAngle = Math::UnitRandom() * (2 * Math::PI);
+	Real randMu = Math::RangeRandom(-0.1, 0.1);
+	Vector3 pointOnUnitSphere = Vector3(
+		Math::Cos(randAngle) * Math::Sqrt(1 - Math::Sqr(randMu)),
+		Math::Sin(randAngle) * Math::Sqrt(1 - Math::Sqr(randMu)),
+		randMu);
+	Vector3 relPosition = pointOnUnitSphere * totalDistance;
+
+	phys()->position(relPosition + center->phys()->position());
+
+	// Generate a random velocity by generating a random vector lieing in a plane
+	// tangent to the sphere around the orbital center
+	Vector3 unitNormal = (center->phys()->position() - phys()->position()).normalisedCopy();
+	Vector3 randomUnitTangent = unitNormal.randomDeviant(Radian(Degree(90))).normalisedCopy();
+	Vector3 velocity = (randomUnitTangent * speed) + center->phys()->velocity();
+	phys()->velocity(velocity);
+}
+
+CelestialBody::CelestialBody(const CelestialBody & copy)
+	: GameObject(copy), mp_center(copy.mp_center), m_radius(copy.m_radius)
+{
+}
+
+Constraint CelestialBody::constraint() const
+{
+	// Generate the constraint which maintains the orbit
+	return Constraint(phys(), mp_center->phys(), true);
+}
+
+bool CelestialBody::hasCenter() const
+{
+	return mp_center != NULL;
+}
+
+Real CelestialBody::radius() const
+{
+	return phys()->radius();
+}
+
+void CelestialBody::updatePhysics(Real timeElapsed)
+{
+	phys()->updatePhysics(timeElapsed);
+	health(maxHealth());
+	energy(maxEnergy());
 }
 
 
@@ -280,7 +346,7 @@ void SpaceShip::updatePhysics(Real timeElapsed)
 // GameArena Implementation
 // ========================================================================
 GameArena::GameArena(Real size) : m_arenaSize(size), m_playerShip(NULL), m_npcShips(), m_projectiles(),
-	m_constraints(), m_listeners()
+	m_bodies(), m_constraints(), m_listeners()
 {
 }
 
@@ -377,6 +443,49 @@ Constraint * GameArena::addConstraint(const Constraint& constraint)
 	return p_constraint;
 }
 
+CelestialBody * GameArena::addBody(const CelestialBody& body)
+{
+	CelestialBody * p_body = new CelestialBody(body);
+	if(p_body->hasCenter()) {
+		addConstraint(p_body->constraint());
+	}
+	m_bodies.push_back(p_body);
+	notifyObjectCreation(p_body);
+	return p_body;
+}
+
+std::vector<CelestialBody * >::iterator GameArena::destroyBody(CelestialBody * body)
+{
+	for(std::vector<CelestialBody * >::iterator iter =  m_bodies.begin(); 
+		iter != m_bodies.end();
+		iter++)
+	{
+		if(*iter == body) {
+			if(body->hasCenter()) {
+				// Ensure any constraints attached to this body are also destroyed
+				for(std::vector<Constraint * >::iterator conIter =  m_constraints.begin(); 
+					conIter != m_constraints.end();)
+				{
+					SphereCollisionObject * bodyPhys = body->phys();
+					if((*conIter)->getTarget() == bodyPhys || (*conIter)->getOrigin() == bodyPhys)
+					{
+						conIter = destroyConstraint(*conIter);
+					} else {
+						conIter++;
+					}
+				}
+			}
+
+			notifyObjectDestruction(body);
+			delete body;
+			return m_bodies.erase(iter);
+		}
+	}
+	
+	// TODO: Throw exception, constraint not found
+	return m_bodies.end();
+}
+
 std::vector<Constraint * >::iterator GameArena::destroyConstraint(Constraint * constraint) 
 {
 	for(std::vector<Constraint * >::iterator iter =  m_constraints.begin(); 
@@ -469,6 +578,14 @@ void GameArena::updatePhysics(Real timeElapsed)
 		(*conIter)->applyForces(timeElapsed);
 	}
 
+	// Update physics for orbiting bodies
+	for(std::vector<CelestialBody * >::iterator bodyIter =  m_bodies.begin(); 
+		bodyIter != m_bodies.end();
+		bodyIter++) 
+	{
+		(*bodyIter)->updatePhysics(timeElapsed);
+	}
+
 	// Update the player ship's physics, and reverse its velocity if it passes a wall
 	if(m_playerShip != NULL) 
 	{
@@ -480,8 +597,10 @@ void GameArena::updatePhysics(Real timeElapsed)
 			|| playerShipPhys->position().y > m_arenaSize || playerShipPhys->position().y < - m_arenaSize
 			|| playerShipPhys->position().z > m_arenaSize || playerShipPhys->position().z < - m_arenaSize) 
 		{
-			// playerShipPhys->velocity(playerShipPhys->getVelocity() * Vector3(-1, -1, -1));
-			m_playerShip->health(m_playerShip->health() - (timeElapsed * 5));
+			// playerShipPhys->velocity(playerShipPhys->velocity() * Vector3(-1, -1, -1));
+			
+			// Slowly drain health if outside game boundaries
+			// m_playerShip->health(m_playerShip->health() - (timeElapsed * 5));
 		}
 	}
 
@@ -498,9 +617,9 @@ void GameArena::updatePhysics(Real timeElapsed)
 			|| shipPhys->position().y > m_arenaSize || shipPhys->position().y < - m_arenaSize
 			|| shipPhys->position().z > m_arenaSize || shipPhys->position().z < - m_arenaSize) 
 		{
-			shipPhys->velocity(shipPhys->getVelocity() * Vector3(-1, -1, -1));
+			shipPhys->velocity(shipPhys->velocity() * Vector3(-1, -1, -1));
 		}
-		shipPhys->orientation(Vector3(0, 0, -1).getRotationTo(shipPhys->getVelocity()));
+		shipPhys->orientation(Vector3(0, 0, -1).getRotationTo(shipPhys->velocity()));
 	}
 
 	// Update physics for projectiles and check for collisions
@@ -538,6 +657,36 @@ void GameArena::updatePhysics(Real timeElapsed)
 		}
 	}
 
+	// Deal fatal damage to any entity that collides with a celestial body
+	for(std::vector<CelestialBody * >::iterator bodyIter =  m_bodies.begin(); 
+		bodyIter != m_bodies.end();
+		bodyIter++) 
+	{
+		if((*bodyIter)->phys()->checkCollision(*(m_playerShip->phys()))) {
+			m_playerShip->inflictDamage(500);
+		}
+
+		for(std::vector<Projectile * >::iterator projIter =  m_projectiles.begin(); 
+			projIter != m_projectiles.end(); )
+		{
+			if((*bodyIter)->phys()->checkCollision(*(*projIter)->phys())) {
+				projIter = destroyProjectile(*projIter);
+			} else {
+				projIter++;
+			}
+		}
+		
+		for(std::vector<SpaceShip * >::iterator shipIter =  m_npcShips.begin(); 
+		shipIter != m_npcShips.end();) 
+		{
+			if((*bodyIter)->phys()->checkCollision(*(*shipIter)->phys())) {
+				shipIter = destroyNpcShip(*shipIter);
+			} else {
+				shipIter++;
+			}
+		}
+	}
+
 	// After all projectile collisions, remove any ships with less than 0 health
 	for(std::vector<SpaceShip * >::iterator shipIter =  m_npcShips.begin(); 
 		shipIter != m_npcShips.end();) 
@@ -556,6 +705,35 @@ void GameArena::updatePhysics(Real timeElapsed)
 	if(m_playerShip->health() <= 0) {
 		m_playerShip->health(m_playerShip->maxHealth());
 		m_playerShip->phys()->velocity(Vector3(0, 0, 0));
-		m_playerShip->phys()->position(Vector3(0, 0, 0));
+		m_playerShip->phys()->position(Vector3(10000, 10000, 10000));
+	}
+}
+
+
+void GameArena::generateSolarSystem() 
+{
+	// Generate a star in the middle of the arena
+	CelestialBody * star = addBody(CelestialBody(ObjectType::STAR, 100000, 10000, Vector3(0, 0, 0)));
+	srand(time(NULL));
+	int numPlanets = rand() % 10 + 4;
+
+	// Add a random number of planents
+	for(int i = 0; i < numPlanets; i++) {
+		// For each planet, generate a random distance, radius, speed, and number of moons
+		Real planet_radius = Math::RangeRandom(500, 4000);
+		Real distance = 10000 + Math::RangeRandom(0, 34000);
+		Real speed = Math::RangeRandom(2000, 15000);
+
+		CelestialBody * planet = addBody(CelestialBody(ObjectType::PLANET, 10000, planet_radius,
+			star, distance, speed));
+
+		int numMoons = rand() % 3;
+		for(int j = 0; j < 2; j++) {
+			Real moon_radius = Math::RangeRandom(planet_radius * 0.1, planet_radius * 0.7);
+			distance = Math::RangeRandom(planet_radius * 0.5, planet_radius * 2);
+			speed = Math::RangeRandom(1000, 4000);
+			CelestialBody * moon = addBody(CelestialBody(ObjectType::MOON, 1000, moon_radius,
+				planet, distance, speed));
+		}
 	}
 }

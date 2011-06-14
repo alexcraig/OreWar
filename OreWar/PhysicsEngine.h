@@ -120,7 +120,7 @@ public:
 	void acceleration(Vector3 acceleration);
 
 	/** @return The velocity of the object */
-	Vector3 getVelocity() const;
+	Vector3 velocity() const;
 
 	/** @return The acceleration of the object */
 	Vector3 acceleration() const;
@@ -171,9 +171,12 @@ private:
 	/** The distance between the two objects at the time of creation */
 	Real m_distance;
 
+	/** If set to true, the constaint will try to maintain orbit velocity at all costs */
+	bool m_rigid;
+
 public:
 	/** Construct a constraint between the two provided objects */
-	Constraint(PhysicsObject * origin, PhysicsObject * target);
+	Constraint(PhysicsObject * origin, PhysicsObject * target, bool rigid);
 
 	/** Copy constructor */
 	Constraint(const Constraint& copy);
@@ -186,6 +189,9 @@ public:
 
 	/** Applies temporary forces on one or both of the constraint objects based on the elapsed time */
 	void applyForces(Real timeElapsed);
+
+	/** @return True if the constraint is rigid (resists compression) */
+	bool isRigid();
 };
 
 
@@ -203,7 +209,7 @@ public:
 	 * Construct a SphereCollisionObject at the given position coordinates with the
 	 * specified mass and default heading (<0, 0, -1>).
 	 */
-	SphereCollisionObject( Real radius, Real mass, Vector3 position);
+	SphereCollisionObject(Real radius, Real mass, Vector3 position);
 
 	/**
 	 * Construct a SphereCollisionObject at the origin with the specified mass 

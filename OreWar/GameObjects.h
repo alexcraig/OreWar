@@ -9,13 +9,12 @@
 
 using namespace Ogre;
 
-
 class GameArena;
 
 /**
  * Enumeration used for differentiating between different types of GameObjects
  */
-enum ObjectType { SHIP, NPC_SHIP, PROJECTILE, ANCHOR_PROJECTILE };
+enum ObjectType { SHIP, NPC_SHIP, PROJECTILE, ANCHOR_PROJECTILE, STAR, MOON, PLANET };
 
 
 /**
@@ -150,6 +149,53 @@ public:
 
 
 /**
+ * The CelestialBody class represents all orbiting physics modelled solar objects 
+ * such as stars, moons, and planets.
+ */
+class CelestialBody : public GameObject {
+private:
+	/** A pointer to the orbital center of the body (NULL if the body is free standing) */
+	CelestialBody * mp_center;
+
+	/** The distance the satelite must maintain from its center (if a center is specified) */
+	Real m_radius;
+
+public:
+	/** 
+	 * Constructs a CelestialBody with no orbital physics
+	 * type should be one of: ObjectType::STAR, MOON, or PLANET
+	 */
+	CelestialBody(ObjectType type, Real mass, Real radius, Vector3 position);
+
+	/**
+	 * Constructs a CelestialBody in a random position in orbit around the
+	 * specified CelestialBody at the specified distance (edge to edge, not center
+	 * to center) and speed.
+	 */
+	CelestialBody(ObjectType type, Real mass, Real radius, CelestialBody * center, 
+		Real distance, Real speed);
+
+	/** Copy Constructor */
+	CelestialBody(const CelestialBody & copy);
+
+	/** 
+	 * @return A constraint is generated which maintains a circular orbit at the 
+	 * body's current velocity if applied.
+	 */
+	Constraint constraint() const;
+
+	/** @return True if this body is set to orbit another body */
+	bool hasCenter() const;
+
+	/** @return The radius of the celestial body */
+	Real radius() const;
+
+	/** @see GameObject::updatePhysics(Real) */
+	virtual void updatePhysics(Real timeElapsed);
+};
+
+
+/**
  * Represents a human or NPC controllable space ship which
  * can generate projectiles.
  */
@@ -228,6 +274,9 @@ private:
 	/** A vector of pointers to dynamically allocated memory for all projectiles in the GameArena */
 	std::vector<Projectile *> m_projectiles;
 
+	/** A vector of pointers to dynamically allocated memory for all celestial bodies in the GameArena */
+	std::vector<CelestialBody *> m_bodies;
+
 	/** A vector of pointers to dynamically allocated memory for all projectiles in the GameArena */
 	std::vector<Constraint *> m_constraints;
 
@@ -259,6 +308,19 @@ public:
 	SpaceShip * setPlayerShip(const SpaceShip& ship);
 
 	Constraint * addConstraint(const Constraint& constraint);
+
+	/**
+	 * Adds the specified body to the game arena.
+	 * The corresponding constraint is also generated and added.
+	 * @return A pointer to the newly generated copy
+	 */
+	CelestialBody * addBody(const CelestialBody& body);
+
+	/** 
+	 * Destroys a celestial body, erasing it from the vector of stored bodies.
+	 * Any attached constraints are also destroyed.
+	 */
+	std::vector<CelestialBody * >::iterator destroyBody(CelestialBody * body);
 
 	std::vector<Constraint * >::iterator destroyConstraint(Constraint * constraint);
 
@@ -294,6 +356,9 @@ public:
 
 	/** Updates the physics of all ships and projectiles in the arena */
 	void updatePhysics(Real timeElapsed);
+
+	/** Generates a randomly distributed solar system (collection of celestial objects) */
+	void generateSolarSystem();
 };
 
 #endif

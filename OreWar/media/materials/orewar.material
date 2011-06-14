@@ -1,3 +1,35 @@
+material Orewar/Moon
+{
+    receive_shadows on
+    
+     technique
+     {
+         pass
+         {
+            texture_unit
+            {
+                texture moonSurface.png
+            }
+         }
+     }
+ }
+
+material Orewar/Planet
+{
+    receive_shadows on
+    
+     technique
+     {
+         pass
+         {
+            texture_unit
+            {
+                texture planetSurface.png
+            }
+         }
+     }
+ }
+
 material Orewar/Star
 {
     receive_shadows off

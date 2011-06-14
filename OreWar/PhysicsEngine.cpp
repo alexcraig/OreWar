@@ -112,7 +112,7 @@ void PhysicsObject::acceleration(Vector3 acceleration)
 	m_acceleration = acceleration;
 }
 
-Vector3 PhysicsObject::getVelocity() const
+Vector3 PhysicsObject::velocity() const
 {
 	return m_velocity;
 }
@@ -164,14 +164,16 @@ void PhysicsObject::updatePhysics(Real timeElapsed)
 // ========================================================================
 // Constraint Implementation
 // ========================================================================
-Constraint::Constraint(PhysicsObject * origin, PhysicsObject * target) :
+Constraint::Constraint(PhysicsObject * origin, PhysicsObject * target, bool rigid) :
 	m_origin(origin), m_target(target), 
-	m_distance(origin->displacement(*((BaseObject *)target)).length())
+	m_distance(origin->displacement(*((BaseObject *)target)).length()),
+	m_rigid(rigid)
 {
 }
 
 Constraint::Constraint(const Constraint& copy) :
-	m_origin(copy.m_origin), m_target(copy.m_target), m_distance(copy.m_distance)
+	m_origin(copy.m_origin), m_target(copy.m_target), m_distance(copy.m_distance),
+	m_rigid(copy.m_rigid)
 {
 }
 
@@ -207,12 +209,20 @@ void Constraint::applyForces(Real timeElapsed)
 	if(normalVector.length() > m_distance) {
 		Plane normalPlane = Plane(normalVector, 0);
 		normalPlane.normalise();
-		Vector3 curVelocity = m_origin->getVelocity() - m_target->getVelocity();
-		Vector3 desiredVelocity = normalPlane.projectVector(curVelocity) + m_target->getVelocity();
-		Vector3 velocityOffset = desiredVelocity - m_origin->getVelocity();
+		Vector3 curVelocity = m_origin->velocity() - m_target->velocity();
+		Vector3 desiredVelocity =
+			isRigid() ?
+			normalPlane.projectVector(curVelocity) + m_target->velocity() :
+			(normalPlane.projectVector(curVelocity) + m_target->velocity()).normalisedCopy() * curVelocity.length();
+		Vector3 velocityOffset = desiredVelocity - m_origin->velocity();
 	
 		m_origin->applyTempForce(((velocityOffset * m_origin->mass()) / timeElapsed));
 	}
+}
+
+
+bool Constraint::isRigid() {
+	return m_rigid;
 }
 
 
