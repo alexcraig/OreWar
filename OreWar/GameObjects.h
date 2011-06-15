@@ -14,7 +14,7 @@ class GameArena;
 /**
  * Enumeration used for differentiating between different types of GameObjects
  */
-enum ObjectType { SHIP, NPC_SHIP, PROJECTILE, ANCHOR_PROJECTILE, STAR, MOON, PLANET };
+enum ObjectType { SHIP, NPC_SHIP, PROJECTILE, ANCHOR_PROJECTILE, PLANET_CHUNK, STAR, MOON, PLANET };
 
 
 /**
@@ -42,6 +42,8 @@ private:
 
 	/** The type of the object (used for differentiating among derived classes) */
 	ObjectType m_type;
+
+
 
 public: 
 	GameObject(const SphereCollisionObject& object, ObjectType type, Real maxHealth, 

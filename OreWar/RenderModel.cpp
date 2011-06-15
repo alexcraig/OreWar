@@ -69,7 +69,7 @@ void ConstraintRenderObject::createEffects()
 	mp_particle = sceneManager()->createParticleSystem(oss.str(), "Orewar/ConstraintStream");
 
 	if(mp_constraint->isRigid()) {
-		mp_particle->setEmitting(true);
+		mp_particle->setEmitting(false);
 	} else {
 		mp_particle->setEmitting(true);
 	}
@@ -315,7 +315,15 @@ void CelestialBodyRO::createEffects()
 	if(mp_body->type() == ObjectType::STAR) {
 		mp_model->setMaterialName("Orewar/Star");
 	} else if(mp_body->type() == ObjectType::PLANET) {
-		mp_model->setMaterialName("Orewar/Planet");
+		if(mp_body->radius() > 5000) {
+			mp_model->setMaterialName("Orewar/GasGiant");
+		} else if(mp_body->radius() > 2000) {
+			mp_model->setMaterialName("Orewar/GasGiantSmall");
+		} else if(mp_body->radius() > 1000) {
+			mp_model->setMaterialName("Orewar/Earth");
+		} else {
+			mp_model->setMaterialName("Orewar/RockPlanet");
+		}
 	} if(mp_body->type() == ObjectType::MOON) {
 		mp_model->setMaterialName("Orewar/Moon");
 	}
@@ -410,6 +418,10 @@ void ProjectileRO::createEffects()
 		mp_particle = sceneManager()->createParticleSystem(oss.str(), "Orewar/Anchor");
 		mp_pointLight->setDiffuseColour(1, 0.0, 0.0);
 		mp_pointLight->setSpecularColour(0.7, 0.2, 0.2);
+	} else if (mp_projectile->type() == ObjectType::PLANET_CHUNK) {
+		mp_particle = sceneManager()->createParticleSystem(oss.str(), "Orewar/PlanetChunk");
+		mp_pointLight->setDiffuseColour(1, 1, 1);
+		mp_pointLight->setSpecularColour(1, 0.2, 0.2);
 	}
 	mp_particle->setEmitting(true);
 	mp_projNode->attachObject(mp_particle);
@@ -460,7 +472,8 @@ void RenderModel::newGameObject(GameObject * object)
 	} else if (object->type() == ObjectType::NPC_SHIP) {
 		p_renderObj = new NpcShipRO((SpaceShip*)object, mp_mgr);
 	} else if (object->type() == ObjectType::PROJECTILE
-		|| object->type() == ObjectType::ANCHOR_PROJECTILE) 
+		|| object->type() == ObjectType::ANCHOR_PROJECTILE
+		|| object->type() == ObjectType::PLANET_CHUNK) 
 	{
 		p_renderObj = new ProjectileRO((Projectile*)object, mp_mgr);
 	} else if (object->type() == ObjectType::STAR

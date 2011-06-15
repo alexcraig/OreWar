@@ -17,8 +17,8 @@ class TestFrameListener : public FrameListener
 public:
 	TestFrameListener(OIS::Keyboard *keyboard, OIS::Mouse *mouse, SceneManager *mgr, Camera *cam, RenderWindow * renderWindow)
         : m_Keyboard(keyboard), m_mouse(mouse), m_rotateNode(mgr->getRootSceneNode()->createChildSceneNode()), m_cam(cam), 
-		m_camHeight(0), m_camOffset(0), m_arena(50000), m_mgr(mgr),
-		m_thirdPersonCam(true), m_renderModel(m_arena, m_mgr), mp_vp(cam->getViewport()), mp_fps(NULL), m_timer(0),
+		m_camHeight(0), m_camOffset(0), m_arena(200000), m_mgr(mgr),
+		m_thirdPersonCam(false), m_renderModel(m_arena, m_mgr), mp_vp(cam->getViewport()), mp_fps(NULL), m_timer(0),
 		mp_renderWindow(renderWindow), m_con(NULL), m_camParticle(NULL), m_camNode(NULL),
 		mp_healthBar(NULL), mp_energyBar(NULL), mp_speedBar(NULL)
 	{
@@ -26,7 +26,7 @@ public:
 		m_arena.generateSolarSystem();
 
 		// Generate the keyboard testing entity and attach it to the listener's scene node
-		SpaceShip playerShip = SpaceShip(ObjectType::SHIP, 1, Vector3(0, -2000, 0), 15);
+		SpaceShip playerShip = SpaceShip(ObjectType::SHIP, 1, Vector3(0, 50000, 0), 15);
 		playerShip.addPlasmaCannon(PlasmaCannon());
 		playerShip.addAnchorLauncher(AnchorLauncher());
 		SpaceShip * p_playerShip = m_arena.setPlayerShip(playerShip);
@@ -125,21 +125,21 @@ public:
 		Real energyDrain = 10;
 		if(m_Keyboard->isKeyDown(OIS::KC_W)) {
 			playerShipPhys->applyTempForce(playerShipPhys->heading() * Real(2000));
-			playerShip->drainEnergy(energyDrain * evt.timeSinceLastFrame);
+			// playerShip->drainEnergy(energyDrain * evt.timeSinceLastFrame);
 		}
 		if(m_Keyboard->isKeyDown(OIS::KC_S)) {
 			playerShipPhys->applyTempForce(playerShipPhys->heading() * Real(-2000));
-			playerShip->drainEnergy(energyDrain * evt.timeSinceLastFrame);
+			// playerShip->drainEnergy(energyDrain * evt.timeSinceLastFrame);
 		}
 		if(m_Keyboard->isKeyDown(OIS::KC_A)) {
 			playerShipPhys->applyTempForce((playerShipPhys->orientation() * Quaternion(Degree(90), Vector3::UNIT_Y)) 
 				* Vector3(0, 0, -1500));
-			playerShip->drainEnergy(energyDrain * evt.timeSinceLastFrame);
+			// playerShip->drainEnergy(energyDrain * evt.timeSinceLastFrame);
 		}
 		if(m_Keyboard->isKeyDown(OIS::KC_D)) {
 			playerShipPhys->applyTempForce((playerShipPhys->orientation() * Quaternion(Degree(-90), Vector3::UNIT_Y)) 
 				* Vector3(0, 0, -1500));
-			playerShip->drainEnergy(energyDrain * evt.timeSinceLastFrame);
+			// playerShip->drainEnergy(energyDrain * evt.timeSinceLastFrame);
 		}
 
 		if(m_Keyboard->isKeyDown(OIS::KC_Q)) {
@@ -151,7 +151,7 @@ public:
 
 		if(m_Keyboard->isKeyDown(OIS::KC_LCONTROL)) {
 			playerShipPhys->applyTempForce(playerShipPhys->velocity().normalisedCopy() * (-1) * Vector3(2000, 2000, 2000));
-			playerShip->drainEnergy(energyDrain * evt.timeSinceLastFrame);
+			// playerShip->drainEnergy(energyDrain * evt.timeSinceLastFrame);
 		}
 
 		if(m_Keyboard->isKeyDown(OIS::KC_C)) {
@@ -217,7 +217,6 @@ public:
 		if (m_timer > 1.0f / 60.0f) 
 		{
 			m_timer = 0;
-			Real speed = m_arena.bodies()->at(2)->phys()->velocity().length();
 			mp_fps->text("FPS: " + Ogre::StringConverter::toString(mp_renderWindow->getLastFPS())
 				+ " - RenderObjects: " + Ogre::StringConverter::toString(m_renderModel.getNumObjects())
 				+ " - Health: " + Ogre::StringConverter::toString(playerShip->health())

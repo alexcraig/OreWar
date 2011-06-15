@@ -1,3 +1,35 @@
+particle_system Orewar/PlanetChunk
+{
+    material Orewar/Flare
+    particle_width 2000
+    particle_height 2000
+    cull_each false
+    quota 20
+    billboard_type point
+    local_space true
+
+    // Area emitter
+    emitter Point
+    {
+        angle 30
+        emission_rate 5
+        time_to_live 4
+        direction 0 0 1
+        velocity_min 1000
+        velocity_max 10000
+        colour_range_start 1 0.6 0.6
+        colour_range_end 0.5 0 0
+    }
+
+    // Fader
+    affector ColourFader
+    {
+        red -0.5
+        green -0.5
+        blue -0.5
+    }
+}
+
 particle_system Orewar/StarFlare
 {
     material Orewar/Flare

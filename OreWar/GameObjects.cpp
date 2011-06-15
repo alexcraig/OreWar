@@ -678,8 +678,7 @@ void GameArena::updatePhysics(Real timeElapsed)
 
 	// Deal fatal damage to any entity that collides with a celestial body
 	for(std::vector<CelestialBody * >::iterator bodyIter =  m_bodies.begin(); 
-		bodyIter != m_bodies.end();
-		bodyIter++) 
+		bodyIter != m_bodies.end(); ) 
 	{
 		if((*bodyIter)->phys()->checkCollision(*(m_playerShip->phys()))) {
 			m_playerShip->inflictDamage(500);
@@ -703,6 +702,57 @@ void GameArena::updatePhysics(Real timeElapsed)
 			} else {
 				shipIter++;
 			}
+		}
+
+		bool gotCollision = false;
+
+		for(std::vector<CelestialBody * >::iterator colBodyIter =  m_bodies.begin(); 
+			colBodyIter != m_bodies.end(); )
+		{
+			if((*bodyIter) != (*colBodyIter)
+				&& (*bodyIter)->phys()->checkCollision(*(*colBodyIter)->phys())) {
+				// Two celestial bodies collided, destroy the smaller and generate 25
+				// random projectiles inside the remains of each
+				gotCollision = true;
+				Vector3 center;
+				Real radius;
+
+				if((*bodyIter)->radius() > (*colBodyIter)->radius()) {
+					radius = (*colBodyIter)->radius();
+					center = (*colBodyIter)->phys()->position();
+					bodyIter = destroyBody((*colBodyIter));
+
+					// Restart collision checking when a hit is found? Have to find
+					// a better way to do this whole thing
+					bodyIter = m_bodies.begin();
+				} else {
+					radius = (*bodyIter)->radius();
+					center = (*bodyIter)->phys()->position();
+					bodyIter = destroyBody((*bodyIter));
+				}
+
+				for(int i = 0; i < 20; i++) {
+					Real randAngle = Math::UnitRandom() * (2 * Math::PI);
+					Real randMu = Math::RangeRandom(-1, 1);
+					Vector3 pointOnUnitSphere = Vector3(
+						Math::Cos(randAngle) * Math::Sqrt(1 - Math::Sqr(randMu)),
+						randMu,
+						Math::Sin(randAngle) * Math::Sqrt(1 - Math::Sqr(randMu)));
+					Vector3 relOffset = pointOnUnitSphere * radius * Math::RangeRandom(0, 1);
+					
+					SphereCollisionObject projectilePhysics = SphereCollisionObject(500, 1, relOffset + center);
+					projectilePhysics.velocity(relOffset.normalisedCopy() * 10000);
+					addProjectile(Projectile(projectilePhysics, ObjectType::PLANET_CHUNK, 50));
+				}
+
+				break;
+			} else {
+				colBodyIter++;
+			}
+		}
+
+		if(!gotCollision) {
+			bodyIter++;
 		}
 	}
 
@@ -734,25 +784,46 @@ void GameArena::generateSolarSystem()
 	// Generate a star in the middle of the arena
 	CelestialBody * star = addBody(CelestialBody(ObjectType::STAR, 100000, 10000, Vector3(0, 0, 0)));
 	srand(time(NULL));
-	int numPlanets = rand() % 10 + 4;
+	Real totalDistance = 5000;
 
+	int numInnerPlanets = rand() % 5 + 3;
 	// Add a random number of planents
-	for(int i = 0; i < numPlanets; i++) {
-		// For each planet, generate a random distance, radius, speed, and number of moons
-		Real planet_radius = Math::RangeRandom(500, 4000);
-		Real distance = 10000 + Math::RangeRandom(0, 34000);
-		Real speed = Math::RangeRandom(2000, 15000);
+	for(int i = 0; i < numInnerPlanets; i++) {
+		totalDistance += Math::RangeRandom(4000, 7000);
+		Real planetRadius = Math::RangeRandom(500, 2000);
+		Real speed = Math::RangeRandom(2000, 8000);
 
-		CelestialBody * planet = addBody(CelestialBody(ObjectType::PLANET, 10000, planet_radius,
-			star, distance, speed));
+		CelestialBody * planet = addBody(CelestialBody(ObjectType::PLANET, 10000, planetRadius,
+			star, totalDistance, speed));
 
 		int numMoons = rand() % 3;
+		Real moonDistance = planetRadius * 0.3;
 		for(int j = 0; j < 2; j++) {
-			Real moon_radius = Math::RangeRandom(planet_radius * 0.1, planet_radius * 0.7);
-			distance = Math::RangeRandom(planet_radius * 0.5, planet_radius * 2);
-			speed = Math::RangeRandom(1, 3) * distance;
-			CelestialBody * moon = addBody(CelestialBody(ObjectType::MOON, 1000, moon_radius,
-				planet, distance, speed));
+			Real moonRadius = Math::RangeRandom(planetRadius * 0.1, planetRadius * 0.7);
+			moonDistance += Math::RangeRandom(planetRadius * 0.5, planetRadius * 1);
+			speed = Math::RangeRandom(1, 3) * moonDistance;
+			CelestialBody * moon = addBody(CelestialBody(ObjectType::MOON, 1000, moonRadius,
+				planet, moonDistance, speed));
+		}
+	}
+
+	int numOuterPlanets = rand() % 4 + 2;
+	for(int i = 0; i < numOuterPlanets; i++) {
+		totalDistance += Math::RangeRandom(8000, 14000);
+		Real planetRadius = Math::RangeRandom(2000, 8000);
+		Real speed = Math::RangeRandom(8000, 15000);
+
+		CelestialBody * planet = addBody(CelestialBody(ObjectType::PLANET, 10000, planetRadius,
+			star, totalDistance, speed));
+
+		int numMoons = rand() % 5 + 2;
+		Real moonDistance = planetRadius * 0.3;
+		for(int j = 0; j < 2; j++) {
+			Real moonRadius = Math::RangeRandom(planetRadius * 0.1, planetRadius * 0.3);
+			moonDistance += Math::RangeRandom(planetRadius * 0.2, planetRadius * 0.4);
+			speed = Math::RangeRandom(2, 4) * moonDistance;
+			CelestialBody * moon = addBody(CelestialBody(ObjectType::MOON, 1000, moonRadius,
+				planet, moonDistance, speed));
 		}
 	}
 }
