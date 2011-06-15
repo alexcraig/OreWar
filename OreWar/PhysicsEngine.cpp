@@ -167,13 +167,14 @@ void PhysicsObject::updatePhysics(Real timeElapsed)
 Constraint::Constraint(PhysicsObject * origin, PhysicsObject * target, bool rigid) :
 	m_origin(origin), m_target(target), 
 	m_distance(origin->displacement(*((BaseObject *)target)).length()),
+	m_rigidSpeed((origin->velocity() - target->velocity()).length()),
 	m_rigid(rigid)
 {
 }
 
 Constraint::Constraint(const Constraint& copy) :
 	m_origin(copy.m_origin), m_target(copy.m_target), m_distance(copy.m_distance),
-	m_rigid(copy.m_rigid)
+	m_rigidSpeed(copy.m_rigidSpeed), m_rigid(copy.m_rigid)
 {
 }
 
@@ -189,6 +190,9 @@ PhysicsObject * Constraint::getTarget()
 
 void Constraint::applyForces(Real timeElapsed)
 {
+	if(timeElapsed == 0) {
+		return;
+	}
 	// Spring based constraint
 	/*
 	Real distance = m_origin->displacement(*m_target).length();
@@ -206,16 +210,20 @@ void Constraint::applyForces(Real timeElapsed)
 
 	// Orbit constraint
 	Vector3 normalVector = m_target->displacement(*m_origin);
-	if(normalVector.length() > m_distance) {
+	if(isRigid() || normalVector.length() > m_distance) {
+		normalVector.normalise();
 		Plane normalPlane = Plane(normalVector, 0);
 		normalPlane.normalise();
-		Vector3 curVelocity = m_origin->velocity() - m_target->velocity();
-		Vector3 desiredVelocity =
-			isRigid() ?
-			normalPlane.projectVector(curVelocity) + m_target->velocity() :
-			(normalPlane.projectVector(curVelocity) + m_target->velocity()).normalisedCopy() * curVelocity.length();
+		Vector3 relVelocity = m_origin->velocity() - m_target->velocity();
+		Vector3 desiredVelocity;
+		if(isRigid()) {
+			m_origin->position(m_target->position() + (m_distance * normalVector));
+			desiredVelocity = (normalPlane.projectVector(relVelocity).normalisedCopy() * m_rigidSpeed) + m_target->velocity();
+		} else {
+			desiredVelocity = (normalPlane.projectVector(relVelocity) + m_target->velocity()).normalisedCopy() * relVelocity.length();
+		}
+
 		Vector3 velocityOffset = desiredVelocity - m_origin->velocity();
-	
 		m_origin->applyTempForce(((velocityOffset * m_origin->mass()) / timeElapsed));
 	}
 }

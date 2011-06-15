@@ -348,6 +348,9 @@ public:
 	/** @return The list of pointers to all active ships */
 	std::vector<SpaceShip *> * npcShips();
 
+	/** @return The list of pointers to all celestial bodies */
+	std::vector<CelestialBody *> * bodies();
+
 	/** 
 	 * @return A pointer to the PhysicsObject produced by generating a projectile from the passed ship 
 	 * and stored in dynamic memory.

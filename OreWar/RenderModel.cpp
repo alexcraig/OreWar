@@ -69,7 +69,7 @@ void ConstraintRenderObject::createEffects()
 	mp_particle = sceneManager()->createParticleSystem(oss.str(), "Orewar/ConstraintStream");
 
 	if(mp_constraint->isRigid()) {
-		mp_particle->setEmitting(false);
+		mp_particle->setEmitting(true);
 	} else {
 		mp_particle->setEmitting(true);
 	}

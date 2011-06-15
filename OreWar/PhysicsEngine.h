@@ -171,6 +171,9 @@ private:
 	/** The distance between the two objects at the time of creation */
 	Real m_distance;
 
+	/** The relative speed that should be maintained in the case of a rigid connection */
+	Real m_rigidSpeed;
+
 	/** If set to true, the constaint will try to maintain orbit velocity at all costs */
 	bool m_rigid;
 

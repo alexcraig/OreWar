@@ -583,6 +583,10 @@ std::vector<SpaceShip *> * GameArena::npcShips() {
 	return & m_npcShips;
 }
 
+std::vector<CelestialBody *> * GameArena::bodies() {
+	return & m_bodies;
+}
+
 void GameArena::updatePhysics(Real timeElapsed)
 {
 	// Apply forces from constraints

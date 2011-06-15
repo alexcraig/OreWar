@@ -217,6 +217,7 @@ public:
 		if (m_timer > 1.0f / 60.0f) 
 		{
 			m_timer = 0;
+			Real speed = m_arena.bodies()->at(2)->phys()->velocity().length();
 			mp_fps->text("FPS: " + Ogre::StringConverter::toString(mp_renderWindow->getLastFPS())
 				+ " - RenderObjects: " + Ogre::StringConverter::toString(m_renderModel.getNumObjects())
 				+ " - Health: " + Ogre::StringConverter::toString(playerShip->health())
