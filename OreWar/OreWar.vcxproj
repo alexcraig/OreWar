@@ -13,6 +13,7 @@
   <ItemGroup>
     <ClCompile Include="GameObjects.cpp" />
     <ClCompile Include="Gorilla.cpp" />
+    <ClCompile Include="MemoryMgr.cpp" />
     <ClCompile Include="OgreMain.cpp" />
     <ClCompile Include="PhysicsEngine.cpp" />
     <ClCompile Include="RenderModel.cpp" />
@@ -20,6 +21,7 @@
   <ItemGroup>
     <ClInclude Include="GameObjects.h" />
     <ClInclude Include="Gorilla.h" />
+    <ClInclude Include="MemoryMgr.h" />
     <ClInclude Include="PhysicsEngine.h" />
     <ClInclude Include="RenderModel.h" />
   </ItemGroup>

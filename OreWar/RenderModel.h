@@ -7,6 +7,7 @@
 #include <OgreParticleSystem.h>
 #include "GameObjects.h"
 #include "Gorilla.h"
+#include "MemoryMgr.h"
 
 using namespace Ogre;
 
@@ -287,12 +288,16 @@ private:
 	/** The SceneManager for the scene represented by the RenderModel */
 	SceneManager * mp_mgr;
 
+	/** The memory pool which will handle all RenderObjects */
+	PagedMemoryPool m_memory;
+
 public:
 	/**
 	 * Constructs a RenderModel which observes the specified GameArena, and creates
-	 * scene nodes through the passed SceneManager.
+	 * scene nodes through the passed SceneManager. The specified number of inital pages
+	 * at the specified page size (in bytes) will be created in the memory manager.
 	 */
-	RenderModel(GameArena& model, SceneManager * mgr);
+	RenderModel(GameArena& model, SceneManager * mgr, int pageSize, int initPages);
 
 	/** Calls the updateEffects() method of all RenderObjects stored in the RenderModel's render list */
 	void updateRenderList(Real elapsedTime, Quaternion camOrientation);
@@ -309,7 +314,14 @@ public:
 	/** Called just before a Constraint is destroyed in the GameArena */
 	virtual void destroyedConstraint(Constraint * object);
 
+	/** @return THe number of render objects currently managed by this RenderModel */
 	int getNumObjects() const;
+
+	/** @reutnr The number of memory pages currently in use */
+	int numMemoryPages() const;
+
+	/** @return The index of the next memory page up for allocation */
+	int currentMemoryPage() const;
 };
 
 #endif

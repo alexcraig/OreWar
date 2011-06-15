@@ -6,6 +6,7 @@
 #include <OgreQuaternion.h>
 #include <OgreMath.h>
 #include "PhysicsEngine.h"
+#include "MemoryMgr.h"
 
 using namespace Ogre;
 
@@ -285,13 +286,19 @@ private:
 	/** A vector of pointers to GameArenaListener instances registered with the GameArena*/
 	std::vector<GameArenaListener *> m_listeners;
 
+	/** The paged memory pool which will store game objects */
+	PagedMemoryPool m_memory;
+
 	void notifyObjectCreation(GameObject * object);
 	void notifyObjectDestruction(GameObject * object);
 	void notifyConstraintCreation(Constraint * object);
 	void notifyConstraintDestruction(Constraint * object);
 public:
-	/** Constructs a new, empty GameArena with the specified size. */
-	GameArena(Real size);
+	/** 
+	 * Constructs a new, empty GameArena with the specified size and inital
+	 * number of memory pages at the set page size
+	 */
+	GameArena(Real size, int pageSize, int initPages);
 
 	/** Registers a GameArenaListener with the GameArena */
 	void addGameArenaListener(GameArenaListener * listener);
@@ -364,6 +371,12 @@ public:
 
 	/** Generates a randomly distributed solar system (collection of celestial objects) */
 	void generateSolarSystem();
+
+	/** The number of memory pages being used to store game objects */
+	int numMemoryPages();
+
+	/** @return The index of the next memory page up for allocation */
+	int currentMemoryPage() const;
 };
 
 #endif

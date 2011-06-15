@@ -440,8 +440,9 @@ void ProjectileRO::destroyEffects()
 // ========================================================================
 // RenderModel Implementation
 // ========================================================================
-RenderModel::RenderModel(GameArena& model, SceneManager * mgr) : m_model(model), m_physicsRenderList(),
-	mp_mgr(mgr)
+RenderModel::RenderModel(GameArena& model, SceneManager * mgr, int pageSize, int initPages) 
+	: m_model(model), m_physicsRenderList(),
+	mp_mgr(mgr), m_memory(pageSize, initPages)
 {
 	m_model.addGameArenaListener(this);
 }
@@ -468,19 +469,19 @@ void RenderModel::newGameObject(GameObject * object)
 {
 	PhysicsRenderObject * p_renderObj = NULL;
 	if(object->type() == ObjectType::SHIP) {
-		p_renderObj = new ShipRO((SpaceShip*)object, mp_mgr);
+		p_renderObj = m_memory.storeObject(ShipRO((SpaceShip*)object, mp_mgr));
 	} else if (object->type() == ObjectType::NPC_SHIP) {
-		p_renderObj = new NpcShipRO((SpaceShip*)object, mp_mgr);
+		p_renderObj = m_memory.storeObject(NpcShipRO((SpaceShip*)object, mp_mgr));
 	} else if (object->type() == ObjectType::PROJECTILE
 		|| object->type() == ObjectType::ANCHOR_PROJECTILE
 		|| object->type() == ObjectType::PLANET_CHUNK) 
 	{
-		p_renderObj = new ProjectileRO((Projectile*)object, mp_mgr);
+		p_renderObj = m_memory.storeObject(ProjectileRO((Projectile*)object, mp_mgr));
 	} else if (object->type() == ObjectType::STAR
 		|| object->type() == ObjectType::PLANET
 		|| object->type() == ObjectType::MOON) 
 	{
-		p_renderObj = new CelestialBodyRO((CelestialBody*)object, mp_mgr);
+		p_renderObj = m_memory.storeObject(CelestialBodyRO((CelestialBody*)object, mp_mgr));
 	}
 
 	p_renderObj->loadSceneResources();
@@ -496,7 +497,7 @@ void RenderModel::destroyedGameObject(GameObject * object)
 
 			if((*(*renderIter)).physics() == object->phys()) {
 			(*(*renderIter)).destroyEffects();
-			delete (*renderIter);
+			m_memory.destroyObject(*renderIter);
 			m_physicsRenderList.erase(std::remove(m_physicsRenderList.begin(), 
 				m_physicsRenderList.end(), (*renderIter)), m_physicsRenderList.end());
 			return;
@@ -506,7 +507,7 @@ void RenderModel::destroyedGameObject(GameObject * object)
 
 void RenderModel::newConstraint(Constraint * constraint)
 {
-	ConstraintRenderObject * p_renderObj = new ConstraintRenderObject(constraint, mp_mgr);
+	ConstraintRenderObject * p_renderObj = m_memory.storeObject(ConstraintRenderObject(constraint, mp_mgr));
 
 	p_renderObj->loadSceneResources();
 	p_renderObj->createEffects();
@@ -521,7 +522,7 @@ void RenderModel::destroyedConstraint(Constraint * constraint)
 
 		if((*(*renderIter)).constraint() == constraint) {
 			(*(*renderIter)).destroyEffects();
-			delete (*renderIter);
+			m_memory.destroyObject(*renderIter);
 			m_constraintRenderList.erase(std::remove(m_constraintRenderList.begin(), 
 				m_constraintRenderList.end(), (*renderIter)), m_constraintRenderList.end());
 			return;
@@ -532,4 +533,12 @@ void RenderModel::destroyedConstraint(Constraint * constraint)
 int RenderModel::getNumObjects() const
 {
 	return m_physicsRenderList.size() + m_constraintRenderList.size();
+}
+
+int RenderModel::numMemoryPages() const {
+	return m_memory.numPages();
+}
+
+int RenderModel::currentMemoryPage() const {
+	return m_memory.currentPage();
 }

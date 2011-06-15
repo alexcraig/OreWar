@@ -360,8 +360,8 @@ void SpaceShip::updatePhysics(Real timeElapsed)
 // ========================================================================
 // GameArena Implementation
 // ========================================================================
-GameArena::GameArena(Real size) : m_arenaSize(size), m_playerShip(NULL), m_npcShips(), m_projectiles(),
-	m_bodies(), m_constraints(), m_listeners()
+GameArena::GameArena(Real size, int pageSize, int initPages) : m_arenaSize(size), m_playerShip(NULL), m_npcShips(), m_projectiles(),
+	m_bodies(), m_constraints(), m_listeners(), m_memory(pageSize, initPages)
 {
 }
 
@@ -422,7 +422,7 @@ Real GameArena::size() const {
 SpaceShip * GameArena::setPlayerShip(const SpaceShip& ship) {
 	if(m_playerShip != NULL) {
 		notifyObjectDestruction(m_playerShip);
-		delete m_playerShip;
+		m_memory.destroyObject(&m_playerShip);
 		m_playerShip = NULL;
 	}
 
@@ -436,7 +436,7 @@ SpaceShip * GameArena::setPlayerShip(const SpaceShip& ship) {
 
 SpaceShip * GameArena::addNpcShip(const SpaceShip& ship)
 {
-	SpaceShip * p_ship = new SpaceShip(ship);
+	SpaceShip * p_ship = m_memory.storeObject(ship);
 	m_npcShips.push_back(p_ship);
 	notifyObjectCreation(p_ship);
 	return p_ship;
@@ -444,7 +444,7 @@ SpaceShip * GameArena::addNpcShip(const SpaceShip& ship)
 
 Projectile * GameArena::addProjectile(const Projectile& projectile)
 {
-	Projectile * p_projectile = new Projectile(projectile);
+	Projectile * p_projectile = m_memory.storeObject(projectile);
 	m_projectiles.push_back(p_projectile);
 	notifyObjectCreation(p_projectile);
 	return p_projectile;
@@ -452,7 +452,7 @@ Projectile * GameArena::addProjectile(const Projectile& projectile)
 
 Constraint * GameArena::addConstraint(const Constraint& constraint)
 {
-	Constraint * p_constraint = new Constraint(constraint);
+	Constraint * p_constraint = m_memory.storeObject(constraint);
 	m_constraints.push_back(p_constraint);
 	notifyConstraintCreation(p_constraint);
 	return p_constraint;
@@ -460,7 +460,7 @@ Constraint * GameArena::addConstraint(const Constraint& constraint)
 
 CelestialBody * GameArena::addBody(const CelestialBody& body)
 {
-	CelestialBody * p_body = new CelestialBody(body);
+	CelestialBody * p_body = m_memory.storeObject(body);
 	if(p_body->hasCenter()) {
 		addConstraint(p_body->constraint());
 	}
@@ -492,7 +492,7 @@ std::vector<CelestialBody * >::iterator GameArena::destroyBody(CelestialBody * b
 			}
 
 			notifyObjectDestruction(body);
-			delete body;
+			m_memory.destroyObject(body);
 			return m_bodies.erase(iter);
 		}
 	}
@@ -509,7 +509,7 @@ std::vector<Constraint * >::iterator GameArena::destroyConstraint(Constraint * c
 	{
 		if(*iter == constraint) {
 			notifyConstraintDestruction(constraint);
-			delete constraint;
+			m_memory.destroyObject(constraint);
 			return m_constraints.erase(iter);
 		}
 	}
@@ -526,7 +526,7 @@ std::vector<Projectile * >::iterator GameArena::destroyProjectile(Projectile * p
 	{
 		if(*iter == projectile) {
 			notifyObjectDestruction(projectile);
-			delete projectile;
+			m_memory.destroyObject(projectile);
 			return m_projectiles.erase(iter);
 		}
 	}
@@ -556,7 +556,7 @@ std::vector<SpaceShip * >::iterator GameArena::destroyNpcShip(SpaceShip * npcShi
 				}
 			}
 			notifyObjectDestruction(npcShip);
-			delete npcShip;
+			m_memory.destroyObject(npcShip);
 			return m_npcShips.erase(iter);
 		}
 	}
@@ -826,4 +826,13 @@ void GameArena::generateSolarSystem()
 				planet, moonDistance, speed));
 		}
 	}
+}
+
+int GameArena::numMemoryPages() {
+	return m_memory.numPages();
+}
+
+int GameArena::currentMemoryPage() const 
+{
+	return m_memory.currentPage();
 }
