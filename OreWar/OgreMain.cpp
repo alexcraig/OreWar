@@ -19,14 +19,14 @@ public:
         : m_Keyboard(keyboard), m_mouse(mouse), m_rotateNode(mgr->getRootSceneNode()->createChildSceneNode()), m_cam(cam), 
 		m_camHeight(0), m_camOffset(0), m_arena(200000, 65536, 5), m_mgr(mgr),
 		m_thirdPersonCam(false), m_renderModel(m_arena, m_mgr, 65536, 5), mp_vp(cam->getViewport()), mp_fps(NULL), m_timer(0),
-		mp_renderWindow(renderWindow), m_con(NULL), m_camParticle(NULL), m_camNode(NULL),
+		mp_renderWindow(renderWindow), m_con(NULL), m_camParticle(NULL), m_camNode(NULL), m_camParticleNode(NULL),
 		mp_healthBar(NULL), mp_energyBar(NULL), mp_speedBar(NULL)
 	{
 		m_cam->setFarClipDistance(0);
 		m_arena.generateSolarSystem();
 
 		// Generate the keyboard testing entity and attach it to the listener's scene node
-		SpaceShip playerShip = SpaceShip(ObjectType::SHIP, 1, Vector3(0, 70000, 0), 15);
+		SpaceShip playerShip = SpaceShip(ObjectType::SHIP, 1, Vector3(20000, 40000, 20000), 15);
 		playerShip.addPlasmaCannon(PlasmaCannon());
 		playerShip.addAnchorLauncher(AnchorLauncher());
 		SpaceShip * p_playerShip = m_arena.setPlayerShip(playerShip);
@@ -36,7 +36,7 @@ public:
 		Gorilla::Screen * screen = gorilla->createScreen(mp_vp, "dejavu");
 		Gorilla::Layer * layer = screen->createLayer(10);
 
-		layer->createCaption(14, 5, 5, "OreWar Alpha v0.03");
+		layer->createCaption(14, 5, 5, "OreWar Alpha v0.04");
 		Gorilla::Rectangle * crosshair = layer->createRectangle(Vector2(mp_vp->getActualWidth() / 2.0f - 6, mp_vp->getActualHeight() / 2.0f - 6),
 			Vector2(12, 12));
 		crosshair->background_image("crosshair");
@@ -66,11 +66,12 @@ public:
 		mp_energyBar->border_colour(Gorilla::Colours::Orange);
 
 		m_camNode = m_mgr->getRootSceneNode()->createChildSceneNode();
+		m_camParticleNode = m_mgr->getRootSceneNode()->createChildSceneNode();
 		m_camNode->attachObject(m_cam);
 		m_cam->setPosition(0, 0, 0);
 		m_camParticle = m_mgr->createParticleSystem("CamStars", "Orewar/CamStarField");
 		m_camParticle->setEmitting(true);
-		m_camNode->attachObject(m_camParticle);
+		m_camParticleNode->attachObject(m_camParticle);
     }
  
     bool frameStarted(const FrameEvent& evt)
@@ -84,9 +85,9 @@ public:
 		for(int i = 0; i < m_arena.npcShips()->size() - 5; i++) {
 			// Add some NPC ships
 			SpaceShip npcShip = SpaceShip(ObjectType::NPC_SHIP, 1, 
-				Vector3(Math::RangeRandom(0, m_arena.size()),
-				Math::RangeRandom(0, m_arena.size()),
-				Math::RangeRandom(0, m_arena.size())),
+				Vector3(Math::RangeRandom(20000, 50000),
+				Math::RangeRandom(20000, 50000),
+				Math::RangeRandom(20000, 50000)),
 				5);
 			SphereCollisionObject * npcShipPhysics = npcShip.phys();
 			// npcShip.velocity(Vector3(0, 0, 0));
@@ -218,12 +219,12 @@ public:
 		{
 			m_timer = 0;
 			mp_fps->text("FPS: " + Ogre::StringConverter::toString(mp_renderWindow->getLastFPS())
-				// + " - RenderObjects: " + Ogre::StringConverter::toString(m_renderModel.getNumObjects())
+				+ " - RenderObjects: " + Ogre::StringConverter::toString(m_renderModel.getNumObjects())
 				// + " - Health: " + Ogre::StringConverter::toString(playerShip->health())
-				+ " - ModelMemPages: " + Ogre::StringConverter::toString(m_arena.numMemoryPages())
-				+ " - ModelCurPage: " + Ogre::StringConverter::toString(m_arena.currentMemoryPage())
-				+ " - RenderMemPages: " + Ogre::StringConverter::toString(m_renderModel.numMemoryPages())
-				+ " - RenderCurPage: " + Ogre::StringConverter::toString(m_renderModel.currentMemoryPage())
+				// + " - ModelMemPages: " + Ogre::StringConverter::toString(m_arena.numMemoryPages())
+				// + " - ModelCurPage: " + Ogre::StringConverter::toString(m_arena.currentMemoryPage())
+				// + " - RenderMemPages: " + Ogre::StringConverter::toString(m_renderModel.numMemoryPages())
+				// + " - RenderCurPage: " + Ogre::StringConverter::toString(m_renderModel.currentMemoryPage())
 				+ " - Speed: " + Ogre::StringConverter::toString(playerShipPhys->velocity().length())
 				//+ " - Force: " + Ogre::StringConverter::toString((playerShipPhys->sumForces() + playerShipPhys->sumTempForces()).length())
 				+ " - Normal: <" + Ogre::StringConverter::toString(playerShipPhys->normal().x)
@@ -248,6 +249,7 @@ public:
 			m_camNode->setPosition(playerShipPhys->position() + playerShipPhys->normal() * 80 - playerShipPhys->heading() * 200);
 			m_camNode->setOrientation(playerShipPhys->orientation());
 		}
+		m_camParticleNode->setPosition(playerShipPhys->position() + playerShipPhys->velocity());
 
         return !m_Keyboard->isKeyDown(OIS::KC_ESCAPE);
     }
@@ -271,6 +273,7 @@ private:
 	Constraint * m_con;
 	ParticleSystem * m_camParticle;
 	SceneNode * m_camNode;
+	SceneNode * m_camParticleNode;
 
 	Gorilla::Rectangle * mp_healthBar;
 	Gorilla::Rectangle * mp_energyBar;
@@ -395,7 +398,7 @@ private:
         Viewport *vp = mRoot->getAutoCreatedWindow()->addViewport(cam);
 		cam->setAspectRatio(Real(vp->getActualWidth()) / Real(vp->getActualHeight()));
 
-		// Add planes for the arena boundaries
+		// Add a sky box
 		mgr->setSkyBox(true, "Orewar/SpaceSkyBox", 40000, true);
     }
  

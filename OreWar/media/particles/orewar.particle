@@ -217,7 +217,7 @@ particle_system Orewar/PlasmaStream
         direction 0 0 1
         velocity_min 200
         velocity_max 400
-        colour_range_start 0 1 0
+        colour_range_start 0.9 1 0.9
         colour_range_end 0.4 0.8 0.4
     }
 
