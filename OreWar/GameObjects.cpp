@@ -714,20 +714,24 @@ void GameArena::updatePhysics(Real timeElapsed)
 				// Two celestial bodies collided, destroy the smaller and generate 25
 				// random projectiles inside the remains of each
 				gotCollision = true;
-				Vector3 center;
+				Vector3 center, centerVelocity;
 				Real radius;
 
 				if((*bodyIter)->radius() > (*colBodyIter)->radius()) {
 					radius = (*colBodyIter)->radius();
 					center = (*colBodyIter)->phys()->position();
+					centerVelocity = (*colBodyIter)->phys()->velocity();
 					bodyIter = destroyBody((*colBodyIter));
 
 					// Restart collision checking when a hit is found? Have to find
 					// a better way to do this whole thing
 					bodyIter = m_bodies.begin();
+
 				} else {
 					radius = (*bodyIter)->radius();
 					center = (*bodyIter)->phys()->position();
+					centerVelocity = (*bodyIter)->phys()->velocity();
+
 					bodyIter = destroyBody((*bodyIter));
 				}
 
@@ -741,7 +745,7 @@ void GameArena::updatePhysics(Real timeElapsed)
 					Vector3 relOffset = pointOnUnitSphere * radius * Math::RangeRandom(0, 1);
 					
 					SphereCollisionObject projectilePhysics = SphereCollisionObject(500, 1, relOffset + center);
-					projectilePhysics.velocity(relOffset.normalisedCopy() * 10000);
+					projectilePhysics.velocity(relOffset.normalisedCopy() * 4000 + centerVelocity);
 					addProjectile(Projectile(projectilePhysics, ObjectType::PLANET_CHUNK, 50));
 				}
 
@@ -786,6 +790,9 @@ void GameArena::generateSolarSystem()
 	srand(time(NULL));
 	Real totalDistance = 5000;
 
+	// TODO: This should be refactored to remove copy/pasting code
+
+	// Inner planets
 	int numInnerPlanets = rand() % 5 + 3;
 	// Add a random number of planents
 	for(int i = 0; i < numInnerPlanets; i++) {
@@ -807,6 +814,7 @@ void GameArena::generateSolarSystem()
 		}
 	}
 
+	// Outer planets - giants
 	int numOuterPlanets = rand() % 4 + 2;
 	for(int i = 0; i < numOuterPlanets; i++) {
 		totalDistance += Math::RangeRandom(8000, 14000);
@@ -820,6 +828,28 @@ void GameArena::generateSolarSystem()
 		Real moonDistance = planetRadius * 0.3;
 		for(int j = 0; j < 2; j++) {
 			Real moonRadius = Math::RangeRandom(planetRadius * 0.1, planetRadius * 0.3);
+			moonDistance += Math::RangeRandom(planetRadius * 0.2, planetRadius * 0.4);
+			speed = Math::RangeRandom(2, 4) * moonDistance;
+			CelestialBody * moon = addBody(CelestialBody(ObjectType::MOON, 1000, moonRadius,
+				planet, moonDistance, speed));
+		}
+	}
+
+	// Outer planets - tiny
+	int numTinyPlanets = rand() % 3;
+	totalDistance += Math::RangeRandom(8000, 12000);
+	for(int i = 0; i < numTinyPlanets; i++) {
+		totalDistance += Math::RangeRandom(8000, 14000);
+		Real planetRadius = Math::RangeRandom(500, 1500);
+		Real speed = Math::RangeRandom(20000, 25000);
+
+		CelestialBody * planet = addBody(CelestialBody(ObjectType::PLANET, 10000, planetRadius,
+			star, totalDistance, speed));
+
+		int numMoons = rand() % 2;
+		Real moonDistance = planetRadius * 0.3;
+		for(int j = 0; j < 2; j++) {
+			Real moonRadius = Math::RangeRandom(planetRadius * 0.8, planetRadius * 1.2);
 			moonDistance += Math::RangeRandom(planetRadius * 0.2, planetRadius * 0.4);
 			speed = Math::RangeRandom(2, 4) * moonDistance;
 			CelestialBody * moon = addBody(CelestialBody(ObjectType::MOON, 1000, moonRadius,

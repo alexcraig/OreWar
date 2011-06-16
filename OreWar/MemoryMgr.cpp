@@ -4,7 +4,7 @@
 // MemoryRecord Implementation
 // ========================================================================
 MemoryRecord::MemoryRecord(char * start, char * pageStart, int size)
-	: mp_pageStart(start), mp_start(pageStart), m_size(size)
+	: mp_pageStart(pageStart), mp_start(start), m_size(size)
 {
 }
 
@@ -34,11 +34,17 @@ int MemoryRecord::size() const
 // PagedMemoryPool Implementation
 // ========================================================================
 PagedMemoryPool::PagedMemoryPool(int pageSize, int initialPages)
-	: mp_pages(), m_records(), m_nextPage(0), m_pageSize(pageSize)
+	: mp_pages(), m_records(), m_nextPage(0), mp_nextByte(NULL), m_pageSize(pageSize)
 {
+	if(initialPages < 1) {
+		initialPages = 1;
+	}
+
 	for(int i = 0; i < initialPages; i++) {
 		addPage();
 	}
+
+	mp_nextByte = mp_pages[0];
 }
 
 void PagedMemoryPool::addPage()

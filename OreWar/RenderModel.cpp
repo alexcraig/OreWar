@@ -315,17 +315,29 @@ void CelestialBodyRO::createEffects()
 	if(mp_body->type() == ObjectType::STAR) {
 		mp_model->setMaterialName("Orewar/Star");
 	} else if(mp_body->type() == ObjectType::PLANET) {
-		if(mp_body->radius() > 5000) {
+
+		if(mp_body->radius() > 6000) {
 			mp_model->setMaterialName("Orewar/GasGiant");
+		} else if(mp_body->radius() > 3000) {
+			mp_model->setMaterialName("Orewar/GasGiantMid");
 		} else if(mp_body->radius() > 2000) {
 			mp_model->setMaterialName("Orewar/GasGiantSmall");
-		} else if(mp_body->radius() > 1000) {
+		} else if(mp_body->radius() > 1500) {
 			mp_model->setMaterialName("Orewar/Earth");
+		} else if(mp_body->radius() > 1000) {
+			mp_model->setMaterialName("Orewar/Mars");
 		} else {
 			mp_model->setMaterialName("Orewar/RockPlanet");
 		}
+
 	} if(mp_body->type() == ObjectType::MOON) {
-		mp_model->setMaterialName("Orewar/Moon");
+
+		if(rand() % 4 == 0) {
+			mp_model->setMaterialName("Orewar/Moon2");
+		} else {
+			mp_model->setMaterialName("Orewar/Moon");
+		}
+
 	}
 
 	mp_bodyNode->attachObject(mp_model);

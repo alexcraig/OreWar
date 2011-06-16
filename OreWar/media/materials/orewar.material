@@ -1,3 +1,19 @@
+material Orewar/Moon2
+{
+    receive_shadows on
+    
+     technique
+     {
+         pass
+         {
+            texture_unit
+            {
+                texture europa.png
+            }
+         }
+     }
+ }
+
 material Orewar/Moon
 {
     receive_shadows on
@@ -25,6 +41,22 @@ material Orewar/GasGiant
             texture_unit
             {
                 texture jupiter.png
+            }
+        }
+    }
+}
+
+material Orewar/GasGiantMid
+{
+    receive_shadows on
+
+    technique
+    {
+        pass
+        {
+            texture_unit
+            {
+                texture saturn.png
             }
         }
     }
@@ -65,18 +97,34 @@ material Orewar/RockPlanet
 material Orewar/Earth
 {
     receive_shadows on
-    
-     technique
-     {
-         pass
-         {
+
+    technique
+    {
+        pass
+        {
             texture_unit
             {
                 texture planetSurface.png
             }
-         }
-     }
- }
+        }
+    }
+}
+ 
+material Orewar/Mars
+{
+    receive_shadows on
+
+    technique
+    {
+        pass
+        {
+            texture_unit
+            {
+                texture mars.png
+            }
+        }
+    }
+}
 
 material Orewar/Star
 {

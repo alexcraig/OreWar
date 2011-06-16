@@ -185,8 +185,8 @@ particle_system Orewar/Anchor
         direction 0 0 1
         velocity_min 100
         velocity_max 150
-        colour_range_start 1 0 0
-        colour_range_end 0.7 0.2 0.2
+        colour_range_start 1 1 1
+        colour_range_end 0.2 0.2 0.7
     }
 
     // Fader

@@ -59,6 +59,9 @@ private:
 	/** The index of the next page that should be used for allocation */
 	int m_nextPage;
 
+	/** The next byte that should be considered for allocation */
+	char * mp_nextByte;
+
 	/** The size of pages that should be batch allocated (in bytes) */
 	int m_pageSize;
 
@@ -93,37 +96,57 @@ public:
 			return NULL;
 		}
 
-		m_nextPage = (m_nextPage + 1) % mp_pages.size();
-
 		int pageIndex = m_nextPage;
+		bool firstAllocation = true;
+
 		for(int i = 0; i < mp_pages.size(); i++) {
 			int freeSpace = 0;
-			char * curByte = mp_pages[pageIndex];
+			char * curByte;
+			
+			if(firstAllocation) {
+				curByte = mp_nextByte;
+				firstAllocation = false;
+			} else {
+				curByte = mp_pages[pageIndex];
+			}
 			
 			bool foundRecord = false;
 			for(std::vector<MemoryRecord>::iterator recordIter = m_records[pageIndex].begin(); 
 				recordIter != m_records[pageIndex].end();
 				recordIter++)
 			{
-				if((*recordIter).page() == mp_pages[pageIndex]) {
-					foundRecord = true;
-					int freeSpace = (*recordIter).startAddress() - curByte;
-					if(requiredSpace <= freeSpace) {
-						T * newT = new (curByte) T(object);
-						addMemoryRecord(pageIndex, MemoryRecord(mp_pages[pageIndex], curByte, requiredSpace));
-						return newT;
-					} else {
-						curByte = (*recordIter).startAddress() + (*recordIter).size();
-					}
+				foundRecord = true;
+				int freeSpace = (*recordIter).startAddress() - curByte;
+				if(requiredSpace <= freeSpace) {
+					T * newT = new (curByte) T(object);
+					addMemoryRecord(pageIndex, MemoryRecord(curByte, mp_pages[pageIndex], requiredSpace));
+					mp_nextByte = curByte + requiredSpace;
+					return newT;
+				} else {
+					curByte = (*recordIter).startAddress() + (*recordIter).size();
 				}
 			}
-			
+
 			if(!foundRecord) {
 				// Page must be empty
 				T * newT = new (curByte) T(object);
 				addMemoryRecord(pageIndex, MemoryRecord(curByte, curByte, requiredSpace));
+				mp_nextByte = curByte + requiredSpace;
 				return newT;
 			}
+
+			// Check for remaining space at the end of the page
+			int byteOffset = (curByte - ((char *)mp_pages[pageIndex]));
+			int remainingSpace = (m_pageSize - byteOffset);
+			if(remainingSpace > requiredSpace) {
+				T * newT = new (curByte) T(object);
+				addMemoryRecord(pageIndex, MemoryRecord(curByte, mp_pages[pageIndex], requiredSpace));
+				mp_nextByte = curByte + requiredSpace;
+				return newT;
+			}
+
+			// Page was full, start on the next one next time
+			m_nextPage = (m_nextPage + 1) % mp_pages.size();
 
 			pageIndex = (pageIndex + 1) % mp_pages.size();
 		}
@@ -133,6 +156,7 @@ public:
 		char * curByte = mp_pages.back();
 		T * newT = new (curByte) T(object);
 		addMemoryRecord(mp_pages.size() - 1, MemoryRecord(curByte, curByte, requiredSpace));
+		mp_nextByte = curByte + requiredSpace;
 		return newT;
 	}
 

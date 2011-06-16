@@ -17,8 +17,8 @@ class TestFrameListener : public FrameListener
 public:
 	TestFrameListener(OIS::Keyboard *keyboard, OIS::Mouse *mouse, SceneManager *mgr, Camera *cam, RenderWindow * renderWindow)
         : m_Keyboard(keyboard), m_mouse(mouse), m_rotateNode(mgr->getRootSceneNode()->createChildSceneNode()), m_cam(cam), 
-		m_camHeight(0), m_camOffset(0), m_arena(200000, 65536, 250), m_mgr(mgr),
-		m_thirdPersonCam(false), m_renderModel(m_arena, m_mgr, 65536, 150), mp_vp(cam->getViewport()), mp_fps(NULL), m_timer(0),
+		m_camHeight(0), m_camOffset(0), m_arena(200000, 65536, 5), m_mgr(mgr),
+		m_thirdPersonCam(false), m_renderModel(m_arena, m_mgr, 65536, 5), mp_vp(cam->getViewport()), mp_fps(NULL), m_timer(0),
 		mp_renderWindow(renderWindow), m_con(NULL), m_camParticle(NULL), m_camNode(NULL),
 		mp_healthBar(NULL), mp_energyBar(NULL), mp_speedBar(NULL)
 	{
@@ -26,7 +26,7 @@ public:
 		m_arena.generateSolarSystem();
 
 		// Generate the keyboard testing entity and attach it to the listener's scene node
-		SpaceShip playerShip = SpaceShip(ObjectType::SHIP, 1, Vector3(0, 50000, 0), 15);
+		SpaceShip playerShip = SpaceShip(ObjectType::SHIP, 1, Vector3(0, 70000, 0), 15);
 		playerShip.addPlasmaCannon(PlasmaCannon());
 		playerShip.addAnchorLauncher(AnchorLauncher());
 		SpaceShip * p_playerShip = m_arena.setPlayerShip(playerShip);
@@ -221,8 +221,9 @@ public:
 				// + " - RenderObjects: " + Ogre::StringConverter::toString(m_renderModel.getNumObjects())
 				// + " - Health: " + Ogre::StringConverter::toString(playerShip->health())
 				+ " - ModelMemPages: " + Ogre::StringConverter::toString(m_arena.numMemoryPages())
-				// + " - ModelCurPage: " + Ogre::StringConverter::toString(m_arena.currentMemoryPage())
+				+ " - ModelCurPage: " + Ogre::StringConverter::toString(m_arena.currentMemoryPage())
 				+ " - RenderMemPages: " + Ogre::StringConverter::toString(m_renderModel.numMemoryPages())
+				+ " - RenderCurPage: " + Ogre::StringConverter::toString(m_renderModel.currentMemoryPage())
 				+ " - Speed: " + Ogre::StringConverter::toString(playerShipPhys->velocity().length())
 				//+ " - Force: " + Ogre::StringConverter::toString((playerShipPhys->sumForces() + playerShipPhys->sumTempForces()).length())
 				+ " - Normal: <" + Ogre::StringConverter::toString(playerShipPhys->normal().x)
