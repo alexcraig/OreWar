@@ -113,13 +113,11 @@ public:
 
 		for(int i = 0; i < mp_pages.size(); i++) {
 			int freeSpace = 0;
-			char * curByte;
-			
-			if(firstAllocation) {
+
+			char * curByte = mp_pages[pageIndex];
+			if(firstAllocation && (curByte < mp_nextByte)) { // TODO: Figure out why this was breaking to start with
 				curByte = mp_nextByte;
 				firstAllocation = false;
-			} else {
-				curByte = mp_pages[pageIndex];
 			}
 			
 			bool foundRecord = false;

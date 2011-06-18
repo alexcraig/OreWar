@@ -359,6 +359,10 @@ void CelestialBodyRO::createEffects()
 		oss << "P";
 		mp_particles = sceneManager()->createParticleSystem(oss.str(), "Orewar/StarFlare");
 		mp_bodyNode->attachObject(mp_particles);
+	} else {
+		oss << "P";
+		mp_particles = sceneManager()->createParticleSystem(oss.str(), "Orewar/PlanetTrail");
+		mp_bodyNode->attachObject(mp_particles);
 	}
 }
 
@@ -369,10 +373,10 @@ void CelestialBodyRO::destroyEffects()
 	mp_bodyNode->detachAllObjects();
 	sceneManager()->destroyMovableObject(mp_model);
 	sceneManager()->destroySceneNode(mp_bodyNode);
+	sceneManager()->destroyParticleSystem(mp_particles);
 
 	if(mp_body->type() == ObjectType::STAR) {
 		sceneManager()->destroyLight(mp_pointLight);
-		sceneManager()->destroyParticleSystem(mp_particles);
 	}
 }
 

@@ -57,15 +57,16 @@ void PagedMemoryPool::addPage()
 
 void PagedMemoryPool::addMemoryRecord(int pageIndex, const MemoryRecord& record)
 {
-	int i = 0;
 	for(std::vector<MemoryRecord>::iterator recordIter = m_records[pageIndex].begin(); 
 			recordIter != m_records[pageIndex].end();
-			recordIter++, i++)
+			recordIter++)
 	{
 		if((*recordIter).startAddress() > record.startAddress()) {
+			/*
 			if(recordIter == m_records[pageIndex].begin()) {
 				m_records[pageIndex].insert(m_records[pageIndex].begin(), MemoryRecord(record));
 			}
+			*/
 
 			m_records[pageIndex].insert(recordIter, MemoryRecord(record));
 			return;

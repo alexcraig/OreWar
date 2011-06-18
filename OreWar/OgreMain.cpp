@@ -126,21 +126,21 @@ public:
 		// Clear all existing forces, and add keyboard forces
 		Real energyDrain = 10;
 		if(m_Keyboard->isKeyDown(OIS::KC_W)) {
-			playerShipPhys->applyTempForce(playerShipPhys->heading() * Real(2000));
+			playerShipPhys->applyTempForce(playerShipPhys->heading() * Real(3000));
 			// playerShip->drainEnergy(energyDrain * evt.timeSinceLastFrame);
 		}
 		if(m_Keyboard->isKeyDown(OIS::KC_S)) {
-			playerShipPhys->applyTempForce(playerShipPhys->heading() * Real(-2000));
+			playerShipPhys->applyTempForce(playerShipPhys->heading() * Real(-3000));
 			// playerShip->drainEnergy(energyDrain * evt.timeSinceLastFrame);
 		}
 		if(m_Keyboard->isKeyDown(OIS::KC_A)) {
 			playerShipPhys->applyTempForce((playerShipPhys->orientation() * Quaternion(Degree(90), Vector3::UNIT_Y)) 
-				* Vector3(0, 0, -1500));
+				* Vector3(0, 0, -2000));
 			// playerShip->drainEnergy(energyDrain * evt.timeSinceLastFrame);
 		}
 		if(m_Keyboard->isKeyDown(OIS::KC_D)) {
 			playerShipPhys->applyTempForce((playerShipPhys->orientation() * Quaternion(Degree(-90), Vector3::UNIT_Y)) 
-				* Vector3(0, 0, -1500));
+				* Vector3(0, 0, -2000));
 			// playerShip->drainEnergy(energyDrain * evt.timeSinceLastFrame);
 		}
 
