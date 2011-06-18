@@ -68,12 +68,36 @@ private:
 	/** The total number of bytes currently allocated */
 	int m_allocatedBytes;
 
-	/** Fetches a new page from memory (should be used when all pages are full) */
+	/** Allocates a new empty page from memory */
 	void addPage();
 
 	/** Adds a memory record to the saved list, ensuring ascending order of
 	 * address is maintained. */
-	void addMemoryRecord(int pageIndex, const MemoryRecord& record);
+	template <class T>
+	T * addMemoryRecord(const T & object, int objectSize, char * address, 
+		int pageIndex)
+	{
+		bool addedRecord = false;
+		for(std::vector<MemoryRecord>::iterator recordIter = m_records[pageIndex].begin(); 
+				recordIter != m_records[pageIndex].end();
+				recordIter++)
+		{
+			if((*recordIter).startAddress() > address) {
+				m_records[pageIndex].insert(recordIter, MemoryRecord(address, mp_pages[pageIndex], objectSize));
+				addedRecord = true;
+				break;
+			}
+		}
+
+		if(!addedRecord) {
+			m_records[pageIndex].insert(m_records[pageIndex].end(), MemoryRecord(address, mp_pages[pageIndex], objectSize));
+		}
+
+		mp_nextByte = address + objectSize;
+		m_allocatedBytes += objectSize;
+		T * newT = new (address) T(object);
+		return newT;
+	}
 
 public:
 	/** Constructor */
@@ -102,7 +126,7 @@ public:
 	{
 		// TODO: Should factor out the actual allocation once a position
 		// is found to avoid copypasta code
-		int requiredSpace = sizeof T;
+		int requiredSpace = (sizeof T);
 
 		if(requiredSpace > m_pageSize) {
 			return NULL;
@@ -115,47 +139,46 @@ public:
 			int freeSpace = 0;
 
 			char * curByte = mp_pages[pageIndex];
-			if(firstAllocation && (curByte < mp_nextByte)) { // TODO: Figure out why this was breaking to start with
+			
+			// TODO: Activating this optimization breaks everything...
+			// figure out why
+
+			if(firstAllocation) {
 				curByte = mp_nextByte;
 				firstAllocation = false;
 			}
 			
-			bool foundRecord = false;
+			int recordsProcessed = 0;
 			for(std::vector<MemoryRecord>::iterator recordIter = m_records[pageIndex].begin(); 
 				recordIter != m_records[pageIndex].end();
 				recordIter++)
 			{
-				foundRecord = true;
+				recordsProcessed++;
+				if(curByte > (*recordIter).startAddress()) {
+					if(recordsProcessed == m_records[pageIndex].size()) {
+						curByte = (*recordIter).startAddress() + (*recordIter).size();
+					}
+					continue;
+				}
+				
 				int freeSpace = (*recordIter).startAddress() - curByte;
 				if(requiredSpace <= freeSpace) {
-					addMemoryRecord(pageIndex, MemoryRecord(curByte, mp_pages[pageIndex], requiredSpace));
-					T * newT = new (curByte) T(object);
-					mp_nextByte = curByte + requiredSpace;
-					m_allocatedBytes += requiredSpace;
-					return newT;
+					return addMemoryRecord(object, requiredSpace, curByte, pageIndex);
 				} else {
 					curByte = (*recordIter).startAddress() + (*recordIter).size();
 				}
 			}
 
-			if(!foundRecord) {
+			if(recordsProcessed == 0) {
 				// Page must be empty
-				addMemoryRecord(pageIndex, MemoryRecord(curByte, curByte, requiredSpace));
-				T * newT = new (curByte) T(object);
-				mp_nextByte = curByte + requiredSpace;
-				m_allocatedBytes += requiredSpace;
-				return newT;
+				return addMemoryRecord(object, requiredSpace, curByte, pageIndex);
 			}
 
 			// Check for remaining space at the end of the page
 			int byteOffset = (curByte - ((char *)mp_pages[pageIndex]));
 			int remainingSpace = (m_pageSize - byteOffset);
 			if(remainingSpace > requiredSpace) {
-				addMemoryRecord(pageIndex, MemoryRecord(curByte, mp_pages[pageIndex], requiredSpace));
-				T * newT = new (curByte) T(object);
-				mp_nextByte = curByte + requiredSpace;
-				m_allocatedBytes += requiredSpace;
-				return newT;
+				return addMemoryRecord(object, requiredSpace, curByte, pageIndex);
 			}
 
 			// Page was full, start on the next one next time
@@ -167,11 +190,8 @@ public:
 		// No room available, add a page
 		addPage();
 		char * curByte = mp_pages.back();
-		addMemoryRecord(mp_pages.size() - 1, MemoryRecord(curByte, curByte, requiredSpace));
-		T * newT = new (curByte) T(object);
-		mp_nextByte = curByte + requiredSpace;
-		m_allocatedBytes += requiredSpace;
-		return newT;
+		m_nextPage = mp_pages.size() - 1;
+		return addMemoryRecord(object, requiredSpace, curByte, m_nextPage);
 	}
 
 	/**

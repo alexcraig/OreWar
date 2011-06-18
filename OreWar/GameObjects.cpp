@@ -379,7 +379,7 @@ GameArena::GameArena(Real size, int pageSize, int initPages) : m_arenaSize(size)
 
 GameArena::~GameArena() 
 {
-	// TODO: Deallocate all memory
+	
 }
 
 void GameArena::notifyObjectCreation(GameObject * object)

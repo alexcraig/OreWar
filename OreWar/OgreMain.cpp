@@ -17,8 +17,8 @@ class TestFrameListener : public FrameListener
 public:
 	TestFrameListener(OIS::Keyboard *keyboard, OIS::Mouse *mouse, SceneManager *mgr, Camera *cam, RenderWindow * renderWindow)
         : m_Keyboard(keyboard), m_mouse(mouse), m_rotateNode(mgr->getRootSceneNode()->createChildSceneNode()), m_cam(cam), 
-		m_camHeight(0), m_camOffset(0), m_arena(200000, 16384, 5), m_mgr(mgr),
-		m_thirdPersonCam(false), m_renderModel(m_arena, m_mgr, 16384, 5), mp_vp(cam->getViewport()), mp_fps(NULL), m_timer(0),
+		m_camHeight(0), m_camOffset(0), m_arena(200000, 2048, 10), m_mgr(mgr),
+		m_thirdPersonCam(false), m_renderModel(m_arena, m_mgr, 2048, 10), mp_vp(cam->getViewport()), mp_fps(NULL), m_timer(0),
 		mp_renderWindow(renderWindow), m_con(NULL), m_camParticle(NULL), m_camNode(NULL), m_camParticleNode(NULL),
 		mp_healthBar(NULL), mp_energyBar(NULL), mp_speedBar(NULL)
 	{
@@ -222,14 +222,14 @@ public:
 			mp_fps->text("FPS: " + Ogre::StringConverter::toString(mp_renderWindow->getLastFPS())
 				+ " - RenderObjects: " + Ogre::StringConverter::toString(m_renderModel.getNumObjects())
 				// + " - Health: " + Ogre::StringConverter::toString(playerShip->health())
-				// + " - ModelMemPages: " + Ogre::StringConverter::toString(m_arena.memoryManager()->numMemoryPages())
+				+ " - ModelMemPages: " + Ogre::StringConverter::toString(m_arena.memoryManager()->numPages())
 				+ " - ModelAllocBytes: " + Ogre::StringConverter::toString(m_arena.memoryManager()->allocatedBytes())
 				+ " - ModelTotalBytes: " + Ogre::StringConverter::toString(m_arena.memoryManager()->totalBytes())
-				// + " - ModelCurPage: " + Ogre::StringConverter::toString(m_arena.memoryManager()->currentMemoryPage())
-				// + " - RenderMemPages: " + Ogre::StringConverter::toString(m_renderModel.memoryManager()->numMemoryPages())
+				// + " - ModelCurPage: " + Ogre::StringConverter::toString(m_arena.memoryManager()->currentPage())
+				// + " - RenderMemPages: " + Ogre::StringConverter::toString(m_renderModel.memoryManager()->numPages())
 				+ " - RenderAllocBytes: " + Ogre::StringConverter::toString(m_renderModel.memoryManager()->allocatedBytes())
 				+ " - RenderTotalBytes: " + Ogre::StringConverter::toString(m_renderModel.memoryManager()->totalBytes())
-				// + " - RenderCurPage: " + Ogre::StringConverter::toString(m_renderModel.memoryManager()->currentMemoryPage())
+				// + " - RenderCurPage: " + Ogre::StringConverter::toString(m_renderModel.memoryManager()->currentPage())
 				+ " - Speed: " + Ogre::StringConverter::toString(playerShipPhys->velocity().length())
 				//+ " - Force: " + Ogre::StringConverter::toString((playerShipPhys->sumForces() + playerShipPhys->sumTempForces()).length())
 				+ " - Normal: <" + Ogre::StringConverter::toString(playerShipPhys->normal().x)

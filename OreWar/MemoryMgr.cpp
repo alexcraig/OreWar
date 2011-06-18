@@ -55,26 +55,6 @@ void PagedMemoryPool::addPage()
 	m_records.push_back(std::vector<MemoryRecord>());
 }
 
-void PagedMemoryPool::addMemoryRecord(int pageIndex, const MemoryRecord& record)
-{
-	for(std::vector<MemoryRecord>::iterator recordIter = m_records[pageIndex].begin(); 
-			recordIter != m_records[pageIndex].end();
-			recordIter++)
-	{
-		if((*recordIter).startAddress() > record.startAddress()) {
-			/*
-			if(recordIter == m_records[pageIndex].begin()) {
-				m_records[pageIndex].insert(m_records[pageIndex].begin(), MemoryRecord(record));
-			}
-			*/
-
-			m_records[pageIndex].insert(recordIter, MemoryRecord(record));
-			return;
-		}
-	}
-	m_records[pageIndex].insert(m_records[pageIndex].end(), MemoryRecord(record));
-}
-
 int PagedMemoryPool::numPages() const 
 {
 	return mp_pages.size();
@@ -89,7 +69,6 @@ int PagedMemoryPool::allocatedBytes() const
 {
 	return m_allocatedBytes;
 }
-
 
 int PagedMemoryPool::totalBytes() const
 {
