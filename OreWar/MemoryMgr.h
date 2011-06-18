@@ -65,6 +65,9 @@ private:
 	/** The size of pages that should be batch allocated (in bytes) */
 	int m_pageSize;
 
+	/** The total number of bytes currently allocated */
+	int m_allocatedBytes;
+
 	/** Fetches a new page from memory (should be used when all pages are full) */
 	void addPage();
 
@@ -82,6 +85,13 @@ public:
 	/** @return The index of the page next up for allocation */
 	int currentPage() const;
 
+	/** @return The number of bytes currently allocated through this memory pool */
+	int allocatedBytes() const;
+
+	/** @return The total number of bytes allocated from the OS (not allocated from
+	 * this memory pool */
+	int totalBytes() const;
+
 	/**
 	 * Creates a copy of the passed object in the paged memory pool,
 	 * and returns a pointer to the newly stored copy. Returns NULL
@@ -90,6 +100,8 @@ public:
 	template <class T>
 	inline T * storeObject(const T & object)
 	{
+		// TODO: Should factor out the actual allocation once a position
+		// is found to avoid copypasta code
 		int requiredSpace = sizeof T;
 
 		if(requiredSpace > m_pageSize) {
@@ -121,6 +133,7 @@ public:
 					T * newT = new (curByte) T(object);
 					addMemoryRecord(pageIndex, MemoryRecord(curByte, mp_pages[pageIndex], requiredSpace));
 					mp_nextByte = curByte + requiredSpace;
+					m_allocatedBytes += requiredSpace;
 					return newT;
 				} else {
 					curByte = (*recordIter).startAddress() + (*recordIter).size();
@@ -132,6 +145,7 @@ public:
 				T * newT = new (curByte) T(object);
 				addMemoryRecord(pageIndex, MemoryRecord(curByte, curByte, requiredSpace));
 				mp_nextByte = curByte + requiredSpace;
+				m_allocatedBytes += requiredSpace;
 				return newT;
 			}
 
@@ -142,6 +156,7 @@ public:
 				T * newT = new (curByte) T(object);
 				addMemoryRecord(pageIndex, MemoryRecord(curByte, mp_pages[pageIndex], requiredSpace));
 				mp_nextByte = curByte + requiredSpace;
+				m_allocatedBytes += requiredSpace;
 				return newT;
 			}
 
@@ -157,6 +172,7 @@ public:
 		T * newT = new (curByte) T(object);
 		addMemoryRecord(mp_pages.size() - 1, MemoryRecord(curByte, curByte, requiredSpace));
 		mp_nextByte = curByte + requiredSpace;
+		m_allocatedBytes += requiredSpace;
 		return newT;
 	}
 
@@ -180,6 +196,7 @@ public:
 			{
 				if((char *)object == (*innerRecordIter).startAddress()) {
 					object->~T();
+					m_allocatedBytes -= (*innerRecordIter).size();
 					(*recordIter).erase(innerRecordIter);
 					return true;
 				}

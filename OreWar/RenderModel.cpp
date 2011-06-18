@@ -547,10 +547,6 @@ int RenderModel::getNumObjects() const
 	return m_physicsRenderList.size() + m_constraintRenderList.size();
 }
 
-int RenderModel::numMemoryPages() const {
-	return m_memory.numPages();
-}
-
-int RenderModel::currentMemoryPage() const {
-	return m_memory.currentPage();
+PagedMemoryPool RenderModel::memoryManager() {
+	return m_memory;
 }

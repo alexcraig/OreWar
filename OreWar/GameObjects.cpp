@@ -858,11 +858,6 @@ void GameArena::generateSolarSystem()
 	}
 }
 
-int GameArena::numMemoryPages() {
-	return m_memory.numPages();
-}
-
-int GameArena::currentMemoryPage() const 
-{
-	return m_memory.currentPage();
+PagedMemoryPool GameArena::memoryManager() {
+	return m_memory;
 }

@@ -372,11 +372,8 @@ public:
 	/** Generates a randomly distributed solar system (collection of celestial objects) */
 	void generateSolarSystem();
 
-	/** The number of memory pages being used to store game objects */
-	int numMemoryPages();
-
-	/** @return The index of the next memory page up for allocation */
-	int currentMemoryPage() const;
+	/** @return The memory manager used by this GameArena */
+	PagedMemoryPool memoryManager();
 };
 
 #endif

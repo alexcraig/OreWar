@@ -86,7 +86,7 @@ public:
 			// Add some NPC ships
 			SpaceShip npcShip = SpaceShip(ObjectType::NPC_SHIP, 1, 
 				Vector3(Math::RangeRandom(20000, 50000),
-				Math::RangeRandom(20000, 50000),
+				Math::RangeRandom(20000, 50000), 
 				Math::RangeRandom(20000, 50000)),
 				5);
 			SphereCollisionObject * npcShipPhysics = npcShip.phys();
@@ -221,10 +221,14 @@ public:
 			mp_fps->text("FPS: " + Ogre::StringConverter::toString(mp_renderWindow->getLastFPS())
 				+ " - RenderObjects: " + Ogre::StringConverter::toString(m_renderModel.getNumObjects())
 				// + " - Health: " + Ogre::StringConverter::toString(playerShip->health())
-				// + " - ModelMemPages: " + Ogre::StringConverter::toString(m_arena.numMemoryPages())
-				// + " - ModelCurPage: " + Ogre::StringConverter::toString(m_arena.currentMemoryPage())
-				// + " - RenderMemPages: " + Ogre::StringConverter::toString(m_renderModel.numMemoryPages())
-				// + " - RenderCurPage: " + Ogre::StringConverter::toString(m_renderModel.currentMemoryPage())
+				// + " - ModelMemPages: " + Ogre::StringConverter::toString(m_arena.memoryManager().numMemoryPages())
+				+ " - ModelAllocBytes: " + Ogre::StringConverter::toString(m_arena.memoryManager().allocatedBytes())
+				+ " - ModelTotalBytes: " + Ogre::StringConverter::toString(m_arena.memoryManager().totalBytes())
+				// + " - ModelCurPage: " + Ogre::StringConverter::toString(m_arena.memoryManager().currentMemoryPage())
+				// + " - RenderMemPages: " + Ogre::StringConverter::toString(m_renderModel.memoryManager().numMemoryPages())
+				+ " - RenderAllocBytes: " + Ogre::StringConverter::toString(m_renderModel.memoryManager().allocatedBytes())
+				+ " - RenderTotalBytes: " + Ogre::StringConverter::toString(m_renderModel.memoryManager().totalBytes())
+				// + " - RenderCurPage: " + Ogre::StringConverter::toString(m_renderModel.memoryManager().currentMemoryPage())
 				+ " - Speed: " + Ogre::StringConverter::toString(playerShipPhys->velocity().length())
 				//+ " - Force: " + Ogre::StringConverter::toString((playerShipPhys->sumForces() + playerShipPhys->sumTempForces()).length())
 				+ " - Normal: <" + Ogre::StringConverter::toString(playerShipPhys->normal().x)

@@ -317,11 +317,8 @@ public:
 	/** @return THe number of render objects currently managed by this RenderModel */
 	int getNumObjects() const;
 
-	/** @reutnr The number of memory pages currently in use */
-	int numMemoryPages() const;
-
-	/** @return The index of the next memory page up for allocation */
-	int currentMemoryPage() const;
+	/** @return The memory manager used by this RenderModel */
+	PagedMemoryPool memoryManager();
 };
 
 #endif

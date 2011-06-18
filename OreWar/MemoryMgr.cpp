@@ -34,7 +34,8 @@ int MemoryRecord::size() const
 // PagedMemoryPool Implementation
 // ========================================================================
 PagedMemoryPool::PagedMemoryPool(int pageSize, int initialPages)
-	: mp_pages(), m_records(), m_nextPage(0), mp_nextByte(NULL), m_pageSize(pageSize)
+	: mp_pages(), m_records(), m_nextPage(0), mp_nextByte(NULL), m_pageSize(pageSize),
+	m_allocatedBytes(0)
 {
 	if(initialPages < 1) {
 		initialPages = 1;
@@ -73,10 +74,23 @@ void PagedMemoryPool::addMemoryRecord(int pageIndex, const MemoryRecord& record)
 	m_records[pageIndex].insert(m_records[pageIndex].end(), MemoryRecord(record));
 }
 
-int PagedMemoryPool::numPages() const {
+int PagedMemoryPool::numPages() const 
+{
 	return mp_pages.size();
 }
 
-int PagedMemoryPool::currentPage() const {
+int PagedMemoryPool::currentPage() const 
+{
 	return m_nextPage;
+}
+
+int PagedMemoryPool::allocatedBytes() const
+{
+	return m_allocatedBytes;
+}
+
+
+int PagedMemoryPool::totalBytes() const
+{
+	return m_pageSize * mp_pages.size();
 }
