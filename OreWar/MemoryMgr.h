@@ -130,8 +130,8 @@ public:
 				foundRecord = true;
 				int freeSpace = (*recordIter).startAddress() - curByte;
 				if(requiredSpace <= freeSpace) {
-					T * newT = new (curByte) T(object);
 					addMemoryRecord(pageIndex, MemoryRecord(curByte, mp_pages[pageIndex], requiredSpace));
+					T * newT = new (curByte) T(object);
 					mp_nextByte = curByte + requiredSpace;
 					m_allocatedBytes += requiredSpace;
 					return newT;
@@ -142,8 +142,8 @@ public:
 
 			if(!foundRecord) {
 				// Page must be empty
-				T * newT = new (curByte) T(object);
 				addMemoryRecord(pageIndex, MemoryRecord(curByte, curByte, requiredSpace));
+				T * newT = new (curByte) T(object);
 				mp_nextByte = curByte + requiredSpace;
 				m_allocatedBytes += requiredSpace;
 				return newT;
@@ -153,8 +153,8 @@ public:
 			int byteOffset = (curByte - ((char *)mp_pages[pageIndex]));
 			int remainingSpace = (m_pageSize - byteOffset);
 			if(remainingSpace > requiredSpace) {
-				T * newT = new (curByte) T(object);
 				addMemoryRecord(pageIndex, MemoryRecord(curByte, mp_pages[pageIndex], requiredSpace));
+				T * newT = new (curByte) T(object);
 				mp_nextByte = curByte + requiredSpace;
 				m_allocatedBytes += requiredSpace;
 				return newT;
@@ -169,8 +169,8 @@ public:
 		// No room available, add a page
 		addPage();
 		char * curByte = mp_pages.back();
-		T * newT = new (curByte) T(object);
 		addMemoryRecord(mp_pages.size() - 1, MemoryRecord(curByte, curByte, requiredSpace));
+		T * newT = new (curByte) T(object);
 		mp_nextByte = curByte + requiredSpace;
 		m_allocatedBytes += requiredSpace;
 		return newT;

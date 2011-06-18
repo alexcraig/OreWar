@@ -25,8 +25,10 @@ enum ObjectType { SHIP, NPC_SHIP, PROJECTILE, ANCHOR_PROJECTILE, PLANET_CHUNK, S
 class GameObject
 {
 private:
-	// TODO: The object type should probably move into this class and out
-	//	     of the physics subsystem.
+	/** The memory manager that should be used for any heap allocation required
+	 * by this object */
+	PagedMemoryPool * mp_memory;
+
 	SphereCollisionObject * mp_physModel;
 
 	Real m_maxHealth;
@@ -47,8 +49,8 @@ private:
 
 
 public: 
-	GameObject(const SphereCollisionObject& object, ObjectType type, Real maxHealth, 
-		Real maxEnergy, Real energyRechargeRate);
+	GameObject(const SphereCollisionObject& object, ObjectType type, 
+		Real maxHealth, Real maxEnergy, Real energyRechargeRate, PagedMemoryPool * memoryMgr);
 
 	GameObject(const GameObject& copy);
 	~GameObject();
@@ -58,6 +60,9 @@ public:
 
 	/** @return The type of the object (used for differentiating among derived classes) */
 	ObjectType type() const;
+
+	/** @return The memory manager used by this game object for any required heap allocation */
+	PagedMemoryPool * memoryManager() const;
 
 	Real health() const;
 	Real maxHealth() const;
@@ -81,7 +86,8 @@ private:
 	Real m_damage;
 
 public:
-	Projectile(const SphereCollisionObject& physModel, ObjectType type, Real damage);
+	Projectile(const SphereCollisionObject& physModel, ObjectType type, Real damage,
+		PagedMemoryPool * memoryMgr);
 
 	void updatePhysics(Real timeElapsed);
 
@@ -92,6 +98,13 @@ public:
 class Weapon
 {
 private:
+	// TODO: Reconsider having the memory manager here, might just want to pass
+	// a GameArena to fireWeapon
+
+	/** The memory manager that should be used for any heap allocation required
+	 * by this object */
+	PagedMemoryPool * mp_memory;
+
 	/** The time which should elapse between projectile generations */
 	Real m_reloadTime;
 
@@ -105,11 +118,14 @@ private:
 
 public:
 	/** Generates a new (loaded) weapon with the specified reload time */
-	Weapon(Real reloadTime, Real m_energyCost);
+	Weapon(Real reloadTime, Real m_energyCost, PagedMemoryPool * memoryMgr);
 
 	Weapon(const Weapon& copy);
 	
 	virtual ~Weapon();
+
+	/** @return The memory manager used by this weapon to allocate projectiles */
+	PagedMemoryPool * memoryManager() const;
 
 	/** @return True if the weapon is loaded (reload time has expired since last shot) */
 	bool canShoot() const;
@@ -132,7 +148,7 @@ private:
 	bool m_shootLeft;
 
 public:
-	PlasmaCannon();
+	PlasmaCannon(PagedMemoryPool * memoryMgr);
 
 	PlasmaCannon(const PlasmaCannon& copy);
 
@@ -143,7 +159,7 @@ public:
 class AnchorLauncher : public Weapon
 {
 public:
-	AnchorLauncher();
+	AnchorLauncher(PagedMemoryPool * memorygMr);
 
 	AnchorLauncher(const AnchorLauncher& copy);
 
@@ -168,7 +184,7 @@ public:
 	 * Constructs a CelestialBody with no orbital physics
 	 * type should be one of: ObjectType::STAR, MOON, or PLANET
 	 */
-	CelestialBody(ObjectType type, Real mass, Real radius, Vector3 position);
+	CelestialBody(ObjectType type, Real mass, Real radius, Vector3 position, PagedMemoryPool * memoryMgr);
 
 	/**
 	 * Constructs a CelestialBody in a random position in orbit around the
@@ -176,7 +192,7 @@ public:
 	 * to center) and speed.
 	 */
 	CelestialBody(ObjectType type, Real mass, Real radius, CelestialBody * center, 
-		Real distance, Real speed);
+		Real distance, Real speed, PagedMemoryPool * memoryMgr);
 
 	/** Copy Constructor */
 	CelestialBody(const CelestialBody & copy);
@@ -210,13 +226,13 @@ private:
 
 public:
 	/** Construct a SpaceShip with the specified mass and size at the specified position */
-	SpaceShip(ObjectType type, Real mass, Vector3 position, Real energyRecharge);
+	SpaceShip(ObjectType type, Real mass, Vector3 position, Real energyRecharge, PagedMemoryPool * memoryMgr);
 
 	/** Construct a SpaceShip with the specified mass and size at the specified position */
-	SpaceShip(ObjectType type, Real mass, Vector3 position);
+	SpaceShip(ObjectType type, Real mass, Vector3 position, PagedMemoryPool * memoryMgr);
 
 	/** Construct a SpaceShip with the specified mass and size at the origin */
-	SpaceShip(ObjectType type, Real mass);
+	SpaceShip(ObjectType type, Real mass, PagedMemoryPool * memoryMgr);
 
 	/** Copy constructor */
 	SpaceShip(const SpaceShip& copy);
@@ -300,6 +316,9 @@ public:
 	 */
 	GameArena(Real size, int pageSize, int initPages);
 
+	/** Deconstructor */
+	~GameArena();
+
 	/** Registers a GameArenaListener with the GameArena */
 	void addGameArenaListener(GameArenaListener * listener);
 
@@ -373,7 +392,7 @@ public:
 	void generateSolarSystem();
 
 	/** @return The memory manager used by this GameArena */
-	PagedMemoryPool memoryManager();
+	PagedMemoryPool * memoryManager();
 };
 
 #endif

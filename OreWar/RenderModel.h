@@ -318,7 +318,7 @@ public:
 	int getNumObjects() const;
 
 	/** @return The memory manager used by this RenderModel */
-	PagedMemoryPool memoryManager();
+	PagedMemoryPool * memoryManager();
 };
 
 #endif

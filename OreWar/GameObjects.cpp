@@ -6,25 +6,26 @@ using namespace Ogre;
 // ========================================================================
 // GameObject Implementation
 // ========================================================================
-GameObject::GameObject(const SphereCollisionObject& object, ObjectType type, Real maxHealth, Real maxEnergy, Real energyRechargeRate)
-	: mp_physModel(NULL), m_maxHealth(maxHealth), m_health(maxHealth), m_maxEnergy(maxEnergy), m_energy(maxEnergy),
+GameObject::GameObject(const SphereCollisionObject& object, ObjectType type, Real maxHealth, Real maxEnergy, 
+	Real energyRechargeRate, PagedMemoryPool * memoryMgr)
+	: mp_memory(memoryMgr), mp_physModel(NULL), m_maxHealth(maxHealth), m_health(maxHealth), m_maxEnergy(maxEnergy), m_energy(maxEnergy),
 	m_energyRechargeRate(energyRechargeRate), m_type(type)
 {
-	mp_physModel = new SphereCollisionObject(object);
+	mp_physModel = mp_memory->storeObject(SphereCollisionObject(object));
 }
 
 GameObject::GameObject(const GameObject& copy)
-	: mp_physModel(NULL), m_maxHealth(copy.m_maxHealth), m_health(copy.m_maxHealth), 
+	: mp_memory(copy.mp_memory), mp_physModel(NULL), m_maxHealth(copy.m_maxHealth), m_health(copy.m_maxHealth), 
 	m_maxEnergy(copy.m_maxEnergy), m_energy(copy.m_maxEnergy), m_energyRechargeRate(copy.m_energyRechargeRate),
 	m_type(copy.m_type)
 {
-	mp_physModel = new SphereCollisionObject(*copy.phys());
+	mp_physModel = mp_memory->storeObject(SphereCollisionObject(*copy.phys()));
 }
 
 
 GameObject::~GameObject()
 {
-	delete mp_physModel;
+	mp_memory->destroyObject(mp_physModel);
 }
 
 SphereCollisionObject * GameObject::phys() const
@@ -35,6 +36,11 @@ SphereCollisionObject * GameObject::phys() const
 ObjectType GameObject::type() const
 {
 	return m_type;
+}
+
+PagedMemoryPool * GameObject::memoryManager() const
+{
+	return mp_memory;
 }
 
 Real GameObject::health() const
@@ -103,8 +109,8 @@ void GameObject::drainEnergy(Real energy)
 // Projectile Implementation
 // ========================================================================
 
-Projectile::Projectile(const SphereCollisionObject& physModel, ObjectType type, Real damage)
-	: GameObject(physModel, type, 1, 0, 0), m_damage(damage)
+Projectile::Projectile(const SphereCollisionObject& physModel, ObjectType type, Real damage, PagedMemoryPool * memoryMgr)
+	: GameObject(physModel, type, 1, 0, 0, memoryMgr), m_damage(damage)
 {
 }
 
@@ -122,18 +128,24 @@ Real Projectile::damage()
 // ========================================================================
 // Weapon Implementation
 // ========================================================================
-Weapon::Weapon(Real reloadTime, Real energyCost) : m_reloadTime(reloadTime), m_lastShotCounter(reloadTime),
+Weapon::Weapon(Real reloadTime, Real energyCost, PagedMemoryPool * memoryMgr) 
+	: mp_memory(memoryMgr), m_reloadTime(reloadTime), m_lastShotCounter(reloadTime),
 	m_canShoot(true), m_energyCost(energyCost)
 {
 }
 
-Weapon::Weapon(const Weapon& copy) : m_reloadTime(copy.m_reloadTime), m_lastShotCounter(copy.m_lastShotCounter),
+Weapon::Weapon(const Weapon& copy) : mp_memory(copy.mp_memory), m_reloadTime(copy.m_reloadTime), m_lastShotCounter(copy.m_lastShotCounter),
 	m_canShoot(copy.m_canShoot), m_energyCost(copy.m_energyCost)
 {
 }
 
 Weapon::~Weapon()
 {
+}
+
+PagedMemoryPool * Weapon::memoryManager() const
+{
+	return mp_memory;
 }
 
 bool Weapon::canShoot() const
@@ -166,7 +178,7 @@ void Weapon::updatePhysics(Real timeElapsed) {
 // ========================================================================
 // PlasmaCannon Implementation
 // ========================================================================
-PlasmaCannon::PlasmaCannon() : Weapon(0.2, 10), m_shootLeft(true)
+PlasmaCannon::PlasmaCannon(PagedMemoryPool * memoryMgr) : Weapon(0.2, 10, memoryMgr), m_shootLeft(true)
 {
 }
 
@@ -191,14 +203,14 @@ Projectile PlasmaCannon::fireWeapon(PhysicsObject& origin)
 
 	m_shootLeft = !m_shootLeft;
 	resetShotCounter();
-	return Projectile(projectilePhysics, ObjectType::PROJECTILE, 35);
+	return Projectile(projectilePhysics, ObjectType::PROJECTILE, 35, memoryManager());
 }
 
 
 // ========================================================================
 // AnchorLauncher Implementation
 // ========================================================================
-AnchorLauncher::AnchorLauncher() : Weapon(3, 40)
+AnchorLauncher::AnchorLauncher(PagedMemoryPool * memoryMgr) : Weapon(3, 40, memoryMgr)
 {
 }
 
@@ -213,23 +225,23 @@ Projectile AnchorLauncher::fireWeapon(PhysicsObject& origin)
 	projectilePhysics.orientation(origin.orientation());
 
 	resetShotCounter();
-	return Projectile(projectilePhysics, ObjectType::ANCHOR_PROJECTILE, 0);
+	return Projectile(projectilePhysics, ObjectType::ANCHOR_PROJECTILE, 0, memoryManager());
 }
 
 
 // ========================================================================
 // CelestialBody Implementation
 // ========================================================================
-CelestialBody::CelestialBody(ObjectType type, Real mass, Real radius, Vector3 position)
+CelestialBody::CelestialBody(ObjectType type, Real mass, Real radius, Vector3 position, PagedMemoryPool * memoryMgr)
 	: GameObject(SphereCollisionObject(radius, mass, position), type, 10000, 10000,
-		1000), mp_center(NULL), m_radius(0)
+		1000, memoryMgr), mp_center(NULL), m_radius(radius)
 {
 }
 
 CelestialBody::CelestialBody(ObjectType type, Real mass, Real radius, CelestialBody * center, 
-	Real distance, Real speed)
+	Real distance, Real speed, PagedMemoryPool * memoryMgr)
 	: GameObject(SphereCollisionObject(radius, mass, Vector3(0,0,0)), type, 10000, 10000,
-		1000), mp_center(center), m_radius(radius)
+		1000, memoryMgr), mp_center(center), m_radius(radius)
 {
 	Real totalDistance = distance + radius + center->radius();
 	
@@ -300,18 +312,18 @@ void CelestialBody::updatePhysics(Real timeElapsed)
 // ========================================================================
 // SpaceShip Implementation
 // ========================================================================
-SpaceShip::SpaceShip(ObjectType type, Real mass, Vector3 position, Real energyRecharge) : 
-	GameObject(SphereCollisionObject(150, mass, position), type, 100, 100, energyRecharge), mp_weapons()
+SpaceShip::SpaceShip(ObjectType type, Real mass, Vector3 position, Real energyRecharge, PagedMemoryPool * memoryMgr) : 
+	GameObject(SphereCollisionObject(150, mass, position), type, 100, 100, energyRecharge, memoryMgr), mp_weapons()
 {
 }
 
-SpaceShip::SpaceShip(ObjectType type, Real mass, Vector3 position) : 
-	GameObject(SphereCollisionObject(150, mass, position), type, 100, 100, 5), mp_weapons()
+SpaceShip::SpaceShip(ObjectType type, Real mass, Vector3 position, PagedMemoryPool * memoryMgr) : 
+	GameObject(SphereCollisionObject(150, mass, position), type, 100, 100, 5, memoryMgr), mp_weapons()
 {
 }
 
-SpaceShip::SpaceShip(ObjectType type, Real mass) :
-	GameObject(SphereCollisionObject(150, mass), type, 100, 100, 5), mp_weapons()
+SpaceShip::SpaceShip(ObjectType type, Real mass, PagedMemoryPool * memoryMgr) :
+	GameObject(SphereCollisionObject(150, mass), type, 100, 100, 5, memoryMgr), mp_weapons()
 {
 }
 
@@ -322,14 +334,14 @@ SpaceShip::SpaceShip(const SpaceShip& copy) :
 
 PlasmaCannon * SpaceShip::addPlasmaCannon(const PlasmaCannon& weapon)
 {
-	PlasmaCannon * newCannon = new PlasmaCannon(weapon);
+	PlasmaCannon * newCannon = memoryManager()->storeObject(PlasmaCannon(weapon));
 	mp_weapons.push_back(newCannon);
 	return newCannon;
 }
 
 AnchorLauncher * SpaceShip::addAnchorLauncher(const AnchorLauncher& weapon)
 {
-	AnchorLauncher * newLauncher = new AnchorLauncher(weapon);
+	AnchorLauncher * newLauncher = memoryManager()->storeObject(AnchorLauncher(weapon));
 	mp_weapons.push_back(newLauncher);
 	return newLauncher;
 }
@@ -363,6 +375,11 @@ void SpaceShip::updatePhysics(Real timeElapsed)
 GameArena::GameArena(Real size, int pageSize, int initPages) : m_arenaSize(size), m_playerShip(NULL), m_npcShips(), m_projectiles(),
 	m_bodies(), m_constraints(), m_listeners(), m_memory(pageSize, initPages)
 {
+}
+
+GameArena::~GameArena() 
+{
+	// TODO: Deallocate all memory
 }
 
 void GameArena::notifyObjectCreation(GameObject * object)
@@ -428,7 +445,7 @@ SpaceShip * GameArena::setPlayerShip(const SpaceShip& ship) {
 
 	// TODO: Deconstructor needs to handle deleting this
 	// memory
-	m_playerShip = new SpaceShip(ship);
+	m_playerShip = memoryManager()->storeObject(SpaceShip(ship));
 	notifyObjectCreation(m_playerShip);
 
 	return m_playerShip;
@@ -746,7 +763,7 @@ void GameArena::updatePhysics(Real timeElapsed)
 					
 					SphereCollisionObject projectilePhysics = SphereCollisionObject(500, 1, relOffset + center);
 					projectilePhysics.velocity(relOffset.normalisedCopy() * 4000 + centerVelocity);
-					addProjectile(Projectile(projectilePhysics, ObjectType::PLANET_CHUNK, 50));
+					addProjectile(Projectile(projectilePhysics, ObjectType::PLANET_CHUNK, 50, &m_memory));
 				}
 
 				break;
@@ -786,7 +803,7 @@ void GameArena::updatePhysics(Real timeElapsed)
 void GameArena::generateSolarSystem() 
 {
 	// Generate a star in the middle of the arena
-	CelestialBody * star = addBody(CelestialBody(ObjectType::STAR, 100000, 10000, Vector3(0, 0, 0)));
+	CelestialBody * star = addBody(CelestialBody(ObjectType::STAR, 100000, 10000, Vector3(0, 0, 0), &m_memory));
 	srand(time(NULL));
 	Real totalDistance = 5000;
 
@@ -801,7 +818,7 @@ void GameArena::generateSolarSystem()
 		Real speed = Math::RangeRandom(2000, 8000);
 
 		CelestialBody * planet = addBody(CelestialBody(ObjectType::PLANET, 10000, planetRadius,
-			star, totalDistance, speed));
+			star, totalDistance, speed, &m_memory));
 
 		int numMoons = rand() % 3;
 		Real moonDistance = planetRadius * 0.3;
@@ -810,7 +827,7 @@ void GameArena::generateSolarSystem()
 			moonDistance += Math::RangeRandom(planetRadius * 0.5, planetRadius * 1);
 			speed = Math::RangeRandom(1, 3) * moonDistance;
 			CelestialBody * moon = addBody(CelestialBody(ObjectType::MOON, 1000, moonRadius,
-				planet, moonDistance, speed));
+				planet, moonDistance, speed, &m_memory));
 		}
 	}
 
@@ -822,7 +839,7 @@ void GameArena::generateSolarSystem()
 		Real speed = Math::RangeRandom(8000, 15000);
 
 		CelestialBody * planet = addBody(CelestialBody(ObjectType::PLANET, 10000, planetRadius,
-			star, totalDistance, speed));
+			star, totalDistance, speed, &m_memory));
 
 		int numMoons = rand() % 5 + 2;
 		Real moonDistance = planetRadius * 0.3;
@@ -831,7 +848,7 @@ void GameArena::generateSolarSystem()
 			moonDistance += Math::RangeRandom(planetRadius * 0.2, planetRadius * 0.4);
 			speed = Math::RangeRandom(2, 4) * moonDistance;
 			CelestialBody * moon = addBody(CelestialBody(ObjectType::MOON, 1000, moonRadius,
-				planet, moonDistance, speed));
+				planet, moonDistance, speed, &m_memory));
 		}
 	}
 
@@ -844,7 +861,7 @@ void GameArena::generateSolarSystem()
 		Real speed = Math::RangeRandom(20000, 25000);
 
 		CelestialBody * planet = addBody(CelestialBody(ObjectType::PLANET, 10000, planetRadius,
-			star, totalDistance, speed));
+			star, totalDistance, speed, &m_memory));
 
 		int numMoons = rand() % 2;
 		Real moonDistance = planetRadius * 0.3;
@@ -853,11 +870,12 @@ void GameArena::generateSolarSystem()
 			moonDistance += Math::RangeRandom(planetRadius * 0.2, planetRadius * 0.4);
 			speed = Math::RangeRandom(2, 4) * moonDistance;
 			CelestialBody * moon = addBody(CelestialBody(ObjectType::MOON, 1000, moonRadius,
-				planet, moonDistance, speed));
+				planet, moonDistance, speed, &m_memory));
 		}
 	}
 }
 
-PagedMemoryPool GameArena::memoryManager() {
-	return m_memory;
+PagedMemoryPool * GameArena::memoryManager()
+{
+	return &m_memory;
 }
