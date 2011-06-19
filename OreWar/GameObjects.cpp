@@ -109,19 +109,37 @@ void GameObject::drainEnergy(Real energy)
 // Projectile Implementation
 // ========================================================================
 
-Projectile::Projectile(const SphereCollisionObject& physModel, ObjectType type, Real damage, PagedMemoryPool * memoryMgr)
-	: GameObject(physModel, type, 1, 0, 0, memoryMgr), m_damage(damage)
+Projectile::Projectile(const SphereCollisionObject& physModel, ObjectType type, Real damage, 
+	Real lifeTime, PagedMemoryPool * memoryMgr)
+	: GameObject(physModel, type, 1, 0, 0, memoryMgr), m_damage(damage), m_lifeTime(lifeTime),
+	m_elapsedTime(0)
 {
 }
 
 void Projectile::updatePhysics(Real timeElapsed)
 {
+	m_elapsedTime += timeElapsed;
 	phys()->updatePhysics(timeElapsed);
 }
 
-Real Projectile::damage()
+Real Projectile::damage() const
 {
 	return m_damage;
+}
+
+Real Projectile::lifeTime() const
+{
+	return m_lifeTime;
+}
+
+Real Projectile::lifeTime(Real time)
+{
+	m_lifeTime = time;
+}
+
+bool Projectile::expired() const
+{
+	return m_elapsedTime > m_lifeTime;
 }
 
 
@@ -189,8 +207,8 @@ PlasmaCannon::PlasmaCannon(const PlasmaCannon& copy) : Weapon(copy), m_shootLeft
 Projectile PlasmaCannon::fireWeapon(PhysicsObject& origin)
 {
 	SphereCollisionObject projectilePhysics = SphereCollisionObject(75, 1, origin.position());
-	projectilePhysics.velocity(origin.velocity() + origin.heading() * 4000);
-	projectilePhysics.applyForce(origin.heading() * 4000);
+	projectilePhysics.velocity(origin.velocity() + origin.heading() * 12000);
+	// projectilePhysics.applyForce(origin.heading() * 4000);
 	projectilePhysics.orientation(origin.orientation());
 
 	if(m_shootLeft) {
@@ -203,7 +221,7 @@ Projectile PlasmaCannon::fireWeapon(PhysicsObject& origin)
 
 	m_shootLeft = !m_shootLeft;
 	resetShotCounter();
-	return Projectile(projectilePhysics, ObjectType::PROJECTILE, 35, memoryManager());
+	return Projectile(projectilePhysics, ObjectType::PROJECTILE, 35, 10, memoryManager());
 }
 
 
@@ -225,7 +243,7 @@ Projectile AnchorLauncher::fireWeapon(PhysicsObject& origin)
 	projectilePhysics.orientation(origin.orientation());
 
 	resetShotCounter();
-	return Projectile(projectilePhysics, ObjectType::ANCHOR_PROJECTILE, 0, memoryManager());
+	return Projectile(projectilePhysics, ObjectType::ANCHOR_PROJECTILE, 0, 120, memoryManager());
 }
 
 
@@ -233,15 +251,15 @@ Projectile AnchorLauncher::fireWeapon(PhysicsObject& origin)
 // CelestialBody Implementation
 // ========================================================================
 CelestialBody::CelestialBody(ObjectType type, Real mass, Real radius, Vector3 position, PagedMemoryPool * memoryMgr)
-	: GameObject(SphereCollisionObject(radius, mass, position), type, 10000, 10000,
-		1000, memoryMgr), mp_center(NULL), m_radius(radius)
+	: GameObject(SphereCollisionObject(radius, mass, position), type, 100, 0,
+		0, memoryMgr), mp_center(NULL), m_radius(radius)
 {
 }
 
 CelestialBody::CelestialBody(ObjectType type, Real mass, Real radius, CelestialBody * center, 
 	Real distance, Real speed, PagedMemoryPool * memoryMgr)
-	: GameObject(SphereCollisionObject(radius, mass, Vector3(0,0,0)), type, 10000, 10000,
-		1000, memoryMgr), mp_center(center), m_radius(radius)
+	: GameObject(SphereCollisionObject(radius, mass, Vector3(0,0,0)), type, 100, 0,
+		0, memoryMgr), mp_center(center), m_radius(radius)
 {
 	Real totalDistance = distance + radius + center->radius();
 	
@@ -314,8 +332,10 @@ Real CelestialBody::radius() const
 void CelestialBody::updatePhysics(Real timeElapsed)
 {
 	phys()->updatePhysics(timeElapsed);
-	health(maxHealth());
-	energy(maxEnergy());
+	
+	// DEBUG: Indestructible planets
+	// health(maxHealth());
+	// energy(maxEnergy());
 }
 
 
@@ -536,28 +556,28 @@ std::vector<CelestialBody * >::iterator GameArena::destroyBody(CelestialBody * b
 	for(std::vector<CelestialBody * >::iterator iter =  mp_bodies.begin(); 
 		iter != mp_bodies.end();)
 	{
-		if(bodyCenter != NULL && (*iter)->hasCenter() && (*iter)->center() == body) {
+		if((*iter)->hasCenter() && (*iter)->center() == body) {
 			(*iter)->center(bodyCenter);
+			if(bodyCenter != NULL) {
+				addConstraint((*iter)->constraint());
+			}
 		}
 
-		if(*iter == body) {
-			if(body->hasCenter()) {
-				// Ensure any constraints attached to this body are also destroyed
-				for(std::vector<Constraint * >::iterator conIter =  mp_constraints.begin(); 
-					conIter != mp_constraints.end();)
+		if(foundBody == false && *iter == body) {
+
+			// Ensure any constraints attached to this body are also destroyed
+			for(std::vector<Constraint * >::iterator conIter =  mp_constraints.begin(); 
+				conIter != mp_constraints.end();)
+			{
+				SphereCollisionObject * bodyPhys = body->phys();
+				if((*conIter)->getTarget() == bodyPhys || (*conIter)->getOrigin() == bodyPhys)
 				{
-					SphereCollisionObject * bodyPhys = body->phys();
-					if((*conIter)->getTarget() == bodyPhys || (*conIter)->getOrigin() == bodyPhys)
-					{
-						conIter = destroyConstraint(*conIter);
-					} else {
-						conIter++;
-					}
+					conIter = destroyConstraint(*conIter);
+				} else {
+					conIter++;
 				}
 			}
 
-			notifyObjectDestruction(body);
-			m_memory.destroyObject(body);
 			returnIter = mp_bodies.erase(iter);
 			iter = returnIter;
 			foundBody = true;
@@ -567,6 +587,8 @@ std::vector<CelestialBody * >::iterator GameArena::destroyBody(CelestialBody * b
 	}
 
 	if(foundBody) {
+		notifyObjectDestruction(body);
+		m_memory.destroyObject(body);
 		return returnIter;
 	} else {
 		// TODO: Throw exception, constraint not found
@@ -685,6 +707,7 @@ void GameArena::updatePhysics(Real timeElapsed)
 		mp_playerShip->addEnergy(mp_playerShip->energyRecharge() * timeElapsed);
 		SphereCollisionObject * playerShipPhys = mp_playerShip->phys();
 
+		/*
 		if(playerShipPhys->position().x > m_arenaSize || playerShipPhys->position().x < - m_arenaSize
 			|| playerShipPhys->position().y > m_arenaSize || playerShipPhys->position().y < - m_arenaSize
 			|| playerShipPhys->position().z > m_arenaSize || playerShipPhys->position().z < - m_arenaSize) 
@@ -694,6 +717,7 @@ void GameArena::updatePhysics(Real timeElapsed)
 			// Slowly drain health if outside game boundaries
 			// mp_playerShip->health(mp_playerShip->health() - (timeElapsed * 5));
 		}
+		*/
 	}
 
 	// Update physics for all NPC ships
@@ -721,9 +745,7 @@ void GameArena::updatePhysics(Real timeElapsed)
 		(*projIter)->updatePhysics(timeElapsed);
 		SphereCollisionObject * projPhys = (*projIter)->phys();
 
-		if(projPhys->position().x > m_arenaSize || projPhys->position().x < - m_arenaSize
-			|| projPhys->position().y > m_arenaSize || projPhys->position().y < - m_arenaSize
-			|| projPhys->position().z > m_arenaSize || projPhys->position().z < - m_arenaSize) 
+		if((*projIter)->expired()) 
 		{
 			projIter = destroyProjectile((*projIter));
 			continue;
@@ -751,7 +773,8 @@ void GameArena::updatePhysics(Real timeElapsed)
 
 	// Deal fatal damage to any entity that collides with a celestial body
 	for(std::vector<CelestialBody * >::iterator bodyIter =  mp_bodies.begin(); 
-		bodyIter != mp_bodies.end(); ) 
+		bodyIter != mp_bodies.end(); 
+		bodyIter++) 
 	{
 		if((*bodyIter)->phys()->checkCollision(*(mp_playerShip->phys()))) {
 			mp_playerShip->inflictDamage(500);
@@ -761,6 +784,12 @@ void GameArena::updatePhysics(Real timeElapsed)
 			projIter != mp_projectiles.end(); )
 		{
 			if((*bodyIter)->phys()->checkCollision(*(*projIter)->phys())) {
+				
+				// DEBUG: Allow projectiles to damage planets
+				if((*bodyIter)->type() != STAR && (*projIter)->type() != PLANET_CHUNK) {
+					(*bodyIter)->inflictDamage((*projIter)->damage());
+				}
+
 				projIter = destroyProjectile(*projIter);
 			} else {
 				projIter++;
@@ -777,58 +806,53 @@ void GameArena::updatePhysics(Real timeElapsed)
 			}
 		}
 
-		bool gotCollision = false;
-
+		// Check for body on body collisions, and deal fatal damage to the smaller
+		// body in any collision
 		for(std::vector<CelestialBody * >::iterator colBodyIter =  mp_bodies.begin(); 
-			colBodyIter != mp_bodies.end(); )
+			colBodyIter != mp_bodies.end();
+			colBodyIter++)
 		{
 			if((*bodyIter) != (*colBodyIter)
 				&& (*bodyIter)->phys()->checkCollision(*(*colBodyIter)->phys())) {
-				// Two celestial bodies collided, destroy the smaller and generate 25
-				// random projectiles inside the remains of each
-				gotCollision = true;
-				Vector3 center, centerVelocity;
-				Real radius;
 
+				// Two celestial bodies collided, deal fatal damage to the smaller
+				// of the two
 				if((*bodyIter)->radius() > (*colBodyIter)->radius()) {
-					radius = (*colBodyIter)->radius();
-					center = (*colBodyIter)->phys()->position();
-					centerVelocity = (*colBodyIter)->phys()->velocity();
-					bodyIter = destroyBody((*colBodyIter));
-
-					// Restart collision checking when a hit is found? Have to find
-					// a better way to do this whole thing
-					bodyIter = mp_bodies.begin();
-
+					(*colBodyIter)->inflictDamage(10000);
 				} else {
-					radius = (*bodyIter)->radius();
-					center = (*bodyIter)->phys()->position();
-					centerVelocity = (*bodyIter)->phys()->velocity();
-
-					bodyIter = destroyBody((*bodyIter));
+					(*bodyIter)->inflictDamage(10000);
 				}
-
-				for(int i = 0; i < 20; i++) {
-					Real randAngle = Math::UnitRandom() * (2 * Math::PI);
-					Real randMu = Math::RangeRandom(-1, 1);
-					Vector3 pointOnUnitSphere = Vector3(
-						Math::Cos(randAngle) * Math::Sqrt(1 - Math::Sqr(randMu)),
-						randMu,
-						Math::Sin(randAngle) * Math::Sqrt(1 - Math::Sqr(randMu)));
-					Vector3 relOffset = pointOnUnitSphere * radius * Math::RangeRandom(0, 1);
-					
-					SphereCollisionObject projectilePhysics = SphereCollisionObject(500, 1, relOffset + center);
-					projectilePhysics.velocity(relOffset.normalisedCopy() * 4000 + centerVelocity);
-					addProjectile(Projectile(projectilePhysics, ObjectType::PLANET_CHUNK, 50, &m_memory));
-				}
-
-				break;
-			} else {
-				colBodyIter++;
 			}
 		}
+	}
 
-		if(!gotCollision) {
+	// Detonate any planet with less than 0 health
+	for(std::vector<CelestialBody * >::iterator bodyIter =  mp_bodies.begin(); 
+		bodyIter != mp_bodies.end(); ) 
+	{
+		if((*bodyIter)->health() < 0) {
+			// Generate random projectiles originating from the center of the
+			// detonating body
+			Real radius = (*bodyIter)->radius();
+			Vector3 centerVelocity = (*bodyIter)->phys()->velocity();
+			Vector3 center = (*bodyIter)->phys()->position();
+
+			for(int i = 0; i < 20; i++) {
+				Real randAngle = Math::UnitRandom() * (2 * Math::PI);
+				Real randMu = Math::RangeRandom(-1, 1);
+				Vector3 pointOnUnitSphere = Vector3(
+					Math::Cos(randAngle) * Math::Sqrt(1 - Math::Sqr(randMu)),
+					randMu,
+					Math::Sin(randAngle) * Math::Sqrt(1 - Math::Sqr(randMu)));
+				Vector3 relOffset = pointOnUnitSphere * radius * Math::RangeRandom(0, 1);
+					
+				SphereCollisionObject projectilePhysics = SphereCollisionObject(500, 1, relOffset + center);
+				projectilePhysics.velocity(relOffset.normalisedCopy() * 4000 + centerVelocity);
+				addProjectile(Projectile(projectilePhysics, ObjectType::PLANET_CHUNK, 50, 10, &m_memory));
+			}
+
+			bodyIter = destroyBody(*bodyIter);
+		} else {
 			bodyIter++;
 		}
 	}
@@ -887,6 +911,7 @@ void GameArena::generateSolarSystem()
 	}
 
 	// Outer planets - giants
+	totalDistance += Math::RangeRandom(2000, 8000);
 	int numOuterPlanets = rand() % 4 + 2;
 	for(int i = 0; i < numOuterPlanets; i++) {
 		totalDistance += Math::RangeRandom(8000, 14000);

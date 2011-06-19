@@ -4,7 +4,7 @@ particle_system Orewar/PlanetTrail
     particle_width 500
     particle_height 500
     cull_each false
-    quota 600
+    quota 3000
     billboard_type point
 
     // Area emitter
@@ -17,14 +17,6 @@ particle_system Orewar/PlanetTrail
         velocity_min 0
         velocity_max 0
         colour 0 0 1
-    }
-    
-    // Fader
-    affector ColourFader
-    {
-        red +0.0166
-        green 0
-        blue -0.0166
     }
 }
 

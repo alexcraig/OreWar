@@ -290,6 +290,10 @@ CelestialBody * CelestialBodyRO::body() const
 void CelestialBodyRO::updateEffects(Real elapsedTime, Quaternion camOrientation)
 {
 	mp_bodyNode->setPosition(mp_body->phys()->position());
+	Real speedFactor = mp_body->phys()->velocity().length() > Real(30000)? 
+		1 : mp_body->phys()->velocity().length() / Real(30000);
+	mp_particles->getEmitter(0)->setColour(ColourValue(speedFactor, 0, 1 - speedFactor, 1));
+	mp_particles->getEmitter(0)->setEmissionRate((int)(Real(50) * speedFactor));
 }
 
 /** @see RenderObject::loadSceneResources() */ 

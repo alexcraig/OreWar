@@ -85,13 +85,25 @@ class Projectile : public GameObject
 private:
 	Real m_damage;
 
+	/** The total amount of ingame time the projectile should exist for */
+	Real m_lifeTime;
+
+	/** The amount of elapsed time toward the projectiles lifetime */
+	Real m_elapsedTime;
+
 public:
 	Projectile(const SphereCollisionObject& physModel, ObjectType type, Real damage,
-		PagedMemoryPool * memoryMgr);
+		Real lifeTime, PagedMemoryPool * memoryMgr);
 
 	void updatePhysics(Real timeElapsed);
 
-	Real damage();
+	Real damage() const;
+
+	Real lifeTime() const;
+
+	Real lifeTime(Real time);
+
+	bool expired() const;
 };
 
 
