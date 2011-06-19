@@ -206,6 +206,12 @@ public:
 	/** @return True if this body is set to orbit another body */
 	bool hasCenter() const;
 
+	/** Sets the orbital center for the celestial body */
+	void center(CelestialBody * newCenter);
+
+	/** @return A pointer to the orbital center of the celestial body (NULL if none is specified) */
+	CelestialBody * center() const;
+
 	/** @return The radius of the celestial body */
 	Real radius() const;
 
@@ -285,22 +291,22 @@ private:
 	 */
 	Real m_arenaSize;
 
-	SpaceShip * m_playerShip;
+	SpaceShip * mp_playerShip;
 
 	/** A vector of pointers to dynamically allocated memory for all npc ships in the GameArena */
-	std::vector<SpaceShip *> m_npcShips;
+	std::vector<SpaceShip *> mp_npcShips;
 
 	/** A vector of pointers to dynamically allocated memory for all projectiles in the GameArena */
-	std::vector<Projectile *> m_projectiles;
+	std::vector<Projectile *> mp_projectiles;
 
 	/** A vector of pointers to dynamically allocated memory for all celestial bodies in the GameArena */
-	std::vector<CelestialBody *> m_bodies;
+	std::vector<CelestialBody *> mp_bodies;
 
 	/** A vector of pointers to dynamically allocated memory for all projectiles in the GameArena */
-	std::vector<Constraint *> m_constraints;
+	std::vector<Constraint *> mp_constraints;
 
 	/** A vector of pointers to GameArenaListener instances registered with the GameArena*/
-	std::vector<GameArenaListener *> m_listeners;
+	std::vector<GameArenaListener *> mp_listeners;
 
 	/** The paged memory pool which will store game objects */
 	PagedMemoryPool m_memory;
@@ -390,6 +396,9 @@ public:
 
 	/** Generates a randomly distributed solar system (collection of celestial objects) */
 	void generateSolarSystem();
+
+	/** Destroys all celestial bodies, and all constraints that reference them */
+	void clearSolarSystem();
 
 	/** @return The memory manager used by this GameArena */
 	PagedMemoryPool * memoryManager();

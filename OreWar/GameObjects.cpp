@@ -248,7 +248,7 @@ CelestialBody::CelestialBody(ObjectType type, Real mass, Real radius, CelestialB
 	// Generate a random position on a sphere around the center with a radius
 	// equal to the specified distance
 	Real randAngle = Math::UnitRandom() * (2 * Math::PI);
-	Real randMu = Math::RangeRandom(-0.1, 0.1);
+	Real randMu = Math::RangeRandom(-0.2, 0.2);
 	Vector3 pointOnUnitSphere = Vector3(
 		Math::Cos(randAngle) * Math::Sqrt(1 - Math::Sqr(randMu)),
 		randMu,
@@ -294,6 +294,16 @@ Constraint CelestialBody::constraint() const
 bool CelestialBody::hasCenter() const
 {
 	return mp_center != NULL;
+}
+
+void CelestialBody::center(CelestialBody * newCenter)
+{
+	mp_center = newCenter;
+}
+
+CelestialBody * CelestialBody::center() const
+{
+	return mp_center;
 }
 
 Real CelestialBody::radius() const
@@ -372,20 +382,51 @@ void SpaceShip::updatePhysics(Real timeElapsed)
 // ========================================================================
 // GameArena Implementation
 // ========================================================================
-GameArena::GameArena(Real size, int pageSize, int initPages) : m_arenaSize(size), m_playerShip(NULL), m_npcShips(), m_projectiles(),
-	m_bodies(), m_constraints(), m_listeners(), m_memory(pageSize, initPages)
+GameArena::GameArena(Real size, int pageSize, int initPages) : m_arenaSize(size), mp_playerShip(NULL), mp_npcShips(), mp_projectiles(),
+	mp_bodies(), mp_constraints(), mp_listeners(), m_memory(pageSize, initPages)
 {
 }
 
 GameArena::~GameArena() 
 {
+	if(mp_playerShip != NULL) {
+		m_memory.destroyObject(mp_playerShip);
+	}
+
+	for(std::vector<SpaceShip * >::iterator delIter =  mp_npcShips.begin(); 
+		delIter != mp_npcShips.end();
+		delIter++) 
+	{
+		m_memory.destroyObject(*delIter);
+	}
+
+	for(std::vector<CelestialBody * >::iterator delIter =  mp_bodies.begin(); 
+		delIter != mp_bodies.end();
+		delIter++) 
+	{
+		m_memory.destroyObject(*delIter);
+	}
+
+	for(std::vector<Projectile * >::iterator delIter =  mp_projectiles.begin(); 
+		delIter != mp_projectiles.end();
+		delIter++) 
+	{
+		m_memory.destroyObject(*delIter);
+	}
+
+	for(std::vector<Constraint * >::iterator delIter =  mp_constraints.begin(); 
+		delIter != mp_constraints.end();
+		delIter++) 
+	{
+		m_memory.destroyObject(*delIter);
+	}
 	
 }
 
 void GameArena::notifyObjectCreation(GameObject * object)
 {
-	for(std::vector<GameArenaListener * >::iterator listenerIter = m_listeners.begin(); 
-		listenerIter != m_listeners.end();
+	for(std::vector<GameArenaListener * >::iterator listenerIter = mp_listeners.begin(); 
+		listenerIter != mp_listeners.end();
 		listenerIter++)
 	{
 		(*listenerIter)->newGameObject(object);
@@ -394,8 +435,8 @@ void GameArena::notifyObjectCreation(GameObject * object)
 
 void GameArena::notifyObjectDestruction(GameObject * object)
 {
-	for(std::vector<GameArenaListener * >::iterator listenerIter = m_listeners.begin(); 
-		listenerIter != m_listeners.end();
+	for(std::vector<GameArenaListener * >::iterator listenerIter = mp_listeners.begin(); 
+		listenerIter != mp_listeners.end();
 		listenerIter++)
 	{
 		(*listenerIter)->destroyedGameObject(object);
@@ -404,8 +445,8 @@ void GameArena::notifyObjectDestruction(GameObject * object)
 
 void GameArena::notifyConstraintCreation(Constraint * constraint)
 {
-	for(std::vector<GameArenaListener * >::iterator listenerIter = m_listeners.begin(); 
-		listenerIter != m_listeners.end();
+	for(std::vector<GameArenaListener * >::iterator listenerIter = mp_listeners.begin(); 
+		listenerIter != mp_listeners.end();
 		listenerIter++)
 	{
 		(*listenerIter)->newConstraint(constraint);
@@ -414,8 +455,8 @@ void GameArena::notifyConstraintCreation(Constraint * constraint)
 
 void GameArena::notifyConstraintDestruction(Constraint * constraint)
 {
-	for(std::vector<GameArenaListener * >::iterator listenerIter = m_listeners.begin(); 
-		listenerIter != m_listeners.end();
+	for(std::vector<GameArenaListener * >::iterator listenerIter = mp_listeners.begin(); 
+		listenerIter != mp_listeners.end();
 		listenerIter++)
 	{
 		(*listenerIter)->destroyedConstraint(constraint);
@@ -424,12 +465,12 @@ void GameArena::notifyConstraintDestruction(Constraint * constraint)
 
 void GameArena::addGameArenaListener(GameArenaListener * listener) 
 {
-	m_listeners.push_back(listener);
+	mp_listeners.push_back(listener);
 }
 
 void GameArena::removeGameArenaListener(GameArenaListener * listener)
 {
-	m_listeners.erase(std::remove(m_listeners.begin(), m_listeners.end(), listener), m_listeners.end());
+	mp_listeners.erase(std::remove(mp_listeners.begin(), mp_listeners.end(), listener), mp_listeners.end());
 }
 
 Real GameArena::size() const {
@@ -437,24 +478,24 @@ Real GameArena::size() const {
 }
 
 SpaceShip * GameArena::setPlayerShip(const SpaceShip& ship) {
-	if(m_playerShip != NULL) {
-		notifyObjectDestruction(m_playerShip);
-		m_memory.destroyObject(&m_playerShip);
-		m_playerShip = NULL;
+	if(mp_playerShip != NULL) {
+		notifyObjectDestruction(mp_playerShip);
+		m_memory.destroyObject(&mp_playerShip);
+		mp_playerShip = NULL;
 	}
 
 	// TODO: Deconstructor needs to handle deleting this
 	// memory
-	m_playerShip = memoryManager()->storeObject(SpaceShip(ship));
-	notifyObjectCreation(m_playerShip);
+	mp_playerShip = memoryManager()->storeObject(SpaceShip(ship));
+	notifyObjectCreation(mp_playerShip);
 
-	return m_playerShip;
+	return mp_playerShip;
 }
 
 SpaceShip * GameArena::addNpcShip(const SpaceShip& ship)
 {
 	SpaceShip * p_ship = m_memory.storeObject(ship);
-	m_npcShips.push_back(p_ship);
+	mp_npcShips.push_back(p_ship);
 	notifyObjectCreation(p_ship);
 	return p_ship;
 }
@@ -462,7 +503,7 @@ SpaceShip * GameArena::addNpcShip(const SpaceShip& ship)
 Projectile * GameArena::addProjectile(const Projectile& projectile)
 {
 	Projectile * p_projectile = m_memory.storeObject(projectile);
-	m_projectiles.push_back(p_projectile);
+	mp_projectiles.push_back(p_projectile);
 	notifyObjectCreation(p_projectile);
 	return p_projectile;
 }
@@ -470,7 +511,7 @@ Projectile * GameArena::addProjectile(const Projectile& projectile)
 Constraint * GameArena::addConstraint(const Constraint& constraint)
 {
 	Constraint * p_constraint = m_memory.storeObject(constraint);
-	m_constraints.push_back(p_constraint);
+	mp_constraints.push_back(p_constraint);
 	notifyConstraintCreation(p_constraint);
 	return p_constraint;
 }
@@ -481,22 +522,29 @@ CelestialBody * GameArena::addBody(const CelestialBody& body)
 	if(p_body->hasCenter()) {
 		addConstraint(p_body->constraint());
 	}
-	m_bodies.push_back(p_body);
+	mp_bodies.push_back(p_body);
 	notifyObjectCreation(p_body);
 	return p_body;
 }
 
 std::vector<CelestialBody * >::iterator GameArena::destroyBody(CelestialBody * body)
 {
-	for(std::vector<CelestialBody * >::iterator iter =  m_bodies.begin(); 
-		iter != m_bodies.end();
-		iter++)
+	std::vector<CelestialBody * >::iterator returnIter;
+	CelestialBody * bodyCenter = body->center();
+	bool foundBody = false;
+
+	for(std::vector<CelestialBody * >::iterator iter =  mp_bodies.begin(); 
+		iter != mp_bodies.end();)
 	{
+		if(bodyCenter != NULL && (*iter)->hasCenter() && (*iter)->center() == body) {
+			(*iter)->center(bodyCenter);
+		}
+
 		if(*iter == body) {
 			if(body->hasCenter()) {
 				// Ensure any constraints attached to this body are also destroyed
-				for(std::vector<Constraint * >::iterator conIter =  m_constraints.begin(); 
-					conIter != m_constraints.end();)
+				for(std::vector<Constraint * >::iterator conIter =  mp_constraints.begin(); 
+					conIter != mp_constraints.end();)
 				{
 					SphereCollisionObject * bodyPhys = body->phys();
 					if((*conIter)->getTarget() == bodyPhys || (*conIter)->getOrigin() == bodyPhys)
@@ -510,59 +558,67 @@ std::vector<CelestialBody * >::iterator GameArena::destroyBody(CelestialBody * b
 
 			notifyObjectDestruction(body);
 			m_memory.destroyObject(body);
-			return m_bodies.erase(iter);
+			returnIter = mp_bodies.erase(iter);
+			iter = returnIter;
+			foundBody = true;
+		} else {
+			iter++;
 		}
 	}
-	
-	// TODO: Throw exception, constraint not found
-	return m_bodies.end();
+
+	if(foundBody) {
+		return returnIter;
+	} else {
+		// TODO: Throw exception, constraint not found
+		return mp_bodies.end();
+	}
 }
 
 std::vector<Constraint * >::iterator GameArena::destroyConstraint(Constraint * constraint) 
 {
-	for(std::vector<Constraint * >::iterator iter =  m_constraints.begin(); 
-		iter != m_constraints.end();
+	for(std::vector<Constraint * >::iterator iter =  mp_constraints.begin(); 
+		iter != mp_constraints.end();
 		iter++)
 	{
 		if(*iter == constraint) {
 			notifyConstraintDestruction(constraint);
 			m_memory.destroyObject(constraint);
-			return m_constraints.erase(iter);
+			return mp_constraints.erase(iter);
 		}
 	}
 	
 	// TODO: Throw exception, constraint not found
-	return m_constraints.end();
+	return mp_constraints.end();
 }
 
 std::vector<Projectile * >::iterator GameArena::destroyProjectile(Projectile * projectile) 
 {
-	for(std::vector<Projectile * >::iterator iter =  m_projectiles.begin(); 
-		iter != m_projectiles.end();
+	for(std::vector<Projectile * >::iterator iter =  mp_projectiles.begin(); 
+		iter != mp_projectiles.end();
 		iter++)
 	{
 		if(*iter == projectile) {
 			notifyObjectDestruction(projectile);
 			m_memory.destroyObject(projectile);
-			return m_projectiles.erase(iter);
+			return mp_projectiles.erase(iter);
 		}
 	}
 	
 	// TODO: Throw exception, projectile not found
-	return m_projectiles.end();
+	return mp_projectiles.end();
 }
 
 std::vector<SpaceShip * >::iterator GameArena::destroyNpcShip(SpaceShip * npcShip) 
 {
-	for(std::vector<SpaceShip * >::iterator iter =  m_npcShips.begin(); 
-		iter != m_npcShips.end();
+	for(std::vector<SpaceShip * >::iterator iter =  mp_npcShips.begin(); 
+		iter != mp_npcShips.end();
 		iter++)
 	{
 		if(*iter == npcShip) 
 		{
 			// Ensure any constraints attached to this ship are also destroyed
-			for(std::vector<Constraint * >::iterator conIter =  m_constraints.begin(); 
-				conIter != m_constraints.end();)
+			for(std::vector<Constraint * >::iterator conIter =  mp_constraints.begin(); 
+				conIter != mp_constraints.end();)
 			{
 				SphereCollisionObject * shipPhys = npcShip->phys();
 				if((*conIter)->getTarget() == shipPhys || (*conIter)->getOrigin() == shipPhys)
@@ -574,17 +630,17 @@ std::vector<SpaceShip * >::iterator GameArena::destroyNpcShip(SpaceShip * npcShi
 			}
 			notifyObjectDestruction(npcShip);
 			m_memory.destroyObject(npcShip);
-			return m_npcShips.erase(iter);
+			return mp_npcShips.erase(iter);
 		}
 	}
 
 	// TODO: Throw exception, ship not found
-	return m_npcShips.end();
+	return mp_npcShips.end();
 }
 
 SpaceShip * GameArena::playerShip()
 {
-	return m_playerShip;
+	return mp_playerShip;
 }
 
 Projectile * GameArena::fireProjectileFromShip(SpaceShip * ship, int weaponIndex)
@@ -593,41 +649,41 @@ Projectile * GameArena::fireProjectileFromShip(SpaceShip * ship, int weaponIndex
 }
 
 std::vector<Projectile *> * GameArena::projectiles() {
-	return & m_projectiles;
+	return & mp_projectiles;
 }
 
 std::vector<SpaceShip *> * GameArena::npcShips() {
-	return & m_npcShips;
+	return & mp_npcShips;
 }
 
 std::vector<CelestialBody *> * GameArena::bodies() {
-	return & m_bodies;
+	return & mp_bodies;
 }
 
 void GameArena::updatePhysics(Real timeElapsed)
 {
 	// Apply forces from constraints
-	for(std::vector<Constraint * >::iterator conIter =  m_constraints.begin(); 
-		conIter != m_constraints.end();
+	for(std::vector<Constraint * >::iterator conIter =  mp_constraints.begin(); 
+		conIter != mp_constraints.end();
 		conIter++)
 	{
 		(*conIter)->applyForces(timeElapsed);
 	}
 
 	// Update physics for orbiting bodies
-	for(std::vector<CelestialBody * >::iterator bodyIter =  m_bodies.begin(); 
-		bodyIter != m_bodies.end();
+	for(std::vector<CelestialBody * >::iterator bodyIter =  mp_bodies.begin(); 
+		bodyIter != mp_bodies.end();
 		bodyIter++) 
 	{
 		(*bodyIter)->updatePhysics(timeElapsed);
 	}
 
 	// Update the player ship's physics, and reverse its velocity if it passes a wall
-	if(m_playerShip != NULL) 
+	if(mp_playerShip != NULL) 
 	{
-		m_playerShip->updatePhysics(timeElapsed);
-		m_playerShip->addEnergy(m_playerShip->energyRecharge() * timeElapsed);
-		SphereCollisionObject * playerShipPhys = m_playerShip->phys();
+		mp_playerShip->updatePhysics(timeElapsed);
+		mp_playerShip->addEnergy(mp_playerShip->energyRecharge() * timeElapsed);
+		SphereCollisionObject * playerShipPhys = mp_playerShip->phys();
 
 		if(playerShipPhys->position().x > m_arenaSize || playerShipPhys->position().x < - m_arenaSize
 			|| playerShipPhys->position().y > m_arenaSize || playerShipPhys->position().y < - m_arenaSize
@@ -636,13 +692,13 @@ void GameArena::updatePhysics(Real timeElapsed)
 			// playerShipPhys->velocity(playerShipPhys->velocity() * Vector3(-1, -1, -1));
 			
 			// Slowly drain health if outside game boundaries
-			// m_playerShip->health(m_playerShip->health() - (timeElapsed * 5));
+			// mp_playerShip->health(mp_playerShip->health() - (timeElapsed * 5));
 		}
 	}
 
 	// Update physics for all NPC ships
-	for(std::vector<SpaceShip * >::iterator shipIter =  m_npcShips.begin(); 
-		shipIter != m_npcShips.end();
+	for(std::vector<SpaceShip * >::iterator shipIter =  mp_npcShips.begin(); 
+		shipIter != mp_npcShips.end();
 		shipIter++) 
 	{
 		(*shipIter)->updatePhysics(timeElapsed);
@@ -659,8 +715,8 @@ void GameArena::updatePhysics(Real timeElapsed)
 	}
 
 	// Update physics for projectiles and check for collisions
-	for(std::vector<Projectile * >::iterator projIter =  m_projectiles.begin(); 
-		projIter != m_projectiles.end(); )
+	for(std::vector<Projectile * >::iterator projIter =  mp_projectiles.begin(); 
+		projIter != mp_projectiles.end(); )
 	{
 		(*projIter)->updatePhysics(timeElapsed);
 		SphereCollisionObject * projPhys = (*projIter)->phys();
@@ -674,8 +730,8 @@ void GameArena::updatePhysics(Real timeElapsed)
 		}
 
 		bool projDestroyed = false;
-		for(std::vector<SpaceShip * >::iterator shipIter =  m_npcShips.begin(); 
-			shipIter != m_npcShips.end();
+		for(std::vector<SpaceShip * >::iterator shipIter =  mp_npcShips.begin(); 
+			shipIter != mp_npcShips.end();
 			shipIter++) 
 		{
 			if(projPhys->checkCollision(*(*shipIter)->phys())) 
@@ -694,15 +750,15 @@ void GameArena::updatePhysics(Real timeElapsed)
 	}
 
 	// Deal fatal damage to any entity that collides with a celestial body
-	for(std::vector<CelestialBody * >::iterator bodyIter =  m_bodies.begin(); 
-		bodyIter != m_bodies.end(); ) 
+	for(std::vector<CelestialBody * >::iterator bodyIter =  mp_bodies.begin(); 
+		bodyIter != mp_bodies.end(); ) 
 	{
-		if((*bodyIter)->phys()->checkCollision(*(m_playerShip->phys()))) {
-			m_playerShip->inflictDamage(500);
+		if((*bodyIter)->phys()->checkCollision(*(mp_playerShip->phys()))) {
+			mp_playerShip->inflictDamage(500);
 		}
 
-		for(std::vector<Projectile * >::iterator projIter =  m_projectiles.begin(); 
-			projIter != m_projectiles.end(); )
+		for(std::vector<Projectile * >::iterator projIter =  mp_projectiles.begin(); 
+			projIter != mp_projectiles.end(); )
 		{
 			if((*bodyIter)->phys()->checkCollision(*(*projIter)->phys())) {
 				projIter = destroyProjectile(*projIter);
@@ -711,8 +767,8 @@ void GameArena::updatePhysics(Real timeElapsed)
 			}
 		}
 		
-		for(std::vector<SpaceShip * >::iterator shipIter =  m_npcShips.begin(); 
-		shipIter != m_npcShips.end();) 
+		for(std::vector<SpaceShip * >::iterator shipIter =  mp_npcShips.begin(); 
+		shipIter != mp_npcShips.end();) 
 		{
 			if((*bodyIter)->phys()->checkCollision(*(*shipIter)->phys())) {
 				shipIter = destroyNpcShip(*shipIter);
@@ -723,8 +779,8 @@ void GameArena::updatePhysics(Real timeElapsed)
 
 		bool gotCollision = false;
 
-		for(std::vector<CelestialBody * >::iterator colBodyIter =  m_bodies.begin(); 
-			colBodyIter != m_bodies.end(); )
+		for(std::vector<CelestialBody * >::iterator colBodyIter =  mp_bodies.begin(); 
+			colBodyIter != mp_bodies.end(); )
 		{
 			if((*bodyIter) != (*colBodyIter)
 				&& (*bodyIter)->phys()->checkCollision(*(*colBodyIter)->phys())) {
@@ -742,7 +798,7 @@ void GameArena::updatePhysics(Real timeElapsed)
 
 					// Restart collision checking when a hit is found? Have to find
 					// a better way to do this whole thing
-					bodyIter = m_bodies.begin();
+					bodyIter = mp_bodies.begin();
 
 				} else {
 					radius = (*bodyIter)->radius();
@@ -778,8 +834,8 @@ void GameArena::updatePhysics(Real timeElapsed)
 	}
 
 	// After all projectile collisions, remove any ships with less than 0 health
-	for(std::vector<SpaceShip * >::iterator shipIter =  m_npcShips.begin(); 
-		shipIter != m_npcShips.end();) 
+	for(std::vector<SpaceShip * >::iterator shipIter =  mp_npcShips.begin(); 
+		shipIter != mp_npcShips.end();) 
 	{
 			if ((*shipIter)->health() <= 0)
 			{
@@ -792,10 +848,10 @@ void GameArena::updatePhysics(Real timeElapsed)
 	}
 
 	// Reset the player ship if they "die"
-	if(m_playerShip->health() <= 0) {
-		m_playerShip->health(m_playerShip->maxHealth());
-		m_playerShip->phys()->velocity(Vector3(0, 0, 0));
-		m_playerShip->phys()->position(Vector3(10000, 10000, 10000));
+	if(mp_playerShip->health() <= 0) {
+		mp_playerShip->health(mp_playerShip->maxHealth());
+		mp_playerShip->phys()->velocity(Vector3(0, 0, 0));
+		mp_playerShip->phys()->position(Vector3(10000, 10000, 10000));
 	}
 }
 
@@ -804,7 +860,6 @@ void GameArena::generateSolarSystem()
 {
 	// Generate a star in the middle of the arena
 	CelestialBody * star = addBody(CelestialBody(ObjectType::STAR, 100000, 10000, Vector3(0, 0, 0), &m_memory));
-	srand(time(NULL));
 	Real totalDistance = 5000;
 
 	// TODO: This should be refactored to remove copy/pasting code
@@ -872,6 +927,14 @@ void GameArena::generateSolarSystem()
 			CelestialBody * moon = addBody(CelestialBody(ObjectType::MOON, 1000, moonRadius,
 				planet, moonDistance, speed, &m_memory));
 		}
+	}
+}
+
+void GameArena::clearSolarSystem() {
+	for(std::vector<CelestialBody * >::iterator iter =  mp_bodies.begin(); 
+		iter != mp_bodies.end();)
+	{
+		iter = destroyBody(*iter);
 	}
 }
 

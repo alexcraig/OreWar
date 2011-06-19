@@ -20,7 +20,7 @@ public:
 		m_camHeight(0), m_camOffset(0), m_arena(200000, 2048, 10), m_mgr(mgr),
 		m_thirdPersonCam(false), m_renderModel(m_arena, m_mgr, 2048, 10), mp_vp(cam->getViewport()), mp_fps(NULL), m_timer(0),
 		mp_renderWindow(renderWindow), m_con(NULL), m_camParticle(NULL), m_camNode(NULL), m_camParticleNode(NULL),
-		mp_healthBar(NULL), mp_energyBar(NULL), mp_speedBar(NULL)
+		mp_healthBar(NULL), mp_energyBar(NULL), mp_speedBar(NULL), m_clearReleased(true)
 	{
 		m_cam->setFarClipDistance(0);
 		m_arena.generateSolarSystem();
@@ -98,6 +98,16 @@ public:
 
 			npcShipPhysics->orientation(Vector3(0, 0, -1).getRotationTo(npcShipPhysics->velocity()));
 			m_arena.addNpcShip(npcShip);
+		}
+
+		if(m_Keyboard->isKeyDown(OIS::KC_G)) {
+			if(m_clearReleased) {
+				m_arena.clearSolarSystem();
+				m_arena.generateSolarSystem();
+				m_clearReleased = false;
+			}
+		} else {
+			m_clearReleased = true;
 		}
 
 		// Adjust or reset the camera modifiers
@@ -220,9 +230,9 @@ public:
 		{
 			m_timer = 0;
 			mp_fps->text("FPS: " + Ogre::StringConverter::toString(mp_renderWindow->getLastFPS())
-				+ " - RenderObjects: " + Ogre::StringConverter::toString(m_renderModel.getNumObjects())
+				// + " - RenderObjects: " + Ogre::StringConverter::toString(m_renderModel.getNumObjects())
 				// + " - Health: " + Ogre::StringConverter::toString(playerShip->health())
-				+ " - ModelMemPages: " + Ogre::StringConverter::toString(m_arena.memoryManager()->numPages())
+				// + " - ModelMemPages: " + Ogre::StringConverter::toString(m_arena.memoryManager()->numPages())
 				+ " - ModelAllocBytes: " + Ogre::StringConverter::toString(m_arena.memoryManager()->allocatedBytes())
 				+ " - ModelTotalBytes: " + Ogre::StringConverter::toString(m_arena.memoryManager()->totalBytes())
 				// + " - ModelCurPage: " + Ogre::StringConverter::toString(m_arena.memoryManager()->currentPage())
@@ -283,6 +293,8 @@ private:
 	Gorilla::Rectangle * mp_healthBar;
 	Gorilla::Rectangle * mp_energyBar;
 	Gorilla::Rectangle * mp_speedBar;
+
+	bool m_clearReleased;
 };
  
 class Application
